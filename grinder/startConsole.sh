@@ -1,0 +1,6 @@
+#!/bin/bash
+GRINDERPATH=$COMMON_HOME/grinder
+GRINDERPROPERTIES=$GRINDERPATH/grinder.properties
+CLASSPATH=$GRINDERPATH/lib/*.jar:$COMMON_HOME/lib/*.jar:$CLASSPATH
+export CLASSPATH PATH GRINDERPROPERTIES
+java -cp $CLASSPATH net.grinder.Console -headless

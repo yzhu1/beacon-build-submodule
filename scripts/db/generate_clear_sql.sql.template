@@ -1,0 +1,13 @@
+
+SET search_path TO #SCHEMA#;
+
+SELECT 'DROP ' || CASE WHEN c.relkind='S' then 'SEQUENCE' 
+                          WHEN c.relkind='r' then 'TABLE'
+                          ELSE '__FIXME__'
+                     END
+        ||  ' IF EXISTS '   || n.nspname || '.' || c.relname || ' CASCADE;'
+     FROM pg_catalog.pg_class AS c
+LEFT JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+    WHERE c.relkind in ('S', 'r')
+      AND n.nspname NOT LIKE 'pg%'
+      AND pg_catalog.pg_table_is_visible(c.oid);

@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<project name="threetwelve">
+    <!-- If you are getting the error: 
+            "[taskdef] Could not load definitions from resource net/sf/antcontrib/antlib.xml. It could not be found."
+         then you need to copy ant-contrib.jar from common/lib/build to
+         your ant's lib directory (in ubuntu that's /usr/share/ant/lib/). -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
+    </taskdef>
+
+    <var file="${common.dir}/default.build.properties"/>
+    <var file="${app.dir}/default.build.properties"/>
+    <var file="${app.dir}/build.properties"/>
+
+    <import file="deployTargets.xml"/>
+    <import file="ivyTargets.xml"/>
+    <import file="jarTargets.xml"/>
+    <import file="dbTargets.xml"/>
+    <import file="serverTargets.xml"/>
+    <import file="testTargets.xml"/>
+
+    <target name="restart"  depends="apache-stop,tomcat-stop,tomcat-clean,deploy,tomcat-start,apache-start"
+    />
+    
+    <macrodef name="spring-runner">
+        <attribute name="context"/>
+        <attribute name="bean" />
+        <attribute name="method" />
+        <element name="args-nested" implicit="true" optional="true"/>
+        <sequential>
+            <java
+                maxmemory="512m"
+                failonerror="true"
+                fork="true"
+                classname="net.wgen.spring.util.SpringRunner"
+                >
+                <arg value="@{context}"/>
+                <arg value="@{bean}"/>
+                <arg value="@{method}"/>
+                <args-nested/>
+                <jvmarg value="-D${servlet.name}.env.config.dir=${app.dir}/config"/>
+                <jvmarg value="-Dcommon.env.config.dir=${common.dir}/config"/>
+                <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+                <classpath>
+                    <fileset dir="${lib.dir}" includes="**/*.jar" />
+                    <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
+                    <pathelement location="${app.resources.dir}" />
+                    <pathelement location="${common.resources.dir}" />
+                    <pathelement location="${common.test.resources.dir}" />
+                    <pathelement location="${unit.test.classes.dir}" />
+                    <pathelement location="${integration.test.classes.dir}" />
+                    <pathelement location="${webservice.test.classes.dir}"/>
+                    <pathelement location="${webdriver.test.classes.dir}" />
+                </classpath>
+            </java>
+        </sequential>
+    </macrodef>
+    
+    <macrodef name="load-context">
+            <attribute name="context"/>
+            <sequential>
+                <java
+                    maxmemory="512m"
+                    failonerror="true"
+                    fork="true"
+                    classname="net.wgen.spring.util.SpringRunner"
+                    >
+                    <arg value="@{context}"/>
+                    <jvmarg value="-D${servlet.name}.env.config.dir=${app.dir}/config"/>
+                    <jvmarg value="-Dcommon.env.config.dir=${common.dir}/config"/>
+                    <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+                    <classpath>
+                        <fileset dir="${lib.dir}" includes="**/*.jar" />
+                        <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
+                        <pathelement location="${app.resources.dir}" />
+                        <pathelement location="${common.resources.dir}" />
+                        <pathelement location="${common.test.resources.dir}" />
+                        <pathelement location="${unit.test.classes.dir}" />
+                        <pathelement location="${integration.test.classes.dir}" />
+                        <pathelement location="${webservice.test.classes.dir}"/>
+                        <pathelement location="${webdriver.test.classes.dir}" />
+                    </classpath>
+                </java>
+            </sequential>
+        </macrodef>
+    
+</project>

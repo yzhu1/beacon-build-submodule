@@ -1,0 +1,84 @@
+# Service-specific configuration file for tomcat6. This will be sourced by
+# the SysV init script after the global configuration file
+# /etc/tomcat6/tomcat6.conf, thus allowing values to be overridden in
+# a per-service manner.
+#
+# NEVER change the init script itself. To change values for all services make
+# your changes in /etc/tomcat6/tomcat6.conf
+#
+# To change values for a specific service make your edits here.
+# To create a new service create a link from /etc/init.d/<your new service> to
+# /etc/init.d/tomcat6 (do not copy the init script) and make a copy of the
+# /etc/sysconfig/tomcat6 file to /etc/sysconfig/<your new service> and change
+# the property values so the two services won't conflict. Register the new
+# service in the system as usual (see chkconfig and similars).
+#
+
+TOMCAT_CFG=/etc/sysconfig/tt
+
+# Where your java installation lives
+#JAVA_HOME="/usr/lib/jvm/java"
+
+# Where your tomcat installation lives
+CATALINA_HOME="/usr/share/tomcat6"
+#CATALINA_BASE="/usr/share/tomcat6"
+CATALINA_BASE="/opt/tt"
+#JASPER_HOME="/usr/share/tomcat6"
+#CATALINA_TMPDIR="/var/tmp/tomcat6"
+
+ARIS_ROOT="/opt/tt"
+
+# You can pass some parameters to java here if you wish to
+#JAVA_OPTS="-Xminf0.1 -Xmaxf0.3"
+#JAVA_OPTS="-Xmx512m"
+
+JAVA_OPTS="$JAVA_OPTS -Dcommon.env.config.dir=${CATALINA_BASE}/app-config -Doib.env.config.dir=${CATALINA_BASE}/app-config -Doutcomes.env.config.dir=${CATALINA_BASE}/app-config -Doa.env.config.dir=${CATALINA_BASE}/app-config -Djavax.net.ssl.trustStore=/opt/wgen/etc/pki/cacerts"
+
+# allow external connections for JMX
+#JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9004 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=$ARIS_ROOT/arisconfig/$RUNTIME_ENV_NAME/jmxremote.password -Dcom.sun.management.jmxremote.access.file=$ARIS_ROOT/arisconfig/$RUNTIME_ENV_NAME/jmxremote.access"
+
+# Use JAVA_OPTS to set java.library.path for libtcnative.so
+#JAVA_OPTS="-Djava.library.path=/usr/lib"
+
+# We want the server version of the JVM.  This is just good practice for server
+# applications, but specifically we want the server behavior which will prefer growing
+# the heap to cleaning up soft references.  Soft references are used by the Views
+# query cache.
+#
+# We can configure the time to live for soft references with respect to the amount of
+# max heap space left.  Default for Java 1.6 is 1 second/MB.  We should specify this
+# explicitly even when using the default so that it is easy for someone to change it.
+#
+# more information:
+# http://java.sun.com/docs/hotspot/HotSpotFAQ.html#gc_softrefs
+# http://java.sun.com/docs/hotspot/HotSpotFAQ.html#compiler_types
+JAVA_OPTS="$JAVA_OPTS -server -XX:SoftRefLRUPolicyMSPerMB=1000"
+
+# What user should run tomcat
+#TOMCAT_USER="tomcat"
+
+# You can change your tomcat locale here
+#LANG="en_US"
+
+# Run tomcat under the Java Security Manager
+#SECURITY_MANAGER="false"
+
+# Time to wait in seconds, before killing process
+#SHUTDOWN_WAIT="30"
+
+# Whether to annoy the user with "attempting to shut down" messages or not
+#SHUTDOWN_VERBOSE="false"
+
+# Set the TOMCAT_PID location
+CATALINA_PID="/var/run/tt.pid"
+
+# Connector port is 8080 for this tomcat6 instance
+#CONNECTOR_PORT="8080"
+
+# If you wish to further customize your tomcat environment,
+# put your own definitions here
+# (i.e. LD_LIBRARY_PATH for some jdbc drivers)
+
+JAVA_HOME="/usr/java/jdk1.6.0_16"
+
+

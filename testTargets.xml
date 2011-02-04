@@ -1,0 +1,532 @@
+<?xml version="1.0"?>
+<project name="test">
+    <property file="${common.dir}/default.test.properties" />
+	<property environment="sys_env" />
+	<!--
+    <property name="threetwelve.test.checkout.common" value="${sys_env.COMMON_HOME}" />
+    <condition property="threetwelve.test.checkout.app" 
+    	value="${sys_env.OUTCOMES_HOME}" else="${sys_env.THREETWELVE_HOME}" >
+    	<equals arg1="${threetwelve.servlet.name}" arg2="outcomes"/>
+    </condition>
+-->
+    <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
+             resource="checkstyletask.properties"
+    />
+    <path id="cobertura.classpath">
+        <fileset dir="${coverage.lib.dir}" />
+        <fileset dir="${lib.dir}" includes="*.jar" />
+    </path>
+    <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+
+    <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
+    <import file="deployTargets.xml"/>
+    <import file="dbTargets.xml"/>
+    <import file="serverTargets.xml"/>
+
+    <path id="test.classpath.base">
+        <path refid="cobertura.classpath" />
+        <fileset dir="${lib.dir}" includes="*.jar" />
+        <fileset dir="${lib.dir}/sel" includes="*.jar" />
+        <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
+        <pathelement location="${unit.test.classes.dir}" />
+    </path>
+    <path id="test.classpath.run-base">
+        <path refid="test.classpath.base" />
+        <pathelement location="${app.resources.dir}" />
+        <pathelement location="${common.resources.dir}" />
+        <pathelement location="${common.test.resources.dir}" />
+    </path>
+    <path id="test.classpath.run-integration">
+        <path refid="test.classpath.run-base" />
+        <pathelement location="${test.src.dir}" />
+        <pathelement location="${webdriver.test.classes.dir}" />
+        <pathelement location="${integration.test.classes.dir}" />
+    	<pathelement location="${webservice.test.classes.dir}" />
+    </path>
+
+    <target name="test-quick" description="Run embarassing-to-fail tests" depends="quicktests"/>
+    
+    <target
+        name="quicktests"
+        depends="jslint,jslint-common,template-lint,checkstyle,test-unit"
+    />
+
+    <target name="alltests">
+        <trycatch>
+            <try>
+                <antcall target="alltests-run"/>
+            </try>
+            <finally>
+                <antcall target="tomcat-stop"/>
+                <antcall target="apache-stop"/>
+                <antcall target="apache-start"/>
+            </finally>
+        </trycatch>
+    </target>
+
+    <target name="test-all" description="all tests" depends="alltests"/>
+        
+    <target name="alltests-run" 
+        depends="clean, test-clean, deploy,
+        checkstyle, template-lint, jslint-common,
+        test-compile, test-unit,
+        clear-schema, load-baseline-database, migrate-schema,
+        test-integration, test-webservice,
+        rollback-schema,
+        load-fixtures-snapshot,
+        apache-stop, tomcat-start, apache-start, 
+        test-webdriver"/>
+
+    <target name="test-clean">
+        <delete dir="${test.classes.dir}" />
+        <delete dir="${webdriver.test.classes.dir}" />
+        <delete dir="${unit.test.classes.dir}" />
+        <delete dir="${integration.test.classes.dir}" />
+        <delete dir="${webservice.test.classes.dir}"/>
+        <delete dir="${results.dir}" />
+        <delete dir="${reports.dir}" />
+    </target>
+
+    <!-- Compile junit test classes -->
+    <target name="test-compile" depends="test-clean, build-app-jars, cobertura-instrument-jars"
+        description="Compile the tests">
+
+        <mkdir dir="${test.classes.dir}" />
+        <mkdir dir="${unit.test.classes.dir}" />
+        <mkdir dir="${integration.test.classes.dir}" />
+        <mkdir dir="${webservice.test.classes.dir}"/>
+        <mkdir dir="${webdriver.test.classes.dir}" />
+        <mkdir dir="${results.dir}" />
+
+        <path id="test.classpath.compile">
+            <path refid="test.classpath.base" />
+            <pathelement location="${integration.test.classes.dir}" />
+            <pathelement location="${webservice.test.classes.dir}"/>
+            <pathelement location="${webdriver.test.classes.dir}" />
+        </path>
+
+        <macrodef name="javac-test">
+            <attribute name="srcdir" />
+            <attribute name="destdir" />
+            <element name="javac-nested" implicit="true" optional="true"/>
+            <sequential>
+                <javac 
+                    srcdir="@{srcdir}"
+                    destdir="@{destdir}"
+                    excludes="${test.src.exclude}"
+                    classpathref="test.classpath.compile"
+                    deprecation="${build.deprecation}"
+                    debug="on"
+                    optimize="${build.optimization}"
+                    compiler="${build.compiler}"
+                    source="${build.source}"
+                    target="${build.target}"
+                    encoding="UTF-8"
+                    includeantruntime="no"
+                >
+                    <javac-nested />
+                </javac>
+            </sequential>
+        </macrodef>
+
+        <!-- Compile the common unit tests -->
+        <javac-test srcdir="${common.unit.src.dir}" destdir="${unit.test.classes.dir}" />
+
+        <!-- Compile the common integration tests -->
+        <javac-test srcdir="${common.integration.src.dir}" destdir="${integration.test.classes.dir}" />
+
+        <!-- Compile the common webservice tests -->
+        <javac-test srcdir="${common.webservice.src.dir}" destdir="${webservice.test.classes.dir}" />
+
+        <!-- Compile the common webdriver tests -->
+        <javac-test srcdir="${common.webdriver.src.dir}" destdir="${webdriver.test.classes.dir}" />
+
+        <!-- Compile the app unit tests -->
+        <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
+
+        <!-- Compile the app integration tests -->
+        <javac-test  srcdir="${app.integration.src.dir}" destdir="${integration.test.classes.dir}" />
+
+        <!-- Compile the app webservice tests -->
+        <javac-test srcdir="${app.webservice.src.dir}" destdir="${webservice.test.classes.dir}"  />
+
+        <!-- Compile the app webdriver tests -->
+        <javac-test  srcdir="${app.webdriver.src.dir}" destdir="${webdriver.test.classes.dir}" />
+
+        <!-- Copy spring context to integration test dir -->
+        <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
+            <fileset dir="${common.context.src.dir}" includes="*-context.xml"/>
+            <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml"/>
+            <filterset begintoken="&quot;" endtoken="&quot;">
+                <filter token="ui-context.xml" value="&quot;test-ui-context.xml&quot;"/>
+            </filterset>
+        </copy>
+        <!-- copy test-specific spring context (no filtering games need be played) -->
+        <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
+            <fileset dir="${context.integration.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.common.integration.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.webdriver.dir}" includes="*-context.xml"/>
+        </copy>
+        <!-- Copy freemarker templates to integration test dir, for tests that use FreeMarkerMerger -->
+        <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
+            <fileset dir="${app.freemarker.dir}" includes="**/*.ftl"/>
+        </copy>
+        <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
+            <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
+        </copy>
+    </target>
+
+    <macrodef name="junit-explicit">
+        <attribute name="label" />
+        <attribute name="classpathref" />
+        <attribute name="coverage-file" default="${coverage.data.file.ignored}" />
+        <element name="junit-filesets" implicit="true" optional="false" />
+        <sequential>
+            <if>
+                <available file="${coverage.data.file.base}" />
+                <!-- copy base coverage file, overwriting previous version for this test -->
+                <!-- but don't make a fuss if it's not there to copy -->
+                <then>
+                    <copy
+                        file="${coverage.data.file.base}"
+                        tofile="@{coverage-file}"
+                        overwrite="true"
+                    />
+                </then>
+            </if>
+            <junit
+                fork="yes"
+                forkmode="perBatch"
+                haltonfailure="false"
+                haltonerror="false"
+                printsummary="yes"
+                showoutput="yes"
+                failureproperty="junit.failed"
+                maxmemory="512m"
+                >
+                <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
+                <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
+                <sysproperty key="threetwelve.common.checkout.dir" file="${common.dir}" />
+                <sysproperty key="threetwelve.app.checkout.dir" file="${app.dir}" />
+                <formatter type="brief" />
+                <formatter type="xml" />
+
+                <classpath refid="@{classpathref}" />
+                <sysproperty key="net.sourceforge.cobertura.datafile" file="@{coverage-file}" />
+
+                <jvmarg value="-Xmx256m" />
+            	<!--<jvmarg value="${test.vm.args}" />-->
+                <batchtest todir="${results.dir}">
+                    <junit-filesets />
+                </batchtest>
+
+            </junit>
+            <if>
+                <istrue value="${junit.failed}" />
+                <then>
+                    <concat>
+                        <header filtering="no" trimleading="yes">
+                              TEST FAILURES
+                              =============
+                        </header>
+                        <fileset dir="${results.dir}" includes="TEST-*.txt" />
+                        <filterchain>
+                            <linecontainsregexp>
+                                <regexp pattern="Testcase.*(ERROR|FAILED)" />
+                            </linecontainsregexp>
+                        </filterchain>
+                    </concat>
+                   <fail message="@{label} failed" />
+               </then>
+            </if>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="junit-standard">
+        <attribute name="label" />
+        <attribute name="classpathref" />
+        <attribute name="testdir" />
+        <attribute name="coverage-file" />
+        <sequential>
+            <junit-explicit 
+                label="@{label}" classpathref="@{classpathref}" coverage-file="@{coverage-file}" >
+                <fileset
+                        dir="@{testdir}"
+                        includes="${tests.include}"
+                        excludes="${tests.exclude}"
+                />
+            </junit-explicit>
+        </sequential>
+    </macrodef>
+
+    <target name="test-one" depends="one" description="run one test (see target 'one')"/>
+
+    <target name="one" depends="test-clean, test-compile" 
+        description="Run a single test: use with -Dtest=NameOfTest">
+        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
+            <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${webdriver.test.classes.dir}" includes="**/${test}.class" />
+        </junit-explicit>
+    </target>
+
+    <target name="test-webdriver" depends="test-clean, clean, test-compile"
+        description="Run all webdriver tests">
+        <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->
+        <junit-standard
+            label="Webdriver tests"
+            classpathref="test.classpath.run-integration"
+            testdir="${webdriver.test.classes.dir}"
+            coverage-file="${coverage.data.file.ignored}"
+        />
+    </target>
+
+    <target name="test-slow" depends="test-clean, test-compile" 
+        description="Run all tests with the @Slow annotation">
+
+		<!--set slow tests to run in the properties file-->
+		<property name="run.slow.smoke.tests" value="true" file="${app.config.dir}/${servlet.name}.properties" />
+
+        <antcall target="test-webdriver" />
+		
+        <!--unset slow tests to run in the properties file-->
+        <property name="run.slow.smoke.tests" value="false" file="${app.config.dir}/${servlet.name}.properties" />
+
+     </target>
+    
+    <target name="test-webservice" depends="test-clean, test-compile" 
+            description="Run all webservice tests">
+        <junit-standard
+            label="Webservice tests"
+            testdir="${webservice.test.classes.dir}"
+            classpathref="test.classpath.run-integration"
+            coverage-file="${coverage.data.file.test-webservice}"
+        />
+    </target>
+
+    <target name="test-integration" depends="test-clean, test-compile" 
+        description="Run all integration tests">
+        <junit-standard
+            label="Integration tests"
+            testdir="${integration.test.classes.dir}"
+            classpathref="test.classpath.run-integration"
+            coverage-file="${coverage.data.file.test-integration}"
+        />
+    </target>
+	
+    <target name="test-unit" depends="test-clean, test-compile" 
+        description="Run all unit tests">
+        <junit-standard
+            label="Unit tests"
+            classpathref="test.classpath.run-base"
+            testdir="${unit.test.classes.dir}"
+            coverage-file="${coverage.data.file.test-unit}"
+        />
+    </target>
+
+    <target name="-cobertura-setup" if="build.cobertura">
+        <mkdir dir="${coverage.data.dir}" />
+    </target>
+    <target name="cobertura-instrument-jars" if="build.cobertura" depends="-cobertura-setup">
+        <if>
+            <not>
+                <uptodate targetfile="${coverage.data.file.base}">
+                    <srcfiles dir="${jar.outdir}" includes="*.jar" />
+                </uptodate>
+            </not>
+            <then>
+                <cobertura-instrument datafile="${coverage.data.file.base}">
+                    <includeClasses regex=".*" />
+                    <excludeClasses regex=".*\bURL(Prefix|Param)" />
+                    <excludeClasses regex=".*\bModel(Keys|Attr)" />
+                    <excludeClasses regex=".*\bJSONKey(s?)" />
+                    <excludeClasses regex=".*\bTemplates" />
+                    <instrumentationClasspath>
+                        <fileset dir="${jar.outdir}" includes="*.jar" />
+                    </instrumentationClasspath>
+                </cobertura-instrument>
+            </then>
+        </if>
+    </target>
+    <target name="-cobertura-merge">
+        <!-- we could try to get fancy and use a "depend" filter on the fileset below -->
+        <!-- or we could just re-do the merge every time.  Seems simpler this way -->
+        <delete file="${coverage.data.file.combined}" />
+        <cobertura-merge datafile="${coverage.data.file.combined}">
+            <fileset dir="${coverage.data.dir}">
+                <include name="*.ser" />
+                <exclude name="${coverage.data.file.ignored}" />
+            </fileset>
+        </cobertura-merge>
+    </target>
+    <target name="cobertura-report" depends="-cobertura-merge">
+        <mkdir dir="${coverage.reports.dir}" />
+        <cobertura-report
+            format="html"
+            datafile="${coverage.data.file.combined}"
+            destdir="${coverage.reports.dir}"
+            >
+            <fileset dir="${app.src.dir}" />
+            <fileset dir="${common.src.dir}" />
+        </cobertura-report>
+    </target>
+
+    <target name="cobertura-report-xml" depends="-cobertura-merge">
+        <mkdir dir="${coverage.reports.dir}" />
+        <cobertura-report
+            format="xml"
+            datafile="${coverage.data.file.combined}"
+            destdir="${coverage.reports.dir}"
+            >
+            <fileset dir="${app.src.dir}" />
+            <fileset dir="${common.src.dir}" />
+        </cobertura-report>
+    </target>
+
+    <target name="cobertura-dump-webapp">
+        <fail message="dump request failed">
+            <condition>
+                <not>
+                    <http
+                     url="http://localhost:8080/${servlet.name}/liveops/webservices/cobertura/dump"
+                     />
+                </not>
+            </condition>
+        </fail>
+    </target>
+
+    <target name="checkstyle" description="Run checkstyle">
+        <mkdir dir="${results.dir}"/>
+
+        <checkstyle config="${common.dir}/checkstyle.xml" failonviolation="true">
+            <fileset dir="${app.src.dir}" includes="**/*.java" />
+            <fileset dir="${app.unit.src.dir}" includes="**/*.java" />
+            <fileset dir="${app.integration.src.dir}" includes="**/*.java" />
+            <fileset dir="${app.webservice.src.dir}" includes="**/*.java" />
+            <fileset dir="${app.webdriver.src.dir}" includes="**/*.java" />  
+            <fileset dir="${common.src.dir}" includes="**/*.java" />
+            <fileset dir="${common.unit.src.dir}" includes="**/*.java" />
+            <fileset dir="${common.integration.src.dir}" includes="**/*.java" />
+            <fileset dir="${common.webservice.src.dir}" includes="**/*.java" />
+            <fileset dir="${common.webdriver.src.dir}" includes="**/*.java" />
+            <formatter type="xml" toFile="${results.dir}/checkstyle-errors.xml" />
+            <formatter type="plain" usefile="false" />
+        </checkstyle>
+        <fail if="checkstyle.failed" message="Checkstyle failed" />
+    </target>
+
+    <target name="checkstyleWithLayeringViolations"
+        description="Run checkstyle with layering violations">
+        <mkdir dir="${results.dir}"/>
+
+        <checkstyle config="${common.dir}/checkstyleWithLayeringViolations.xml" failonviolation="true" >
+            <fileset dir="${common.src.dir}" includes="**/*.java" />
+            <formatter type="xml" toFile="${results.dir}/checkstyle-errors.xml" />
+            <formatter type="plain" usefile="false" />
+        </checkstyle>
+        
+        <checkstyle config="${app.dir}/checkstyleWithLayeringViolations.xml" failonviolation="true" classpathref="checkstyle.classpath">
+            <fileset dir="${app.src.dir}" includes="**/*.java" />
+            <formatter type="xml" toFile="${results.dir}/checkstyle-errors.xml" />
+            <formatter type="plain" usefile="false" />
+        </checkstyle>
+        <fail if="checkstyle.failed" message="Checkstyle failed" />
+    </target>
+
+    <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
+
+    <target name="jslint">
+        <jslint haltOnFailure="${jslint.fatal}" options="browser, sub, forin">
+            <predef>$$j,Class</predef>
+            <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
+            <formatter type="plain"/>
+            <fileset dir="${app.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js" />
+            <fileset dir="${common.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js" />
+        </jslint>
+        <exec executable="grep"
+              outputproperty="build.js.grep.output"
+              resultproperty="build.js.grep.return"
+              failonerror="false">
+           <arg value="-r" />
+           <arg value="${app.web.dir}/WEB-INF/freemarker" />
+           <arg value="${app.web.dir}/static/js" />
+           <arg value="-F" />
+           <arg value="-e" />
+           <arg value="$j.get" />
+           <arg value="-e" />
+           <arg value="$j.post" />
+           <arg value="-e" />
+           <arg value="$j.ajax" />
+           <arg value="--exclude" />
+           <arg value="global_ready.js" />
+        </exec>
+        <condition property="build.js.errors">
+            <and>
+                <equals arg1="0" arg2="${build.js.grep.return}" />
+                <istrue value="${jslint.fatal}" />
+            </and>
+        </condition>
+        <fail if="build.js.errors" >
+            ${build.js.grep.output}
+        </fail>
+    </target>
+    
+    <target name="jslint-common">
+        <jslint options="browser, devel">
+            <predef>$$j,Class</predef>
+            <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
+            <formatter type="plain"/>
+            <fileset dir="${common.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js" />
+        </jslint>
+    </target>
+
+    <!-- Don't use this for now... -->
+    <target name="jslint-css">
+        <jslint options="css">
+            <formatter type="plain" destfile="${results.dir}/jslint_css.out" />
+            <fileset dir="${app.static.dir}" includes="**/*.css" />
+            <fileset dir="${common.static.dir}" includes="**/*.css" />
+        </jslint>
+    </target>
+
+    <target name="template-lint"
+        description="Check templates for static URLS and any other bad behaviors" >
+        <exec executable="grep"
+              outputproperty="build.template.grep.output"
+              resultproperty="build.template.grep.return"
+              failonerror="false">
+           <arg value="-r" />
+           <arg value="${app.web.dir}/WEB-INF/freemarker" />
+           <!-- check for hard-coding of the context name -->
+           <arg value="-e" />
+           <arg value="/${servlet.name}" />
+           <!-- check for manual imports of auto-imported utility macros -->
+           <arg value="-e" />
+           <arg value="util.ftl" />
+           <!-- customization file is the only place those strings are allowed to appear -->
+           <arg value="--exclude" />
+           <arg value="util_constants.ftl" />
+        </exec>
+        <condition property="build.template.errors">
+            <equals arg1="0" arg2="${build.template.grep.return}" />
+        </condition>
+        <fail if="build.template.errors" >
+            ${build.template.grep.output}
+        </fail>
+    </target>
+    <target name="this-too-shall-pass">
+        <echo>
+    LUCY:             For now we're healthy.
+    BRIAN:            For now we're employed.
+    BAD IDEA BEARS:   For now we're happy...
+    KATE MONSTER:     If not overjoyed.
+    PRINCETON:        And we'll accept the things we cannot avoid,
+                      For now...
+    GARY COLEMAN:     For now...
+    TREKKIE MONSTER:  For now...
+    KATE MONSTER:     For now...
+    ALL:              But only for now!
+        </echo>
+    </target>
+</project>

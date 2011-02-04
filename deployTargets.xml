@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<project name="deploy">
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
+    </taskdef>
+    
+    <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
+    <import file="jarTargets.xml"/>
+    <import file="serverTargets.xml"/>
+
+    <target name="switchBranchAndRefresh"
+    	description="Use with -DbranchName=[NameOfBranchToSwitchTo]">
+    	<fail unless="branchName"> You must specify the branchname.
+    		Usage ant switchBranchAndRefresh -DbranchName=[NameOfBranchToSwitchTo]
+    	</fail>
+        <sequential>
+            <echo>Switching to branch ${branchName}</echo>
+            <exec executable="bash" failonerror="true">
+                <arg value="${common.dir}/scripts/dev/switchBranchAndRefresh.sh" />
+                <arg value="${branchName}" />
+             </exec>
+         </sequential>
+    </target>
+	
+    <target name="clean" description="Clean the build directory" >
+        <delete dir="${deploy.classes.dir}"/>
+        <delete dir="${deploy.common.classes.dir}"/>
+        <delete dir="${deploy.resources.dir}"/>
+        <delete dir="${deploy.static.dir}"/>
+        <delete dir="${deploy.root.dir}"/>
+        <delete dir="${jar.outdir}"/>
+        <delete dir="${coverage.data.dir}" />
+    </target>
+	
+    <target name="clean-deploy" description="Clean and deploy the web app for developers"
+            depends="tomcat-clean, clean, deploy"
+        >
+    </target>
+    
+    <target name="deploy" depends="war" description="Build and deploy the web application">
+        <copy file="${war.outdir}/${war.name}" tofile="${tomcat.webapp.dir}/${war.servlet.name}"/>	            
+    </target>	
+	
+    <target name="do-deploy" depends="build-app-jars">
+        <mkdir dir="${deploy.root.dir}"/>
+        
+        <!-- copy the freemarker templates, spring context, and web.xml into the war -->
+        <copy todir="${deploy.root.dir}" encoding="UTF-8">
+            <fileset dir="${common.web.dir}" includes="**" excludes="static/**"/>
+            <fileset dir="${app.web.dir}" includes="**" excludes="static/**"/>
+            <filterchain>
+                <replacetokens>
+                <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
+                    <token key="git.revision" value="${git.revision}"/>
+                    <token key="git.common.revision" value="${git.common.revision}"/>
+                    <token key="build.number" value="${build.number}"/>
+                    <token key="build.branch" value="${build.branch}"/>
+                    <token key="rpm.version" value="${rpm.version}"/>
+                </replacetokens>
+            </filterchain>
+        </copy>
+    </target>
+        
+    <target name="deploy-static-files" description="Deploy the static files">
+
+        <!-- deploy the static content. Using a white-list file filter, see fogbugz 59127 -->
+        <!-- NOTE: The whitelist was finalized according to FB 59127, 
+            "all sorts of inadvertent files can be created during development or even promotion 
+            such as thumbs.db when viewing folders in windows, .DS_Store from OSX finder, and 
+            bsscftp.txt when using Adobe Dreamweaver".
+            It's probably not a problem for us, but it doesn't hurt anything. -->
+        <copy todir="${deploy.static.dir}" encoding="UTF-8">
+            <fileset dir="${app.static.dir}" 
+                includes="**/*.htm,**/*.html,**/*.css,**/*.ico,**/*.js,**/*.lng,**/*.png,**/*.gif,**/*.jpg,**/*.JPG,**/*.xml,**/*.pdf, **/*.ttf"  />
+        </copy>
+        <copy todir="${deploy.static.common.dir}" encoding="UTF-8">
+            <fileset dir="${common.static.dir}" 
+                includes="**/*.htm,**/*.html,**/*.css,**/*.ico,**/*.js,**/*.lng,**/*.png,**/*.gif,**/*.jpg,**/*.JPG,**/*.xml,**/*.pdf, **/*.ttf"  />
+        </copy>
+        
+        <!-- minify decision (don't minify if minify.js=false) -->
+        <if>
+            <not><equals arg1="${minify.js}" arg2="false"/></not>
+            <then>
+                <antcall target="deploy-minify-js"/>
+            </then>
+        </if>
+    </target>
+
+    <!-- Minify javascript -->
+    <target name="deploy-minify-js">
+        <taskdef name="yuicompress" classname="com.yahoo.platform.yui.compressor.YUICompressTask">
+            <classpath>
+                <fileset dir="${build.lib.dir}">
+                    <include name="**/yuicompressor-2.3.5.jar"/>
+                    <include name="**/YUIAnt.jar"/>
+                </fileset>
+            </classpath>
+        </taskdef>
+        <!-- backup original -->
+        <copy todir="${deploy.static.backup.dir}" >
+            <fileset dir="${deploy.static.dir}" >
+                <include name="**/*.js" />
+            </fileset>
+        </copy>
+	    <!-- minify -->
+        <yuicompress linebreak="300" warn="false" munge="no" preserveallsemicolons="true"
+            outputfolder="${deploy.static.dir}/js" >
+            <fileset dir="${deploy.static.dir}/js" >
+                <include name="**/*.js" />
+            </fileset>
+        </yuicompress>
+    </target>
+    
+    <target name="war" depends="do-deploy">
+        <mkdir dir="${war.outdir}"/>
+        <condition property="war.coverage.exclude"  value="" else="*">
+           <istrue value="${build.cobertura}" />
+        </condition>
+        <war destfile="${war.outdir}/${war.name}" update="false"
+            webxml="${deploy.root.dir}/WEB-INF/web.xml">
+            <classes dir="${app.resources.dir}"/>
+            <classes dir="${common.resources.dir}"/>
+            <!-- NOTE: Tomcat won't find jars in subdirectories: recursive copy is useless -->
+            <lib dir="${lib.dir}" includes="*.jar" />
+            <!-- instead, copy directly from any subdirectories you need to include: -->
+            <lib dir="${coverage.lib.dir}" includes="*.jar" excludes="${war.coverage.exclude}" />
+            <lib dir="${jar.outdir}" includes="*.jar"/>
+            <webinf dir="${deploy.root.dir}/WEB-INF"/>
+            <metainf dir="${deploy.root.dir}/META-INF"/>
+        </war>
+    </target>
+
+    <target name="ftl-hot-deploy" description="Hot-deploy freemarker templates">
+        <sync todir="${war.exploded.freemarker.dir}" granularity="0" verbose="true">
+            <fileset dir="${app.freemarker.dir}"/>
+            <preserveintarget>
+                <include name="**/common/**"/>
+            </preserveintarget>
+        </sync>
+        <sync todir="${war.exploded.freemarker.common.dir}" granularity="0" verbose="true">
+            <fileset dir="${common.freemarker.dir}"/>
+        </sync>
+    </target>
+	
+</project>

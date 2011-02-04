@@ -1,0 +1,18 @@
+<ivysettings>
+    <property name="ivy.lib.dir" value="${ivy.project.dir}"/>
+    <property name="ivy.retrieve.pattern" value="${ivy.lib.dir}/[artifact].[ext]"/>
+
+    <settings defaultResolver="bootstrap"
+              defaultConflictManager="all" />    <!-- in order to get all revisions without any eviction -->
+    
+    <resolvers>
+        <url name="bootstrap" checkmodified="true">
+            <ivy pattern="http://dmc140.mc.wgenhq.net/ivyrepo/ivymodules.xml"/>
+            <artifact pattern="http://dmc140.mc.wgenhq.net/ivyrepo/ivysettings.xml"/>
+        </url>
+    </resolvers>
+
+    <modules>
+        <module organization="wgen" name="ivysettings" resolver="bootstrap"/>
+    </modules>
+</ivysettings>

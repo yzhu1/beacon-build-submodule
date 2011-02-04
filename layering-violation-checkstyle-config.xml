@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE import-control PUBLIC
+    "-//Puppy Crawl//DTD Import Control 1.1//EN"
+    "http://www.puppycrawl.com/dtds/import_control_1_1.dtd">
+
+<import-control pkg="net.wgen">
+
+  <allow pkg=".*" regex="true" />
+  
+  <subpackage name="spring.model">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.threetwelve"/>
+    <disallow pkg="net.wgen.spring.ui"/>
+    <disallow pkg="net.wgen.spring.app"/>
+    <disallow pkg="net.wgen.spring.infrastructure"/>
+    <allow class=".*UserType" regex="true" />
+  </subpackage>
+  
+  <subpackage name="spring.infrastructure">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.spring.ui"/>
+    <disallow pkg="net.wgen.spring.app"/>
+  </subpackage>
+
+  <subpackage name="spring.app">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.spring.ui"/>
+  </subpackage>
+  
+  <subpackage name="spring.ui">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.spring.infrastructure"/>
+  </subpackage>
+
+  <subpackage name="threetwelve.common.model">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.threetwelve.common.ui"/>
+    <disallow pkg="net.wgen.threetwelve.common.app"/>
+    <disallow pkg="net.wgen.threetwelve.common.infrastructure"/>
+    <allow class=".*UserType" regex="true" />
+  </subpackage>
+  
+  <subpackage name="threetwelve.common.infrastructure">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.threetwelve.common.ui"/>
+    <disallow pkg="net.wgen.threetwelve.common.app"/>
+  </subpackage>
+
+  <subpackage name="threetwelve.common.app">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.threetwelve.common.ui"/>
+  </subpackage>
+  
+  <subpackage name="threetwelve.common.ui">
+    <allow pkg=".*" regex="true"/>
+    <disallow pkg="net.wgen.threetwelve.common.infrastructure"/>
+  </subpackage>
+
+</import-control>

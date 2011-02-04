@@ -1,0 +1,11 @@
+# BCFG deploys these files for us
+# they're duplicated in our repo because we don't have access to the BCFG repo
+
+config/password.properties > /opt/tt/app-config/password.properties
+
+config/tomcat/* > /opt/tt/conf/
+
+config/system/tt-global-httpd.conf > /etc/httpd/conf.d/tt-global.conf
+config/system/tt-httpd.conf > /etc/httpd/conf.d/tt-local.conf
+config/system/tt-conf > /etc/sysconfig/tt
+

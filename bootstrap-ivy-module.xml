@@ -1,0 +1,7 @@
+<ivy-module version="2.0">
+    <info organisation="wgen" module="webapp-bootstrap" />
+
+    <dependencies>
+        <dependency org='wgen' name='bootstrap' rev='9999'/>
+    </dependencies>
+</ivy-module>

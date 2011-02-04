@@ -1,0 +1,151 @@
+#!/bin/bash
+
+#-------------------------------------------------------------------------
+#
+# tt-web-app
+#
+# init script for all componenents of a three-twelve web server
+#       
+# chkconfig: 2345 90 15
+# description: init script for all componenents of a three twelve server
+#
+#-------------------------------------------------------------------------
+
+PROGRAM="tt-web-app"
+
+#
+# three-twelve itembank and outcomes tomcat config
+#
+
+HTTPD_INITD=/etc/init.d/httpd
+THREETWELVE_INITD=/etc/init.d/tt
+CATALINA_LOG=/opt/tt/logs/catalina.out
+TMP_STARTUP_LOG=/tmp/tmp_catalina_startup.log
+STARTUP_TIMEOUT_SECS=120
+SLEEP_SECONDS=5
+TOMCAT_SUCCESS_STRING="Server startup in"
+
+source /etc/init.d/functions
+
+function err_msg(){
+echo 
+echo "===================================================================="
+echo "[ERROR] error starting ${PROGRAM}"
+echo 
+echo $1
+echo 
+echo "===================================================================="
+echo
+echo_failure
+}
+
+start() {
+
+    echo "starting ${PROGRAM}"
+
+    # tail startup log and die once this script is finished running
+    tail -Fq --pid=$$ -n 0 $CATALINA_LOG > $TMP_STARTUP_LOG &
+
+    $THREETWELVE_INITD status
+    ret_val=$?
+
+    if [ $ret_val -eq 0 ]
+    then 
+        echo "threetwelve tomcat server is already running, restarting"
+        $THREETWELVE_INITD restart
+        ret_val=$?
+    else
+        echo "starting threetwelve tomcat server"
+        $THREETWELVE_INITD start
+        ret_val=$?
+    fi
+
+    if [ $ret_val -ne 0 ]
+    then
+        err_msg "error starting tomcat server. for details check ${CATALINA_LOG}"
+        exit 1
+    fi
+
+    start_up_success=0
+    time_elapsed=0
+
+    echo "verifying success of tomcat startup"
+
+    while [ $start_up_success = '0' ]
+    do
+        sleep $SLEEP_SECONDS
+        time_elapsed=$(( $time_elapsed + $SLEEP_SECONDS ))
+        start_up_success=`grep -c "$TOMCAT_SUCCESS_STRING" $TMP_STARTUP_LOG`
+        if  [ $time_elapsed -gt $STARTUP_TIMEOUT_SECS ] ;
+        then
+            err_msg "tomcat startup timeout. for details check ${CATALINA_LOG}"
+            exit 2
+        fi
+    done
+	
+    echo
+    echo "starting httpd"
+    echo
+
+    $HTTPD_INITD status
+    ret_val=$?
+
+    if [ $ret_val -eq 0 ]
+    then 
+        echo "httpd is already running, restarting"
+        $HTTPD_INITD restart
+        ret_val=$?
+    else
+        echo "starting httpd"
+        $HTTPD_INITD start
+        ret_val=$?
+    fi
+
+    if [ $ret_val -ne 0 ]
+    then
+        err_msg "error starting httpd, check apache logs"
+        exit $ret_val
+    fi
+
+    echo
+    echo "$PROGRAM started"
+    echo_success
+    echo
+}
+
+stop() {
+    echo "stopping $PROGRAM"
+
+    $THREETWELVE_INITD stop 
+    ret_val=$?
+    if [ $ret_val -ne 0 ]
+    then
+        err_msg "error stopping threetwelve"
+        exit $ret_val
+    fi
+    $HTTPD_INITD stop 
+    ret_val=$?
+    if [ $ret_val -ne 0 ]
+    then
+        err_msg "error stopping httpd"
+        exit $ret_val
+    fi
+
+    echo "$PROGRAM stopped"
+    echo_success
+    echo
+}
+
+# main entry point
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  *)
+	echo $"Usage: $prog {start|stop}"
+	exit 1
+esac
+

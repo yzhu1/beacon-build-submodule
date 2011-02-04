@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+
+    <module name="SuppressionCommentFilter">
+        <property name="offCommentFormat" value="CHECKSTYLE_OFF\: ([\w\|]+)"/>
+        <property name="onCommentFormat" value="CHECKSTYLE_ON\: ([\w\|]+)"/>
+        <property name="checkFormat" value="$1"/>
+    </module>
+
+    <!-- Checks for whitespace                               -->
+    <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+    <module name="FileTabCharacter"/>
+
+    <module name="TreeWalker">
+        <module name="FileContentsHolder"/>
+        
+        <!-- Checks for Javadoc comments.                     -->
+        <!-- See http://checkstyle.sf.net/config_javadoc.html -->
+        <module name="JavadocType"/>
+        
+        <!-- Checks for Naming Conventions.                  -->
+        <!-- See http://checkstyle.sf.net/config_naming.html -->
+        <module name="ConstantName"/>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName">
+            <property name="format" value="^_[a-z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="MethodName">
+            <property name="format" value="^[a-z][a-zA-Z0-9_]*$"/>
+        </module>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName">
+            <property name="format" value="^_[a-z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="TypeName"/>
+        
+        <!-- Checks for imports                               -->
+        <!-- See http://checkstyle.sf.net/config_imports.html -->
+        <module name="AvoidStarImport"/>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+        
+        <!-- Checks for Size Violations.                    -->
+        <!-- See http://checkstyle.sf.net/config_sizes.html -->
+        <module name="LineLength">
+            <property name="max" value="120"/>
+        </module>
+        
+        <!-- Miscellaneous other checks.                   -->
+        <!-- See http://checkstyle.sf.net/config_misc.html -->
+        <module name="TodoComment">
+            <property name="format" value="(TODO)|(FIX.?ME)"/>
+        </module>
+
+        <!-- See http://wiki.wgenhq.net/wiki/index.php/3-12_Platform/Development/Best_Practices/Exceptions -->
+        <module name="Regexp">
+            <property name="format" value="e\.printStackTrace"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+
+        <!-- See http://wiki.wgenhq.net/wiki/index.php/3-12_Platform/Development/Checkstyle#Disallowed_patterns -->
+        <module name="Regexp">
+            <property name="format" value="System\.(out|err)"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+
+        <module name="Regexp">
+            <property name="format" value="import\s+edu.emory.mathcs.backport"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="imports Emory backport util class instead of the actual java.util class" />
+        </module>
+
+        <module name="CyclomaticComplexity">
+            <property name="max" value="10"/>
+        </module>
+
+        <module name="MethodLength">
+            <property name="tokens" value="METHOD_DEF"/>
+            <property name="max" value="60"/>
+        </module>
+
+    </module>
+
+
+</module>

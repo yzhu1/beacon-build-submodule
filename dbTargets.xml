@@ -1,0 +1,247 @@
+<?xml version="1.0"?>
+<project name="db">
+    <var file="${common.dir}/config/threetwelve.properties"/>
+    <var file="${common.dir}/config/password.properties"/>
+    <var file="${app.dir}/config/${servlet.name}.properties"/>
+    
+    <!-- Override properties with environment-specific ones, if they exist -->
+    <propertycopy name="threetwelve.db.username" from="${build.env_property_prefix}.threetwelve.db.username" override="true" silent="true"/>
+    <propertycopy name="threetwelve.db.password" from="${build.env_property_prefix}.threetwelve.db.password" override="true" silent="true"/>
+    <propertycopy name="threetwelve.db.host" from="${build.env_property_prefix}.threetwelve.db.host" override="true" silent="true"/>
+    <propertycopy name="threetwelve.db.dbname" from="${build.env_property_prefix}.threetwelve.db.dbname" override="true" silent="true"/>
+    <propertycopy name="threetwelve.db.schema" from="${build.env_property_prefix}.threetwelve.db.schema" override="true" silent="true"/>
+    <propertycopy name="threetwelve.hbm2ddl.auto" from="${build.env_property_prefix}.threetwelve.hbm2ddl.auto" override="true" silent="true"/>
+
+    <if>
+        <equals arg1="${threetwelve.hbm2ddl.auto}" arg2="validate"/>
+        <then>
+            <property name="threetwelve.db.migrate" value="true"/>
+        </then>
+    </if>
+    
+    <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
+    <import file="deployTargets.xml"/>
+    <import file="testTargets.xml"/>
+
+
+    <!-- internal use only: clear a specific schema -->
+    <!-- (change-default-schema and clear-schema both call this) -->
+    <macrodef name="clear-named-schema">
+        <attribute name="schema-name" />
+        <sequential>
+            <echo>Clearing schema @{schema-name} ${threetwelve.db.host}</echo>
+            <exec executable="bash" failonerror="true">
+                <env key="PGPASSFILE" file="${common.dir}/.pgpass"/>
+                <arg value="${common.dir}/scripts/db/clear_schema.sh" />
+                <arg value="${threetwelve.db.username}" />
+                <arg value="${threetwelve.db.host}" />
+                <arg value="${threetwelve.db.dbname}" />
+                <arg value="@{schema-name}" />
+             </exec>
+         </sequential>
+    </macrodef>
+
+    <!-- internal use only: run arbitrary SQL on the local server -->
+    <!-- We don't fail on error, because pgsql lacks a  -->
+    <!-- "create schema if not exists" option -->
+    <macrodef name="pg-run">
+        <attribute name="sql" />
+        <sequential>
+            <echo>Running SQL [@{sql}]</echo>
+            <exec executable="/usr/bin/psql" failonerror="false">
+                <arg value="-U" />
+                <arg value="postgres" />
+                <arg value="-h" />
+                <arg value="localhost" />
+                <arg value="threetwelve" />
+                <arg value="-c" />
+                <arg value="@{sql}" />
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <target name="clear-schema" if="threetwelve.db.migrate">
+        <clear-named-schema schema-name="${threetwelve.db.schema}" />
+    </target>
+
+    <target name="change-default-schema"
+            description="clear old schema and create the new one">
+        <clear-named-schema schema-name="${threetwelve.db.schema.previous}" />
+        <pg-run sql="create schema ${threetwelve.db.schema}" />
+        <pg-run sql="alter user ${threetwelve.db.username} set search_path to ${threetwelve.db.schema}" />
+    </target>
+
+    <target name="migrate-schema" if="threetwelve.db.migrate" depends="test-compile"
+            description="run migrations for current release">
+        <exec executable="bash" failonerror="true">
+            <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
+            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
+            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
+            <arg value="${threetwelve.db.migration}"/>
+            <arg value="update"/>
+        </exec>
+        <load-context context="${integration.test.classes.dir}/${servlet.name}-servlet.xml"/>
+    </target>
+
+    <target name="tag-schema"
+            description="tag current schema state as 'previous release'">
+        <exec executable="bash" failonerror="true">
+            <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
+            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
+            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
+            <arg value="${threetwelve.db.migration}"/>
+            <arg value="tag"/>
+            <arg value="${threetwelve.db.migration.previous.tag}"/>
+        </exec>
+    </target>
+
+    <target name="rollback-schema"
+            description="run down-migrations for current release" >
+        <exec executable="bash" failonerror="true">
+            <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
+            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
+            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
+            <arg value="${threetwelve.db.migration}"/>
+            <arg value="rollback"/>
+            <arg value="${threetwelve.db.migration.previous.tag}"/>
+        </exec>
+    </target>
+    
+    <target name="update-schema" depends="clear-schema,migrate-schema" 
+        description="Clear and update the schema"/>
+    
+    <target name="load-fixtures" depends="update-schema,fixture-run-all-datamakers" description="Load fixtures"/>
+
+    <target name="fixture-run-all-datamakers" depends="test-compile" description="Run all fixture Datamakers">
+       <mkdir dir="${fixture.export.dir}"/>
+       <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
+            bean="fixtureRunnerLoadDatamakers"
+            method="runAllDatamakers">
+            <arg value="${fixture.export.dir}"/>
+       </spring-runner>
+    </target>
+    
+    <target name="run-dm" depends="test-compile" description="Run one fixture datamaker, use with -Ddm=DataMakerClassName">
+       <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
+           bean="fixtureRunnerLoadDatamakers"
+           method="runSomeDatamakers">
+         <arg value="${dm}" />
+       </spring-runner>
+    </target>
+	
+	<target name="run-fixture-exporters" depends="test-compile" description="Run just the fixture exporters.">
+	   <mkdir dir="${fixture.export.dir}"/>
+	   <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
+           bean="fixtureRunnerLoadDatamakers"
+           method="exportAllData">
+	     <arg value="${fixture.export.dir}"/>
+	   </spring-runner>
+	</target>
+	
+   <target name="run-napi-fixture-exporters" depends="test-compile" description="Run just the napi fixture exporters.">
+       <mkdir dir="${napi.fixture.export.dir}"/>
+       <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
+           bean="fixtureRunnerLoadDatamakers"
+           method="exportNAPIData">
+         <arg value="${napi.fixture.export.dir}"/>
+       </spring-runner>
+    </target>
+    
+    <target name="load-fixtures-snapshot" description="Load fixtures snapshot">
+	<antcall target="clear-schema"/>
+	<antcall target="load-snapshot-provided">
+	    <param name="snapshot" value="${sql.fixtures}"/>
+	</antcall>
+    </target>
+    
+    <target name="load-snapshot" description="Load March 2010 snapshot">
+	<antcall target="load-snapshot-provided">
+	    <param name="snapshot" value="${sql.snapshot}"/>
+	</antcall>
+    </target>
+
+    <target name="load-baseline-database"
+            description="Load, repair, and tag previous-release snapshot"
+            depends="load-snapshot,repair-migration-filenames,tag-schema"
+    />
+    
+    <target name="load-snapshot-provided">
+        <if>
+            <not>
+                <available file="${snapshot}" />
+            </not>
+            <then>
+                <fail>Could not find snapshot ${snapshot}</fail>
+            </then>
+        </if>
+        <exec executable="/usr/bin/psql" 
+            failonerror="true" 
+            input="${snapshot}">
+            <env key="PGPASSFILE" file="${common.dir}/.pgpass"/>
+            <arg value="-h"/>
+            <arg value="${threetwelve.db.host}"/>
+            <arg value="-U"/>
+            <arg value="${threetwelve.db.username}"/>
+            <arg value="${threetwelve.db.dbname}"/>
+        </exec>
+    </target>
+    
+    <target name="repair-migration-filenames">
+        <property name="migration.dir" location="${app.resources.dir}/migration/liquibase"/>
+        <exec executable="bash" failonerror="true">
+            <env key="PGPASSFILE" file="${common.dir}/.pgpass"/>
+            <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
+            <arg value="${migration.dir}"/>
+            <arg value="${threetwelve.db.username}"/>
+            <arg value="${threetwelve.db.dbname}"/>
+            <arg value="${threetwelve.db.host}"/>
+        </exec>
+    </target>
+
+    <target name="fixtures-rebuild-db-snapshot"
+            description="Load fixtures and create a new fixtures snapshot"
+            depends="update-schema">
+        <mkdir dir="${fixture.export.dir}"/>
+        <exec executable="bash" failonerror="true">
+            <arg value="${app.dir}/scripts/test/load_fixtures_and_take_snapshot.sh"/>
+        </exec>
+    </target>
+
+    <target name="liquibase"
+            description="Execute arbitrary liquibase command (e.g. -Dcmd='rollbackCount 1') on the database">
+        <exec executable="bash" failonerror="true">
+            <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
+            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
+            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
+            <arg value="${threetwelve.db.migration}"/>
+            <arg value="${cmd}"/>
+        </exec>
+    </target>
+
+</project>
+
+

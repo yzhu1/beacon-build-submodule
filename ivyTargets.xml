@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<project name="ivy" xmlns:ivy="antlib:org.apache.ivy.ant" basedir=".">
+    
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
+    </taskdef>
+
+    <target name="deps" depends="ivy-init"/>
+
+    <target name="ivy-init" depends="ivy-cleancache, ivy-get-settings, ivy-resolve"/>
+
+        <target name="ivy-get-settings">
+            <ivy:settings id="bootstrap-settings" file="${common.dir}/bootstrap-ivy-settings.xml"/>
+            <ivy:resolve settingsRef="bootstrap-settings" file="${common.dir}/bootstrap-ivy-module.xml"/>
+            <ivy:retrieve settingsRef="bootstrap-settings" />
+        </target>
+
+        <target name="ivy-cleancache">
+            <echo>cleaning ivy cache</echo>
+            <ivy:cleancache />
+        </target>
+
+        <target name="ivy-resolve">
+            <ivy:settings id="ivy.settings" file="${app.dir}/ivysettings.xml" />
+            <ivy:resolve settingsRef="ivy.settings" file="${app.dir}/ivy.xml" />
+            <ivy:retrieve settingsRef="ivy.settings"/>
+        </target>
+        <target name="ivy-publish" depends="ivy-init">
+            <!-- Version is required; this should be passed in via Hudson -->
+            <fail unless="version" message="Missing parameter version.  Please pass -Dversion=[VERSION] to ant" />
+            <property name="ivy.deliver.revision" value="${version}"/>
+
+            <ivy:settings id="ivy.settings" file="${app.dir}/ivysettings.xml" />
+            <ivy:resolve settingsRef="ivy.settings" file="${app.dir}/ivy.xml"/>
+            <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
+                    update="true" overwrite="true">
+                <artifacts pattern="${jar.outdir}/[artifact]-${version}.[ext]"/>
+            </ivy:publish>
+        </target>
+
+    
+</project>

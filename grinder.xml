@@ -1,0 +1,71 @@
+<project name="grinder">
+    <property file="build.properties" />
+    <property file="default.build.properties" />
+
+    <path id="grinder.classpath">
+        <fileset dir="${grinder.classes.dir}">
+             <include name="**/*.jar" />
+        </fileset>
+    </path>
+    <path id="framework.classpath">
+        <!--pathelement location="${resources.dir}"/-->
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+    <path id="loadtest.classpath">
+        <path refid="framework.classpath" />
+        <path refid="grinder.classpath" />
+    </path>
+    <target name="clean">
+        <delete dir="${output.dir}"/>
+    </target>
+    <target name="compile">
+        <mkdir dir="${output.dir}"/>
+        <mkdir dir="${grinder.classes.dir}"/>
+        <javac srcdir="${grinder.src.dir}" destdir="${grinder.classes.dir}">
+            <classpath refid="loadtest.classpath" />
+        </javac>
+        <copy todir="${grinder.classes.dir}">
+            <fileset dir="${grinder.src.dir}" excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <target name="jar">
+        <jar destfile="${grinder.classes.dir}/HeadlessGrinder.jar" basedir="${grinder.classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="net.wgen.grinder.HeadlessGrinder"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run-loadtest-headless-connect" depends="clean,compile,jar">
+       <java className="net.wgen.grinder.HeadlessGrinder" fork="true">
+            <classpath>
+                <path refid="loadtest.classpath" />
+            </classpath>
+            <arg value="${common.dir}/grinder/grinder.properties" />
+        </java>
+    </target>
+
+    <target name="run-load-tests" depends="clean,compile,jar">
+        <parallel failOnAny="true" >
+           <exec id="console" executable="${common.dir}/grinder/startConsole.sh" timeout="3000"/>
+           <exec id="agent" executable="${common.dir}/grinder/startAgent.sh" timeout="3000" />
+           <sequential>
+              <sleep seconds ="10"/>
+              <java className="net.wgen.grinder.HeadlessGrinder" fork="true">
+   	            <classpath>
+   	                <path refid="loadtest.classpath" />
+   	            </classpath>
+               	<arg value="${common.dir}/grinder/grinder.properties" />
+              </java>
+              <echo>finished headless</echo>
+           </sequential>
+           <echo>finished all</echo>
+        </parallel>
+    </target>
+    <target name="run-load-tests-agent-only" depends="clean,compile,jar">
+        <exec id="agent" executable="${common.dir}/grinder/startAgent.sh" timeout="61000" />
+    </target>
+</project>

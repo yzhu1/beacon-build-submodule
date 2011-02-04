@@ -1,0 +1,145 @@
+<project name="jar">
+    <macrodef name="javac-standard">
+        <attribute name="srcdir" />
+        <attribute name="destdir" />
+        <element name="javac-nested" implicit="true" optional="true" />
+        <sequential>
+            <javac
+                srcdir="@{srcdir}"
+                destdir="@{destdir}"
+                deprecation="${build.deprecation}"
+                debug="on"
+                optimize="${build.optimization}"
+                compiler="${build.compiler}"
+                executable="${build.executable}"
+                source="${build.source}"
+                sourcepath=""
+                target="${build.target}"
+                encoding="UTF-8"
+                includeantruntime="no"
+            >
+                <javac-nested />
+            </javac>
+        </sequential>
+    </macrodef>
+    <macrodef name="javac-strict">
+        <attribute name="srcdir" />
+        <attribute name="destdir" />
+        <element name="javac-nested" implicit="true" optional="true" />
+        <sequential>
+            <javac-standard srcdir="@{srcdir}" destdir="@{destdir}">
+                <javac-nested />
+                <compilerarg value="-Xlint:unchecked" />
+                <compilerarg value="-Werror" />
+            </javac-standard>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="javac-conditional">
+        <attribute name="srcdir" />
+        <attribute name="destdir" />
+        <attribute name="strict" />
+        <element name="javac-nested" implicit="true" optional="true" />
+        <sequential>
+            <if>
+                <istrue value="@{strict}" />
+                <then>
+                    <javac-strict srcdir="@{srcdir}" destdir="@{destdir}">
+                        <javac-nested />
+                    </javac-strict>
+                </then>
+                <else>
+                    <javac-standard srcdir="@{srcdir}" destdir="@{destdir}">
+                        <javac-nested />
+                    </javac-standard>
+                </else>
+            </if>
+        </sequential>
+    </macrodef>
+
+    <target name="build-common-jars">
+        
+        <mkdir dir="${jar.classes.dir.common}/app"/>
+        <mkdir dir="${jar.classes.dir.common}/web"/>
+        
+        <path id="build.app.classpath">
+            <fileset dir="${lib.dir}" includes="**/*.jar"/>
+        </path>
+        <javac-strict
+                    srcdir="${common.src.dir}"
+                    destdir="${jar.classes.dir.common}/app"
+            >
+                <classpath refid="build.app.classpath"/>
+        </javac-strict>
+        <jar
+            basedir="${jar.classes.dir.common}/app"
+            destfile="${jar.outdir}/${jar.common.app.name}-${rpm.version}.jar"
+            excludes="**/ui/**/*.class"
+            update="false"
+        />
+         
+         <path id="build.web.classpath">
+             <path refid="build.app.classpath"/>
+             <fileset dir="${jar.outdir}" includes="${jar.common.app.name}-${rpm.version}.jar"/>
+         </path>
+         <javac-strict
+                    srcdir="${common.src.dir}"
+                    destdir="${jar.classes.dir.common}/web"
+             >
+                <classpath refid="build.web.classpath"/>
+                <include name="**/ui/**/*.java"/>
+         </javac-strict>
+        <jar
+            basedir="${jar.classes.dir.common}/web"
+            destfile="${jar.outdir}/${jar.common.web.name}-${rpm.version}.jar"
+            update="false"
+        />
+    </target>
+
+    <target name="build-app-jars" depends="build-common-jars"
+                description="Compile the source into jars" >
+        
+        <mkdir dir="${jar.classes.dir.main}/app"/>
+        <mkdir dir="${jar.classes.dir.main}/web"/>
+        
+        <path id="build.app.classpath">
+            <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            <fileset dir="${jar.outdir}">
+                <include name="${jar.common.app.name}-${rpm.version}.jar"/>
+                <include name="${jar.common.web.name}-${rpm.version}.jar"/>
+            </fileset>
+        </path>
+        <javac-conditional
+                    srcdir="${app.src.dir}"
+                    destdir="${jar.classes.dir.main}/app"
+                    strict="${build.no-warnings}"
+        >
+                <classpath refid="build.app.classpath"/>
+        </javac-conditional>
+        <jar
+            basedir="${jar.classes.dir.main}/app"
+            destfile="${jar.outdir}/${jar.app.name}-${rpm.version}.jar"
+            excludes="**/ui/**/*.class"
+            update="false"
+        />
+
+         <path id="build.web.classpath">
+             <path refid="build.app.classpath"/>
+             <fileset dir="${jar.outdir}" includes="${jar.app.name}-${rpm.version}.jar"/>
+         </path>
+         <javac-conditional
+                    srcdir="${app.src.dir}"
+                    destdir="${jar.classes.dir.main}/web"
+                    strict="${build.no-warnings}"
+         >
+                <classpath refid="build.web.classpath"/>
+                <include name="**/ui/**/*.java"/>
+         </javac-conditional>
+        <jar
+            basedir="${jar.classes.dir.main}/web"
+            destfile="${jar.outdir}/${jar.web.name}-${rpm.version}.jar"
+            update="false"
+        />
+
+     </target>
+</project>
