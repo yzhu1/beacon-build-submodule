@@ -9,13 +9,9 @@
     </taskdef>
 
     <dirname property="imported.basedir" file="${ant.file.wgspring-all}"/>
-    <!-- load the generic properties -->
-    <var file="../build.properties"/>
 
     <!-- load the wgspring specific properties -->
-    <var file="${imported.basedir}/default.build.properties"/>
-    <var file="${app.dir}/default.build.properties"/>
-    <var file="${app.dir}/build.properties"/>
+    <property file="${imported.basedir}/default.build.properties"/>
 
     <import file="deployTargets.xml"/>
     <import file="jarTargets.xml"/>
