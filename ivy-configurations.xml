@@ -1,4 +1,4 @@
-<configurations defaultconfmapping="runtime;test;compile">
+<configurations defaultconfmapping="runtime;test;compile;web-assets;coverage;build">
     <conf name='compile'
         visibility="private"
         description="Only required for compiletime"
@@ -14,14 +14,14 @@
     <conf name='web-assets'
         visibility="public"
         description="required for deploying as an ear" />
-      <conf name='coverage'
-          visibility="public"
-          description="required for cobertura" 
-          transitive="false" />
-      <conf name='build'
-          visibility="public"
-          description="required for ant scripts"
-          transitive="false" />
+    <conf name='coverage'
+        visibility="public"
+        description="required for cobertura" 
+        transitive="false" />
+    <conf name='build'
+        visibility="public"
+        description="required for ant scripts"
+        transitive="false" />
 
 </configurations>
 
