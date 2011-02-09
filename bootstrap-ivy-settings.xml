@@ -7,8 +7,8 @@
     
     <resolvers>
         <url name="bootstrap" checkmodified="true">
-            <ivy pattern="http://dmc140.mc.wgenhq.net/ivyrepo/ivymodules.xml"/>
-            <artifact pattern="http://dmc140.mc.wgenhq.net/ivyrepo/ivysettings.xml"/>
+            <ivy pattern="http://packages.wgenhq.net/ivy/ivymodules.xml"/>
+            <artifact pattern="http://packages.wgenhq.net/ivy/ivysettings.xml"/>
         </url>
     </resolvers>
 

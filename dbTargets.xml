@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <project name="db">
-    <var file="${common.dir}/config/threetwelve.properties"/>
-    <var file="${common.dir}/config/password.properties"/>
+    <dirname property="imported.basedir" file="${ant.file.base}"/>
+
+    <var file="${imported.basedir}/wgspring/config/threetwelve.properties"/>
+    <var file="${imported.basedir}/wgspring/config/password.properties"/>
     <var file="${app.dir}/config/${servlet.name}.properties"/>
     
     <!-- Override properties with environment-specific ones, if they exist -->
@@ -75,8 +77,8 @@
             description="run migrations for current release">
         <exec executable="bash" failonerror="true">
             <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
-            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
@@ -93,8 +95,8 @@
             description="tag current schema state as 'previous release'">
         <exec executable="bash" failonerror="true">
             <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
-            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
@@ -111,8 +113,8 @@
             description="run down-migrations for current release" >
         <exec executable="bash" failonerror="true">
             <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
-            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
@@ -229,8 +231,8 @@
             description="Execute arbitrary liquibase command (e.g. -Dcmd='rollbackCount 1') on the database">
         <exec executable="bash" failonerror="true">
             <arg value="${common.dir}/scripts/migrations/liquibase.sh"/>
-            <env key="LIQUIBASE_JAR" file="${lib.dir}/liquibase-core-1.9.5.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${lib.dir}/postgresql-8.3-603.jdbc4.jar"/>
+            <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>

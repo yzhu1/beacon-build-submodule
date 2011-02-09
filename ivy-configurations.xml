@@ -1,0 +1,27 @@
+<configurations defaultconfmapping="runtime;test;compile">
+    <conf name='compile'
+        visibility="private"
+        description="Only required for compiletime"
+        transitive="false"/>
+    <conf name='runtime'
+        visibility="public"
+        description='Only required for runtime'
+        extends="compile" />
+    <conf name='test'
+        visibility="public"
+        description="required for testing"
+        extends="compile" />
+    <conf name='web-assets'
+        visibility="public"
+        description="required for deploying as an ear" />
+      <conf name='coverage'
+          visibility="public"
+          description="required for cobertura" 
+          transitive="false" />
+      <conf name='build'
+          visibility="public"
+          description="required for ant scripts"
+          transitive="false" />
+
+</configurations>
+

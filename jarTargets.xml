@@ -57,53 +57,15 @@
         </sequential>
     </macrodef>
 
-    <target name="build-common-jars">
-        
-        <mkdir dir="${jar.classes.dir.common}/app"/>
-        <mkdir dir="${jar.classes.dir.common}/web"/>
-        
-        <path id="build.app.classpath">
-            <fileset dir="${lib.dir}" includes="**/*.jar"/>
-        </path>
-        <javac-strict
-                    srcdir="${common.src.dir}"
-                    destdir="${jar.classes.dir.common}/app"
-            >
-                <classpath refid="build.app.classpath"/>
-        </javac-strict>
-        <jar
-            basedir="${jar.classes.dir.common}/app"
-            destfile="${jar.outdir}/${jar.common.app.name}-${rpm.version}.jar"
-            excludes="**/ui/**/*.class"
-            update="false"
-        />
-         
-         <path id="build.web.classpath">
-             <path refid="build.app.classpath"/>
-             <fileset dir="${jar.outdir}" includes="${jar.common.app.name}-${rpm.version}.jar"/>
-         </path>
-         <javac-strict
-                    srcdir="${common.src.dir}"
-                    destdir="${jar.classes.dir.common}/web"
-             >
-                <classpath refid="build.web.classpath"/>
-                <include name="**/ui/**/*.java"/>
-         </javac-strict>
-        <jar
-            basedir="${jar.classes.dir.common}/web"
-            destfile="${jar.outdir}/${jar.common.web.name}-${rpm.version}.jar"
-            update="false"
-        />
-    </target>
 
-    <target name="build-app-jars" depends="build-common-jars"
+    <target name="build-app-jars" 
                 description="Compile the source into jars" >
         
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
         
         <path id="build.app.classpath">
-            <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
             <fileset dir="${jar.outdir}">
                 <include name="${jar.common.app.name}-${rpm.version}.jar"/>
                 <include name="${jar.common.web.name}-${rpm.version}.jar"/>

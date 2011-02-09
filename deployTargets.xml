@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="deploy">
     <taskdef resource="net/sf/antcontrib/antlib.xml">
-        <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
+        <classpath><pathelement path="${build.lib.dir}/ant-contrib-*.jar"/></classpath>
     </taskdef>
     
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
@@ -92,8 +92,8 @@
         <taskdef name="yuicompress" classname="com.yahoo.platform.yui.compressor.YUICompressTask">
             <classpath>
                 <fileset dir="${build.lib.dir}">
-                    <include name="**/yuicompressor-2.3.5.jar"/>
-                    <include name="**/YUIAnt.jar"/>
+                    <include name="**/yuicompressor-*.jar"/>
+                    <include name="**/yuiant-*.jar"/>
                 </fileset>
             </classpath>
         </taskdef>
@@ -122,7 +122,7 @@
             <classes dir="${app.resources.dir}"/>
             <classes dir="${common.resources.dir}"/>
             <!-- NOTE: Tomcat won't find jars in subdirectories: recursive copy is useless -->
-            <lib dir="${lib.dir}" includes="*.jar" />
+            <lib dir="${runtime.lib.dir}" includes="*.jar" />
             <!-- instead, copy directly from any subdirectories you need to include: -->
             <lib dir="${coverage.lib.dir}" includes="*.jar" excludes="${war.coverage.exclude}" />
             <lib dir="${jar.outdir}" includes="*.jar"/>
@@ -142,5 +142,52 @@
             <fileset dir="${common.freemarker.dir}"/>
         </sync>
     </target>
+
+
+    <!-- ================================================================ -->
+    <!-- Web Assets                                                       -->
+    <!-- ================================================================ -->
+
+    <!-- When amp and javaserver are combined into one module/repo in git,
+         use this task as reference for the directory structure.  -->
+    <target name="prepare-web-assets-for-zip">
+        <!-- first clean -->
+        <delete dir="${build.web.assets.content.dir}" includeemptydirs="true" failonerror="true" />
+
+        <!-- Copy properties, XML config files, etc. under WEB-INF -->
+        <copy todir="${build.web.assets.content.dir.web}">
+            <fileset dir="${web.dir}"/>
+        </copy>
+
+        <copy todir="${build.web.assets.content.dir.etc}">
+            <fileset dir="${etc.dir}"/>
+        </copy>
+
+        <echo file="${web.assets.commit.hash.file}">${git.current.hash}</echo>
+
+    </target>
+
+    <target name="zip-web-assets" depends="prepare-web-assets-for-zip">
+        <!-- first clean -->
+        <delete file="${build.artifacts.dir}/${web.assets.zip.name}" failonerror="true" />
+
+        <mkdir dir="${build.artifacts.dir}"/>
+
+        <zip destfile="${build.artifacts.dir}/${web.assets.zip.name}">
+            <zipfileset dir="${build.web.assets.content.dir}" prefix="${web.assets.zip.dir.prefix.name}"/>
+        </zip>
+    </target>
+
+    <target name="unzip-web-assets">
+        <!-- first clean -->
+        <delete dir="${build.web.assets.unzip.dir}" includeemptydirs="true" failonerror="true" />
+        <mkdir dir="${build.web.assets.unzip.dir}" />
+        <unzip dest="${build.web.assets.unzip.dir}">
+            <fileset dir="${lib.web.assets.dir}">
+                <include name="*.zip"/>
+            </fileset>
+        </unzip>
+    </target>
+
 	
 </project>

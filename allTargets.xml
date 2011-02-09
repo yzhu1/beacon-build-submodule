@@ -5,10 +5,15 @@
          then you need to copy ant-contrib.jar from common/lib/build to
          your ant's lib directory (in ubuntu that's /usr/share/ant/lib/). -->
     <taskdef resource="net/sf/antcontrib/antlib.xml">
-        <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
+        <classpath><pathelement path="${build.lib.dir}/ant-contrib-*.jar"/></classpath>
     </taskdef>
 
-    <var file="${common.dir}/default.build.properties"/>
+    <dirname property="imported.basedir" file="${ant.file.base}"/>
+    <!-- load the generic properties -->
+    <var file="../build.properties"/>
+
+    <!-- load the wgspring specific properties -->
+    <var file="${imported.basedir}/wgspring/default.build.properties"/>
     <var file="${app.dir}/default.build.properties"/>
     <var file="${app.dir}/build.properties"/>
 
@@ -42,7 +47,7 @@
                 <jvmarg value="-Dcommon.env.config.dir=${common.dir}/config"/>
                 <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
                 <classpath>
-                    <fileset dir="${lib.dir}" includes="**/*.jar" />
+                    <fileset dir="${runtime.lib.dir}" includes="**/*.jar" />
                     <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
                     <pathelement location="${app.resources.dir}" />
                     <pathelement location="${common.resources.dir}" />
@@ -70,7 +75,7 @@
                     <jvmarg value="-Dcommon.env.config.dir=${common.dir}/config"/>
                     <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
                     <classpath>
-                        <fileset dir="${lib.dir}" includes="**/*.jar" />
+                        <fileset dir="${runtime.lib.dir}" includes="**/*.jar" />
                         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
                         <pathelement location="${app.resources.dir}" />
                         <pathelement location="${common.resources.dir}" />
