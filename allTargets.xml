@@ -88,5 +88,14 @@
                 </java>
             </sequential>
         </macrodef>
+
+    <!-- ///////////////////////////////////////////////////////////////////////////
+         ////                                                                   ////
+         ////                  Main entry points                                ////
+         ////                                                                   ////
+         /////////////////////////////////////////////////////////////////////////// -->
+        
+
+   <target name="clean-ivy-deploy" depends="clean-ivy, init-ivy, unzip-web-assets, deploy"/> 
     
 </project>
