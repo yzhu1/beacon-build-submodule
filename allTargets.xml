@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="threetwelve">
+<project name="wgspring-all">
     <!-- If you are getting the error: 
             "[taskdef] Could not load definitions from resource net/sf/antcontrib/antlib.xml. It could not be found."
          then you need to copy ant-contrib.jar from common/lib/build to
@@ -8,18 +8,18 @@
         <classpath><pathelement path="${build.lib.dir}/ant-contrib-*.jar"/></classpath>
     </taskdef>
 
-    <dirname property="imported.basedir" file="${ant.file.base}"/>
+    <dirname property="imported.basedir" file="${ant.file.wgspring-all}"/>
     <!-- load the generic properties -->
     <var file="../build.properties"/>
 
     <!-- load the wgspring specific properties -->
-    <var file="${imported.basedir}/wgspring/default.build.properties"/>
+    <var file="${imported.basedir}/default.build.properties"/>
     <var file="${app.dir}/default.build.properties"/>
     <var file="${app.dir}/build.properties"/>
 
     <import file="deployTargets.xml"/>
-    <import file="ivyTargets.xml"/>
     <import file="jarTargets.xml"/>
+    <import file="ivyTargets.xml"/>
     <import file="dbTargets.xml"/>
     <import file="serverTargets.xml"/>
     <import file="testTargets.xml"/>

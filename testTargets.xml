@@ -12,10 +12,13 @@
     <taskdef classpath="${build.lib.dir}/checkstyle-all-*.jar"
              resource="checkstyletask.properties"
     />
+
+<!-- TODO get rid of
     <path id="cobertura.classpath">
         <fileset dir="${coverage.lib.dir}" includes="*.jar" />
     </path>
     <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+-->
 
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
@@ -23,10 +26,11 @@
     <import file="serverTargets.xml"/>
 
     <path id="test.classpath.base">
+<!-- TODO get rid of
         <path refid="cobertura.classpath" />
+-->
+        <fileset dir="${coverage.lib.dir}" includes="*.jar" />
         <fileset dir="${test.lib.dir}" includes="*.jar" />
-<!-- TODO add everything in the lib/sel dir to ivy.xml then get rid of below  -->
-        <fileset dir="${lib.dir}/sel" includes="*.jar" />
         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
         <pathelement location="${unit.test.classes.dir}" />
     </path>
@@ -435,9 +439,9 @@
     </target>
 
 <!-- TODO figure out a way to not be dependent on a version -->
-    <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
 
     <target name="jslint">
+        <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
         <jslint haltOnFailure="${jslint.fatal}" options="browser, sub, forin">
             <predef>$$j,Class</predef>
             <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
@@ -474,6 +478,7 @@
     </target>
     
     <target name="jslint-common">
+        <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
         <jslint options="browser, devel">
             <predef>$$j,Class</predef>
             <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
@@ -484,6 +489,7 @@
 
     <!-- Don't use this for now... -->
     <target name="jslint-css">
+        <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
         <jslint options="css">
             <formatter type="plain" destfile="${results.dir}/jslint_css.out" />
             <fileset dir="${app.static.dir}" includes="**/*.css" />

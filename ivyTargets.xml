@@ -5,38 +5,76 @@
         <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
     </taskdef>
 
-    <target name="deps" depends="ivy-init"/>
 
-    <target name="ivy-init" depends="ivy-cleancache, ivy-get-settings, ivy-resolve"/>
+    <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
+        <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="true" />
+        <delete file="ivysettings.xml"/>
+    </target>
 
-        <target name="ivy-get-settings">
-            <ivy:settings id="bootstrap-settings" file="${common.dir}/bootstrap-ivy-settings.xml"/>
-            <ivy:resolve settingsRef="bootstrap-settings" file="${common.dir}/bootstrap-ivy-module.xml"/>
-            <ivy:retrieve settingsRef="bootstrap-settings" />
-        </target>
+    <target name="clean-ivy-local-repo-jar">
+        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}" includeemptydirs="true" failonerror="true" />
+    </target>
 
-        <target name="ivy-cleancache">
-            <echo>cleaning ivy cache</echo>
-            <ivy:cleancache />
-        </target>
+    <target name="clean-ivy-local-repo-web-assets">
+        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}-web-assets" includeemptydirs="true" failonerror="true" />
+    </target>
 
-        <target name="ivy-resolve">
-            <ivy:settings id="ivy.settings" file="${app.dir}/ivysettings.xml" />
-            <ivy:resolve settingsRef="ivy.settings" file="${app.dir}/ivy.xml" />
-            <ivy:retrieve settingsRef="ivy.settings"/>
-        </target>
-        <target name="ivy-publish" depends="ivy-init">
-            <!-- Version is required; this should be passed in via Hudson -->
-            <fail unless="version" message="Missing parameter version.  Please pass -Dversion=[VERSION] to ant" />
-            <property name="ivy.deliver.revision" value="${version}"/>
+    <target name="init-ivy" depends="ivy-get-settings, ivy-resolve"/>
 
-            <ivy:settings id="ivy.settings" file="${app.dir}/ivysettings.xml" />
-            <ivy:resolve settingsRef="ivy.settings" file="${app.dir}/ivy.xml"/>
-            <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
-                    update="true" overwrite="true">
-                <artifacts pattern="${jar.outdir}/[artifact]-${version}.[ext]"/>
-            </ivy:publish>
-        </target>
+<!-- TODO get rid of
+    <target name="create-ivy-dirs">
+        <mkdir dir="${ivy.lib.compile.dir}" />
+        <mkdir dir="${ivy.lib.test.dir}" />
+        <mkdir dir="${ivy.lib.run.dir}" />
+    </target>
+-->
 
-    
+   
+    <target name="ivy-get-settings" description="--> retrieve ivysettings.xml from server">
+        <ivy:settings id="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-settings.xml" />
+        <ivy:resolve settingsRef="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-module.xml" />
+        <ivy:retrieve settingsRef="bootstrap-settings" />
+    </target>
+
+    <target name="ivy-resolve" description="--> retrieve dependencies with ivy" depends="ivy-get-settings, ivy-clean-resolution-cache">
+        <ivy:settings id="ivy.settings" file="ivysettings.xml" />
+        <!-- copy artifacts from repo(s) to cache -->
+        <ivy:resolve settingsRef="ivy.settings" file="ivy.xml" />
+        <!-- copy artifacts from cache to destination dir -->
+        <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
+        <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
+    </target>
+
+    <!-- WARNING: Use this with target with caution.
+  
+                  It will delete all caches, including the resolution cache 
+                  as well as the repository cache.
+                  If there are several projects that share the same repository
+                  cache, then deleting it may cause the other projects to
+                  fail unexpectedly.
+    -->
+    <target name="ivy-clean-all-caches">
+        <echo>cleaning ALL ivy caches</echo>
+        <ivy:cleancache />
+    </target>
+
+    <target name="ivy-clean-resolution-cache" if="update.ivy.dependencies">
+        <delete dir="${ivy.resolution.cache.dir}" />
+    </target>
+
+    <target name="ivy-publish">
+<!-- <target name="ivy-publish" depends="clean-create-tested-classes-jar, zip-web-assets, ivy-get-settings">
+-->
+        <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
+            update="true" overwrite="true" forcedeliver="true"/>
+    </target>
+
+    <target name="ivy-publish-dev">
+<!-- <target name="ivy-publish-dev" depends="clean-create-untested-classes-jar, zip-web-assets, ivy-get-settings">
+-->
+        <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
+            update="true" overwrite="true" forcedeliver="true"/>
+    </target>
+
+ 
 </project>

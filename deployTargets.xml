@@ -183,7 +183,7 @@
         <delete dir="${build.web.assets.unzip.dir}" includeemptydirs="true" failonerror="true" />
         <mkdir dir="${build.web.assets.unzip.dir}" />
         <unzip dest="${build.web.assets.unzip.dir}">
-            <fileset dir="${lib.web.assets.dir}">
+            <fileset dir="${web.assets.lib.dir}">
                 <include name="*.zip"/>
             </fileset>
         </unzip>

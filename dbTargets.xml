@@ -2,8 +2,8 @@
 <project name="db">
     <dirname property="imported.basedir" file="${ant.file.base}"/>
 
-    <var file="${imported.basedir}/wgspring/config/threetwelve.properties"/>
-    <var file="${imported.basedir}/wgspring/config/password.properties"/>
+    <var file="${imported.basedir}/config/threetwelve.properties"/>
+    <var file="${imported.basedir}/config/password.properties"/>
     <var file="${app.dir}/config/${servlet.name}.properties"/>
     
     <!-- Override properties with environment-specific ones, if they exist -->
