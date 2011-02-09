@@ -16,7 +16,7 @@
         <sequential>
             <echo>Switching to branch ${branchName}</echo>
             <exec executable="bash" failonerror="true">
-                <arg value="${common.dir}/scripts/dev/switchBranchAndRefresh.sh" />
+                <arg value="${imported.basedir}/scripts/dev/switchBranchAndRefresh.sh" />
                 <arg value="${branchName}" />
              </exec>
          </sequential>

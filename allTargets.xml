@@ -44,7 +44,7 @@
                 <arg value="@{method}"/>
                 <args-nested/>
                 <jvmarg value="-D${servlet.name}.env.config.dir=${app.dir}/config"/>
-                <jvmarg value="-Dcommon.env.config.dir=${common.dir}/config"/>
+                <jvmarg value="-Dcommon.env.config.dir=${imported.basedir}/config"/>
                 <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
                 <classpath>
                     <fileset dir="${runtime.lib.dir}" includes="**/*.jar" />
@@ -72,7 +72,7 @@
                     >
                     <arg value="@{context}"/>
                     <jvmarg value="-D${servlet.name}.env.config.dir=${app.dir}/config"/>
-                    <jvmarg value="-Dcommon.env.config.dir=${common.dir}/config"/>
+                    <jvmarg value="-Dcommon.env.config.dir=${imported.basedir}/config"/>
                     <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
                     <classpath>
                         <fileset dir="${runtime.lib.dir}" includes="**/*.jar" />

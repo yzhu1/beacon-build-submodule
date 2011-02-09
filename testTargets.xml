@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <project name="test">
-    <property file="${common.dir}/default.test.properties" />
+    <property file="${imported.basedir}/default.test.properties" />
 	<property environment="sys_env" />
 	<!--
     <property name="threetwelve.test.checkout.common" value="${sys_env.COMMON_HOME}" />
@@ -107,6 +107,12 @@
             <pathelement location="${integration.test.classes.dir}" />
             <pathelement location="${webservice.test.classes.dir}"/>
             <pathelement location="${webdriver.test.classes.dir}" />
+
+            <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
+            <fileset dir="${jar.outdir}">
+                <include name="${jar.common.app.name}-${rpm.version}.jar"/>
+                <include name="${jar.common.web.name}-${rpm.version}.jar"/>
+            </fileset>
         </path>
 
         <macrodef name="javac-test">
@@ -132,18 +138,6 @@
                 </javac>
             </sequential>
         </macrodef>
-
-        <!-- Compile the common unit tests -->
-        <javac-test srcdir="${common.unit.src.dir}" destdir="${unit.test.classes.dir}" />
-
-        <!-- Compile the common integration tests -->
-        <javac-test srcdir="${common.integration.src.dir}" destdir="${integration.test.classes.dir}" />
-
-        <!-- Compile the common webservice tests -->
-        <javac-test srcdir="${common.webservice.src.dir}" destdir="${webservice.test.classes.dir}" />
-
-        <!-- Compile the common webdriver tests -->
-        <javac-test srcdir="${common.webdriver.src.dir}" destdir="${webdriver.test.classes.dir}" />
 
         <!-- Compile the app unit tests -->
         <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
@@ -210,7 +204,7 @@
                 >
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
-                <sysproperty key="threetwelve.common.checkout.dir" file="${common.dir}" />
+                <sysproperty key="threetwelve.common.checkout.dir" file="${imported.basedir}" />
                 <sysproperty key="threetwelve.app.checkout.dir" file="${app.dir}" />
                 <formatter type="brief" />
                 <formatter type="xml" />
@@ -403,7 +397,7 @@
     <target name="checkstyle" description="Run checkstyle">
         <mkdir dir="${results.dir}"/>
 
-        <checkstyle config="${common.dir}/checkstyle.xml" failonviolation="true">
+        <checkstyle config="${imported.basedir}/checkstyle.xml" failonviolation="true">
             <fileset dir="${app.src.dir}" includes="**/*.java" />
             <fileset dir="${app.unit.src.dir}" includes="**/*.java" />
             <fileset dir="${app.integration.src.dir}" includes="**/*.java" />
@@ -424,7 +418,7 @@
         description="Run checkstyle with layering violations">
         <mkdir dir="${results.dir}"/>
 
-        <checkstyle config="${common.dir}/checkstyleWithLayeringViolations.xml" failonviolation="true" >
+        <checkstyle config="${imported.basedir}/checkstyleWithLayeringViolations.xml" failonviolation="true" >
             <fileset dir="${common.src.dir}" includes="**/*.java" />
             <formatter type="xml" toFile="${results.dir}/checkstyle-errors.xml" />
             <formatter type="plain" usefile="false" />

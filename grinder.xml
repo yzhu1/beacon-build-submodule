@@ -44,21 +44,21 @@
             <classpath>
                 <path refid="loadtest.classpath" />
             </classpath>
-            <arg value="${common.dir}/grinder/grinder.properties" />
+            <arg value="${imported.basedir}/grinder/grinder.properties" />
         </java>
     </target>
 
     <target name="run-load-tests" depends="clean,compile,jar">
         <parallel failOnAny="true" >
-           <exec id="console" executable="${common.dir}/grinder/startConsole.sh" timeout="3000"/>
-           <exec id="agent" executable="${common.dir}/grinder/startAgent.sh" timeout="3000" />
+           <exec id="console" executable="${imported.basedir}/grinder/startConsole.sh" timeout="3000"/>
+           <exec id="agent" executable="${imported.basedir}/grinder/startAgent.sh" timeout="3000" />
            <sequential>
               <sleep seconds ="10"/>
               <java className="net.wgen.grinder.HeadlessGrinder" fork="true">
    	            <classpath>
    	                <path refid="loadtest.classpath" />
    	            </classpath>
-               	<arg value="${common.dir}/grinder/grinder.properties" />
+               	<arg value="${imported.basedir}/grinder/grinder.properties" />
               </java>
               <echo>finished headless</echo>
            </sequential>
@@ -66,6 +66,6 @@
         </parallel>
     </target>
     <target name="run-load-tests-agent-only" depends="clean,compile,jar">
-        <exec id="agent" executable="${common.dir}/grinder/startAgent.sh" timeout="61000" />
+        <exec id="agent" executable="${imported.basedir}/grinder/startAgent.sh" timeout="61000" />
     </target>
 </project>
