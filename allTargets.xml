@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project name="wgspring-all">
+<project name="wgspring-allTargets">
+	
     <!-- If you are getting the error: 
             "[taskdef] Could not load definitions from resource net/sf/antcontrib/antlib.xml. It could not be found."
          then you need to copy ant-contrib.jar from common/lib/build to
@@ -8,9 +9,10 @@
         <classpath><pathelement path="${build.lib.dir}/ant-contrib-*.jar"/></classpath>
     </taskdef>
 
-    <dirname property="imported.basedir" file="${ant.file.wgspring-all}"/>
+	<!-- set this directory this ant script is in as a property -->
+    <dirname property="imported.basedir" file="${ant.file.wgspring-allTargets}"/>
 
-    <!-- load the wgspring specific properties -->
+    <!-- load the wgspring default build properties -->
     <property file="${imported.basedir}/default.build.properties"/>
 
     <import file="deployTargets.xml"/>
@@ -20,8 +22,7 @@
     <import file="serverTargets.xml"/>
     <import file="testTargets.xml"/>
 
-    <target name="restart"  depends="apache-stop,tomcat-stop,tomcat-clean,deploy,tomcat-start,apache-start"
-    />
+    <target name="restart"  depends="apache-stop,tomcat-stop,tomcat-clean,deploy,tomcat-start,apache-start" />
     
     <macrodef name="spring-runner">
         <attribute name="context"/>
