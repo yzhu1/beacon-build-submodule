@@ -37,9 +37,9 @@
     </target>
 
     <target name="ivy-resolve" description="--> retrieve dependencies with ivy" depends="ivy-get-settings, ivy-clean-resolution-cache">
-        <ivy:settings id="ivy.settings" file="ivysettings.xml" />
+        <ivy:settings id="ivy.settings" file="conf/ivysettings.xml" />
         <!-- copy artifacts from repo(s) to cache -->
-        <ivy:resolve settingsRef="ivy.settings" file="ivy.xml" />
+        <ivy:resolve settingsRef="ivy.settings" file="conf/ivy.xml" />
         <!-- copy artifacts from cache to destination dir -->
         <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
         <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
