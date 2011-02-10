@@ -1,6 +1,6 @@
-<configurations defaultconfmapping="runtime;test;compile;web-assets;coverage;build">
+<configurations defaultconfmapping="runtime;test;compile;web-assets">
     <conf name='compile'
-        visibility="private"
+        visibility="public"
         description="Only required for compiletime"
         transitive="false"/>
     <conf name='runtime'
