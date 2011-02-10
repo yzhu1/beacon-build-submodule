@@ -62,14 +62,16 @@
         <delete dir="${ivy.resolution.cache.dir}" />
     </target>
 
-    <target name="ivy-publish">
+    <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, test-unit, build-app-jars,
+                                        zip-web-assets, ivy-get-settings">
 <!-- <target name="ivy-publish" depends="clean-create-tested-classes-jar, zip-web-assets, ivy-get-settings">
 -->
         <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
             update="true" overwrite="true" forcedeliver="true"/>
     </target>
 
-    <target name="ivy-publish-dev">
+    <target name="ivy-publish-dev" depends="clean, clean-ivy, init-ivy, test-unit, build-app-jars,
+                                            zip-web-assets, ivy-get-settings">
 <!-- <target name="ivy-publish-dev" depends="clean-create-untested-classes-jar, zip-web-assets, ivy-get-settings">
 -->
         <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
