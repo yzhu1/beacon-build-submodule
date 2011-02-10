@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project name="db">
+<project name="wgspring-dbTargets">
+	
     <var file="${imported.basedir}/config/threetwelve.properties"/>
     <var file="${imported.basedir}/config/password.properties"/>
     <var file="${app.dir}/config/${servlet.name}.properties"/>
@@ -22,7 +23,6 @@
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
     <import file="testTargets.xml"/>
-
 
     <!-- internal use only: clear a specific schema -->
     <!-- (change-default-schema and clear-schema both call this) -->
@@ -243,5 +243,3 @@
     </target>
 
 </project>
-
-
