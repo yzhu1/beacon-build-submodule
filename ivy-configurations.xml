@@ -6,11 +6,13 @@
     <conf name='runtime'
         visibility="public"
         description='Only required for runtime'
-        extends="compile" />
+        extends="compile"
+        transitive="false" />
     <conf name='test'
         visibility="public"
         description="required for testing"
-        extends="compile" />
+        extends="compile"
+        transitive="false" />
     <conf name='web-assets'
         visibility="public"
         description="required for deploying as an ear" />
