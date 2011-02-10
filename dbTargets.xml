@@ -1,22 +1,21 @@
 <?xml version="1.0"?>
 <project name="wgspring-dbTargets">
 	
-    <var file="${imported.basedir}/config/threetwelve.properties"/>
-    <var file="${imported.basedir}/config/password.properties"/>
-    <var file="${app.dir}/config/${servlet.name}.properties"/>
+    <var file="${app.dir}/conf/${servlet.name}.properties"/>
+    <var file="${app.dir}/conf/password.properties"/>
     
     <!-- Override properties with environment-specific ones, if they exist -->
-    <propertycopy name="threetwelve.db.username" from="${build.env_property_prefix}.threetwelve.db.username" override="true" silent="true"/>
-    <propertycopy name="threetwelve.db.password" from="${build.env_property_prefix}.threetwelve.db.password" override="true" silent="true"/>
-    <propertycopy name="threetwelve.db.host" from="${build.env_property_prefix}.threetwelve.db.host" override="true" silent="true"/>
-    <propertycopy name="threetwelve.db.dbname" from="${build.env_property_prefix}.threetwelve.db.dbname" override="true" silent="true"/>
-    <propertycopy name="threetwelve.db.schema" from="${build.env_property_prefix}.threetwelve.db.schema" override="true" silent="true"/>
-    <propertycopy name="threetwelve.hbm2ddl.auto" from="${build.env_property_prefix}.threetwelve.hbm2ddl.auto" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.username" from="${build.env_property_prefix}.wgspring.db.username" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.password" from="${build.env_property_prefix}.wgspring.db.password" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.host" from="${build.env_property_prefix}.wgspring.db.host" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.dbname" from="${build.env_property_prefix}.wgspring.db.dbname" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.schema" from="${build.env_property_prefix}.wgspring.db.schema" override="true" silent="true"/>
+    <propertycopy name="wgspring.hbm2ddl.auto" from="${build.env_property_prefix}.wgspring.hbm2ddl.auto" override="true" silent="true"/>
 
     <if>
-        <equals arg1="${threetwelve.hbm2ddl.auto}" arg2="validate"/>
+        <equals arg1="${wgspring.hbm2ddl.auto}" arg2="validate"/>
         <then>
-            <property name="threetwelve.db.migrate" value="true"/>
+            <property name="wgspring.db.migrate" value="true"/>
         </then>
     </if>
     
@@ -29,13 +28,13 @@
     <macrodef name="clear-named-schema">
         <attribute name="schema-name" />
         <sequential>
-            <echo>Clearing schema @{schema-name} ${threetwelve.db.host}</echo>
+            <echo>Clearing schema @{schema-name} ${wgspring.db.host}</echo>
             <exec executable="bash" failonerror="true">
                 <env key="PGPASSFILE" file="${imported.basedir}/.pgpass"/>
                 <arg value="${imported.basedir}/scripts/db/clear_schema.sh" />
-                <arg value="${threetwelve.db.username}" />
-                <arg value="${threetwelve.db.host}" />
-                <arg value="${threetwelve.db.dbname}" />
+                <arg value="${wgspring.db.username}" />
+                <arg value="${wgspring.db.host}" />
+                <arg value="${wgspring.db.dbname}" />
                 <arg value="@{schema-name}" />
              </exec>
          </sequential>
@@ -53,37 +52,37 @@
                 <arg value="postgres" />
                 <arg value="-h" />
                 <arg value="localhost" />
-                <arg value="threetwelve" />
+                <arg value="${wgspring.db.dbname}" />
                 <arg value="-c" />
                 <arg value="@{sql}" />
             </exec>
         </sequential>
     </macrodef>
 
-    <target name="clear-schema" if="threetwelve.db.migrate">
-        <clear-named-schema schema-name="${threetwelve.db.schema}" />
+    <target name="clear-schema" if="wgspring.db.migrate">
+        <clear-named-schema schema-name="${wgspring.db.schema}" />
     </target>
 
     <target name="change-default-schema"
             description="clear old schema and create the new one">
-        <clear-named-schema schema-name="${threetwelve.db.schema.previous}" />
-        <pg-run sql="create schema ${threetwelve.db.schema}" />
-        <pg-run sql="alter user ${threetwelve.db.username} set search_path to ${threetwelve.db.schema}" />
+        <clear-named-schema schema-name="${wgspring.db.schema.previous}" />
+        <pg-run sql="create schema ${wgspring.db.schema}" />
+        <pg-run sql="alter user ${wgspring.db.username} set search_path to ${wgspring.db.schema}" />
     </target>
 
-    <target name="migrate-schema" if="threetwelve.db.migrate" depends="test-compile"
+    <target name="migrate-schema" if="wgspring.db.migrate" depends="test-compile"
             description="run migrations for current release">
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
-            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
-            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
-            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
-            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
-            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
-            <arg value="${threetwelve.db.migration}"/>
+            <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${wgspring.db.schema}"/>
+            <arg value="${wgspring.db.migration}"/>
             <arg value="update"/>
         </exec>
         <load-context context="${integration.test.classes.dir}/${servlet.name}-servlet.xml"/>
@@ -96,14 +95,14 @@
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
-            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
-            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
-            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
-            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
-            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
-            <arg value="${threetwelve.db.migration}"/>
+            <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${wgspring.db.schema}"/>
+            <arg value="${wgspring.db.migration}"/>
             <arg value="tag"/>
-            <arg value="${threetwelve.db.migration.previous.tag}"/>
+            <arg value="${wgspring.db.migration.previous.tag}"/>
         </exec>
     </target>
 
@@ -114,14 +113,14 @@
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
-            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
-            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
-            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
-            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
-            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
-            <arg value="${threetwelve.db.migration}"/>
+            <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${wgspring.db.schema}"/>
+            <arg value="${wgspring.db.migration}"/>
             <arg value="rollback"/>
-            <arg value="${threetwelve.db.migration.previous.tag}"/>
+            <arg value="${wgspring.db.migration.previous.tag}"/>
         </exec>
     </target>
     
@@ -197,10 +196,10 @@
             input="${snapshot}">
             <env key="PGPASSFILE" file="${imported.basedir}/.pgpass"/>
             <arg value="-h"/>
-            <arg value="${threetwelve.db.host}"/>
+            <arg value="${wgspring.db.host}"/>
             <arg value="-U"/>
-            <arg value="${threetwelve.db.username}"/>
-            <arg value="${threetwelve.db.dbname}"/>
+            <arg value="${wgspring.db.username}"/>
+            <arg value="${wgspring.db.dbname}"/>
         </exec>
     </target>
     
@@ -210,9 +209,9 @@
             <env key="PGPASSFILE" file="${imported.basedir}/.pgpass"/>
             <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
             <arg value="${migration.dir}"/>
-            <arg value="${threetwelve.db.username}"/>
-            <arg value="${threetwelve.db.dbname}"/>
-            <arg value="${threetwelve.db.host}"/>
+            <arg value="${wgspring.db.username}"/>
+            <arg value="${wgspring.db.dbname}"/>
+            <arg value="${wgspring.db.host}"/>
         </exec>
     </target>
 
@@ -232,12 +231,12 @@
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
-            <env key="LIQUIBASE_DB_HOST" value="${threetwelve.db.host}"/>
-            <env key="LIQUIBASE_DB_NAME" value="${threetwelve.db.dbname}"/>
-            <env key="LIQUIBASE_DB_USER" value="${threetwelve.db.username}"/>
-            <env key="LIQUIBASE_DB_PWORD" value="${threetwelve.db.password}"/>
-            <env key="LIQUIBASE_DB_SCHEMA" value="${threetwelve.db.schema}"/>
-            <arg value="${threetwelve.db.migration}"/>
+            <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
+            <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
+            <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
+            <env key="LIQUIBASE_DB_SCHEMA" value="${wgspring.db.schema}"/>
+            <arg value="${wgspring.db.migration}"/>
             <arg value="${cmd}"/>
         </exec>
     </target>
