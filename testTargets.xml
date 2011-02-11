@@ -436,7 +436,6 @@
             <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
             <formatter type="plain"/>
             <fileset dir="${app.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js" />
-            <fileset dir="${common.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js" />
         </jslint>
         <exec executable="grep"
               outputproperty="build.js.grep.output"
