@@ -2,7 +2,7 @@
 <project name="wgspring-dbTargets">
 	
     <var file="${app.dir}/conf/${servlet.name}.properties"/>
-    <var file="${app.dir}/conf/password.properties"/>
+    <var file="${app.dir}/conf/${servlet.name}.password.properties"/>
     
     <!-- Override properties with environment-specific ones, if they exist -->
     <propertycopy name="wgspring.db.username" from="${build.env_property_prefix}.wgspring.db.username" override="true" silent="true"/>
