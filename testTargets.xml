@@ -9,7 +9,7 @@
     	<equals arg1="${threetwelve.servlet.name}" arg2="outcomes"/>
     </condition>
 -->
-    <taskdef classpath="${build.lib.dir}/checkstyle-all-*.jar"
+    <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
              resource="checkstyletask.properties"
     />
 
@@ -403,11 +403,6 @@
             <fileset dir="${app.integration.src.dir}" includes="**/*.java" />
             <fileset dir="${app.webservice.src.dir}" includes="**/*.java" />
             <fileset dir="${app.webdriver.src.dir}" includes="**/*.java" />  
-            <fileset dir="${common.src.dir}" includes="**/*.java" />
-            <fileset dir="${common.unit.src.dir}" includes="**/*.java" />
-            <fileset dir="${common.integration.src.dir}" includes="**/*.java" />
-            <fileset dir="${common.webservice.src.dir}" includes="**/*.java" />
-            <fileset dir="${common.webdriver.src.dir}" includes="**/*.java" />
             <formatter type="xml" toFile="${results.dir}/checkstyle-errors.xml" />
             <formatter type="plain" usefile="false" />
         </checkstyle>
