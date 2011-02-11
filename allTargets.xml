@@ -34,7 +34,7 @@
                 maxmemory="512m"
                 failonerror="true"
                 fork="true"
-                classname="net.wgen.spring.util.SpringRunner"
+                classname="net.wgen.spring.core.util.SpringRunner"
                 >
                 <arg value="@{context}"/>
                 <arg value="@{bean}"/>
@@ -64,7 +64,7 @@
                     maxmemory="512m"
                     failonerror="true"
                     fork="true"
-                    classname="net.wgen.spring.util.SpringRunner"
+                    classname="net.wgen.spring.core.util.SpringRunner"
                     >
                     <arg value="@{context}"/>
                     <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
