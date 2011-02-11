@@ -92,7 +92,7 @@
     </target>
 
     <!-- Compile junit test classes -->
-    <target name="test-compile" depends="test-clean, build-app-jars, cobertura-instrument-jars"
+    <target name="test-compile" depends="test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
         description="Compile the tests">
 
         <mkdir dir="${test.classes.dir}" />
