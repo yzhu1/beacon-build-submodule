@@ -23,6 +23,7 @@
     </target>
 	
     <target name="clean" description="Clean the build directory" >
+    	<delete dir="${output.dir}"/>
         <delete dir="${deploy.classes.dir}"/>
         <delete dir="${deploy.common.classes.dir}"/>
         <delete dir="${deploy.resources.dir}"/>
