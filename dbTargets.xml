@@ -75,7 +75,7 @@
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
@@ -93,7 +93,7 @@
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
@@ -111,7 +111,7 @@
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
@@ -229,7 +229,7 @@
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/postgresql-jdbc4-*.jar"/>
+            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
