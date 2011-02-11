@@ -40,8 +40,7 @@
                 <arg value="@{bean}"/>
                 <arg value="@{method}"/>
                 <args-nested/>
-                <jvmarg value="-D${servlet.name}.env.config.dir=${app.dir}/config"/>
-                <jvmarg value="-Dcommon.env.config.dir=${imported.basedir}/config"/>
+                <jvmarg value="-D${servlet.name}.env.config.dir=${app.config.dir}"/>
                 <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
                 <classpath>
                     <fileset dir="${runtime.lib.dir}" includes="**/*.jar" />
@@ -68,8 +67,7 @@
                     classname="net.wgen.spring.util.SpringRunner"
                     >
                     <arg value="@{context}"/>
-                    <jvmarg value="-D${servlet.name}.env.config.dir=${app.dir}/config"/>
-                    <jvmarg value="-Dcommon.env.config.dir=${imported.basedir}/config"/>
+                    <jvmarg value="-D${servlet.name}.env.config.dir=${app.config.dir}"/>
                     <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
                     <classpath>
                         <fileset dir="${runtime.lib.dir}" includes="**/*.jar" />
