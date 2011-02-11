@@ -30,7 +30,7 @@
         <sequential>
             <echo>Clearing schema @{schema-name} ${wgspring.db.host}</echo>
             <exec executable="bash" failonerror="true">
-                <env key="PGPASSFILE" file="${imported.basedir}/.pgpass"/>
+                <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
                 <arg value="${imported.basedir}/scripts/db/clear_schema.sh" />
                 <arg value="${wgspring.db.username}" />
                 <arg value="${wgspring.db.host}" />
@@ -194,7 +194,7 @@
         <exec executable="/usr/bin/psql" 
             failonerror="true" 
             input="${snapshot}">
-            <env key="PGPASSFILE" file="${imported.basedir}/.pgpass"/>
+            <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
             <arg value="-h"/>
             <arg value="${wgspring.db.host}"/>
             <arg value="-U"/>
@@ -206,7 +206,7 @@
     <target name="repair-migration-filenames">
         <property name="migration.dir" location="${app.resources.dir}/migration/liquibase"/>
         <exec executable="bash" failonerror="true">
-            <env key="PGPASSFILE" file="${imported.basedir}/.pgpass"/>
+            <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
             <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
             <arg value="${migration.dir}"/>
             <arg value="${wgspring.db.username}"/>
@@ -244,7 +244,7 @@
 	<target name="change-migration-filenames-to-opt-tt">
 	    <property name="migration.dir" location="/opt/tt/migrations/migrations"/>
 		<exec executable="bash" failonerror="true">
-			  <env key="PGPASSFILE" file="${common.dir}/.pgpass"/>
+			  <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
 			  <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
 			  <arg value="${migration.dir}"/>
 			  <arg value="${threetwelve.db.username}"/>
