@@ -67,8 +67,8 @@
         <path id="build.app.classpath">
             <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
             <fileset dir="${jar.outdir}">
-                <include name="${jar.common.app.name}-${rpm.version}.jar"/>
-                <include name="${jar.common.web.name}-${rpm.version}.jar"/>
+                <include name="${jar.common.app.name}.jar"/>
+                <include name="${jar.common.web.name}.jar"/>
             </fileset>
         </path>
         <javac-conditional
@@ -80,14 +80,20 @@
         </javac-conditional>
         <jar
             basedir="${jar.classes.dir.main}/app"
-            destfile="${jar.outdir}/${jar.app.name}-${rpm.version}.jar"
+            destfile="${jar.outdir}/${jar.app.name}.jar"
             excludes="**/ui/**/*.class"
+            update="false"
+        />
+        <jar
+            basedir="${app.src.dir}"
+            destfile="${jar.outdir}/${jar.app.name}-src.jar"
+            excludes="**/ui/**/*.java"
             update="false"
         />
 
          <path id="build.web.classpath">
              <path refid="build.app.classpath"/>
-             <fileset dir="${jar.outdir}" includes="${jar.app.name}-${rpm.version}.jar"/>
+             <fileset dir="${jar.outdir}" includes="${jar.app.name}.jar"/>
          </path>
          <javac-conditional
                     srcdir="${app.src.dir}"
@@ -99,7 +105,13 @@
          </javac-conditional>
         <jar
             basedir="${jar.classes.dir.main}/web"
-            destfile="${jar.outdir}/${jar.web.name}-${rpm.version}.jar"
+            destfile="${jar.outdir}/${jar.web.name}.jar"
+            update="false"
+        />
+
+        <jar
+            basedir="${app.src.dir}"
+            destfile="${jar.outdir}/${jar.web.name}-src.jar"
             update="false"
         />
 

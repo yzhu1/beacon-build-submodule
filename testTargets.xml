@@ -107,7 +107,7 @@
             <pathelement location="${integration.test.classes.dir}" />
             <pathelement location="${webservice.test.classes.dir}"/>
             <pathelement location="${webdriver.test.classes.dir}" />
-
+<!-- TODO put libs in ivy and reference from ivy_lib... get rid of below -->
             <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
             <fileset dir="${jar.outdir}">
                 <include name="${jar.common.app.name}-${rpm.version}.jar"/>
