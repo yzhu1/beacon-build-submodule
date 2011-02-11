@@ -93,6 +93,6 @@
          /////////////////////////////////////////////////////////////////////////// -->
         
 
-   <target name="clean-ivy-deploy" depends="clean-ivy, init-ivy, unzip-web-assets, deploy"/> 
+   <target name="clean-ivy-deploy" depends="clean, clean-ivy, init-ivy, unzip-web-assets, deploy"/> 
     
 </project>
