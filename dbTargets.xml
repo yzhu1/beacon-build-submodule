@@ -240,5 +240,17 @@
             <arg value="${cmd}"/>
         </exec>
     </target>
+	
+	<target name="change-migration-filenames-to-opt-tt">
+	    <property name="migration.dir" location="/opt/tt/migrations/migrations"/>
+		<exec executable="bash" failonerror="true">
+			  <env key="PGPASSFILE" file="${common.dir}/.pgpass"/>
+			  <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
+			  <arg value="${migration.dir}"/>
+			  <arg value="${threetwelve.db.username}"/>
+			  <arg value="${threetwelve.db.dbname}"/>
+			  <arg value="${threetwelve.db.host}"/>
+		</exec>
+	</target>
 
 </project>
