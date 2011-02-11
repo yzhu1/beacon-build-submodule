@@ -57,7 +57,8 @@
         </sequential>
     </macrodef>
 
-
+	<target name="build-test-jars" description="implemented only by wgspringcore" />
+	
     <target name="build-app-jars" 
                 description="Compile the source into jars" >
         
