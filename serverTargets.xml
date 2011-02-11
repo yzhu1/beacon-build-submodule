@@ -9,18 +9,18 @@
             <os family="mac"/>
             <then>
                 <property name="apachectl" value="/usr/sbin/apachectl"/>
-                <property name="conf" location="${common.config.dir}/dev-local-httpd-mac.conf"/>
+                <property name="conf" location="${apache.config.dir}/dev-local-httpd-mac.conf"/>
             </then>
             <elseif>
                 <equals arg1="${vm}" arg2="0"/>
                 <then>
                     <property name="apachectl" value="/usr/sbin/apachectl"/>
-                    <property name="conf" location="${common.config.dir}/dev-local-httpd.conf"/>
+                    <property name="conf" location="${apache.config.dir}/dev-local-httpd.conf"/>
                 </then>
             </elseif>
             <else>
                 <property name="apachectl" value="/usr/sbin/apache2ctl"/>
-                <property name="conf" location="${common.config.dir}/dev-local-httpd-ubuntu.conf"/>
+                <property name="conf" location="${apache.config.dir}/dev-local-httpd-ubuntu.conf"/>
             </else>
         </if>
     </target>
@@ -33,11 +33,11 @@
             <equals arg1="${vm}" arg2="0"/>
             <then>
                 <property name="apachectl" value="/usr/sbin/apachectl"/>
-                <property name="conf" location="${common.config.dir}/dev-local-lb-httpd.conf"/>
+                <property name="conf" location="${apache.config.dir}/dev-local-lb-httpd.conf"/>
             </then>
             <else>
                 <property name="apachectl" value="/usr/sbin/apache2ctl"/>
-                <property name="conf" location="${common.config.dir}/dev-local-lb-httpd-ubuntu.conf"/>
+                <property name="conf" location="${apache.config.dir}/dev-local-lb-httpd-ubuntu.conf"/>
             </else>
         </if>
     </target>
