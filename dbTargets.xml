@@ -28,7 +28,11 @@
     <macrodef name="clear-named-schema">
         <attribute name="schema-name" />
         <sequential>
-            <echo>Clearing schema @{schema-name} ${wgspring.db.host}</echo>
+            <echo>Clearing schema @{schema-name} ${wgspring.db.host}
+	          using PGPASSFILE=${app.config.dir}/.pgpass,
+		  dbname ${wgspring.db.dbname},
+		  and username ${wgspring.db.username}
+            </echo>
             <exec executable="bash" failonerror="true">
                 <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
                 <arg value="${imported.basedir}/scripts/db/clear_schema.sh" />
