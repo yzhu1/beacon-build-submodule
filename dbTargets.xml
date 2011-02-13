@@ -23,6 +23,14 @@
     <import file="deployTargets.xml"/>
     <import file="testTargets.xml"/>
 
+    <target name="prepare-pgpass">
+        <echo>preparing ${app.config.dir}/.pgpass</echo>
+        <exec executable="chmod">
+            <arg value="0600" />
+            <arg value="${app.config.dir}/.pgpass" />
+        </exec>
+    </target>
+
     <!-- internal use only: clear a specific schema -->
     <!-- (change-default-schema and clear-schema both call this) -->
     <macrodef name="clear-named-schema">
@@ -63,12 +71,13 @@
         </sequential>
     </macrodef>
 
-    <target name="clear-schema" if="wgspring.db.migrate">
+    <target name="clear-schema" if="wgspring.db.migrate" depends="prepare-pgpass">
         <clear-named-schema schema-name="${wgspring.db.schema}" />
     </target>
 
     <target name="change-default-schema"
-            description="clear old schema and create the new one">
+            description="clear old schema and create the new one"
+            depends="prepare-pgpass">
         <clear-named-schema schema-name="${wgspring.db.schema.previous}" />
         <pg-run sql="create schema ${wgspring.db.schema}" />
         <pg-run sql="alter user ${wgspring.db.username} set search_path to ${wgspring.db.schema}" />
@@ -186,7 +195,7 @@
             depends="load-snapshot,repair-migration-filenames,tag-schema"
     />
     
-    <target name="load-snapshot-provided">
+    <target name="load-snapshot-provided" depends="prepare-pgpass">
         <if>
             <not>
                 <available file="${snapshot}" />
@@ -207,7 +216,7 @@
         </exec>
     </target>
     
-    <target name="repair-migration-filenames">
+    <target name="repair-migration-filenames" depends="prepare-pgpass">
         <property name="migration.dir" location="${app.resources.dir}/migration/liquibase"/>
         <exec executable="bash" failonerror="true">
             <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
@@ -245,7 +254,7 @@
         </exec>
     </target>
 	
-	<target name="change-migration-filenames-to-opt-tt">
+	<target name="change-migration-filenames-to-opt-tt" depends="prepare-pgpass">
 	    <property name="migration.dir" location="/opt/tt/migrations/migrations"/>
 		<exec executable="bash" failonerror="true">
 			  <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
