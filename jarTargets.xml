@@ -30,7 +30,7 @@
             <javac-standard srcdir="@{srcdir}" destdir="@{destdir}">
                 <javac-nested />
                 <compilerarg value="-Xlint:unchecked" />
-                <!--compilerarg value="-Werror" /-->
+                <compilerarg value="-Werror" />
             </javac-standard>
         </sequential>
     </macrodef>
