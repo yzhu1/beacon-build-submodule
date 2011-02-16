@@ -62,7 +62,7 @@
         <delete dir="${ivy.resolution.cache.dir}" />
     </target>
 
-    <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
             update="true" overwrite="true" forcedeliver="true">
         	<artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
@@ -70,7 +70,7 @@
         </ivy:publish>
     </target>
 
-    <target name="ivy-publish-dev" depends="clean, clean-ivy, init-ivy, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish-dev" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
             update="true" overwrite="true" forcedeliver="true">
             <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
