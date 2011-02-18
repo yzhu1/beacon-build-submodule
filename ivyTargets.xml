@@ -8,7 +8,6 @@
 
     <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
         <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
-        <delete dir="${ivy.local.repo.dir}/../cache" includeemptydirs="true" failonerror="false" />
         <delete file="ivysettings.xml"/>
     </target>
 
