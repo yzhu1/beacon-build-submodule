@@ -7,17 +7,17 @@
 
 
     <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
-        <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="true" />
-        <delete dir="${ivy.local.repo.dir}/../cache" includeemptydirs="true" failonerror="true" />
+        <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
+        <delete dir="${ivy.local.repo.dir}/../cache" includeemptydirs="true" failonerror="false" />
         <delete file="ivysettings.xml"/>
     </target>
 
     <target name="clean-ivy-local-repo-jar">
-        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}" includeemptydirs="true" failonerror="true" />
+        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}" includeemptydirs="true" failonerror="false" />
     </target>
 
     <target name="clean-ivy-local-repo-web-assets">
-        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}-web-assets" includeemptydirs="true" failonerror="true" />
+        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}-web-assets" includeemptydirs="true" failonerror="false" />
     </target>
 
     <target name="init-ivy" depends="ivy-get-settings, ivy-resolve"/>
