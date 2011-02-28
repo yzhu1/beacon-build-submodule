@@ -13,11 +13,12 @@
              resource="checkstyletask.properties"
     />
 
+<!-- TODO get rid of
     <path id="cobertura.classpath">
         <fileset dir="${coverage.lib.dir}" includes="*.jar" />
-    	<fileset dir="${test.lib.dir}" includes="*.jar" />
     </path>
     <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+-->
 
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
@@ -25,7 +26,9 @@
     <import file="serverTargets.xml"/>
 
     <path id="test.classpath.base">
+<!-- TODO get rid of
         <path refid="cobertura.classpath" />
+-->
         <fileset dir="${coverage.lib.dir}" includes="*.jar" />
         <fileset dir="${test.lib.dir}" includes="*.jar" />
         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
@@ -367,7 +370,7 @@
         </cobertura-report>
     </target>
 
-    <target name="cobertura-report-xml" depends="test-unit, -cobertura-merge">
+    <target name="cobertura-report-xml" depends="-cobertura-merge">
         <mkdir dir="${coverage.reports.dir}" />
         <cobertura-report
             format="xml"
@@ -375,6 +378,7 @@
             destdir="${coverage.reports.dir}"
             >
             <fileset dir="${app.src.dir}" />
+            <fileset dir="${common.src.dir}" />
         </cobertura-report>
     </target>
 
