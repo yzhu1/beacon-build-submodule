@@ -19,10 +19,6 @@
         <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}-web-assets" includeemptydirs="true" failonerror="false" />
     </target>
 
-    <target name="clean-ivy-repo-cache">
-        <delete dir="${ivy.repo.cache.dir}" includeemptydirs="true" failonerror="false" />
-    </target>
-
     <target name="init-ivy" depends="ivy-get-settings, ivy-resolve"/>
 
 <!-- TODO get rid of
