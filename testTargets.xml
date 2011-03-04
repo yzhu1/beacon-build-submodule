@@ -204,8 +204,8 @@
                 >
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
-                <sysproperty key="app.freemarker.source.dir" file="${app.dir}/src/main/webapp/WEB-INF/freemarker" />
-                <sysproperty key="common.freemarker.source.dir" file="${common.web.dir}/WEB-INF/freemarker" />
+                <sysproperty key="${app.freemarker.source.dir}" file="${app.dir}/src/main/webapp/WEB-INF/freemarker" />
+                <sysproperty key="${common.freemarker.source.dir}" file="${common.web.dir}/WEB-INF/freemarker" />
                 <formatter type="brief" />
                 <formatter type="xml" />
 
