@@ -166,12 +166,16 @@
             <fileset dir="${context.webdriver.dir}" includes="*-context.xml"/>
         </copy>
         <!-- Copy freemarker templates to integration test dir, for tests that use FreeMarkerMerger -->
-        <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
+    	<copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
             <fileset dir="${app.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
         <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
             <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
+    	<!-- This one picks up a copy of spring.ftl for integration tests -->
+    	<copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
+            <fileset dir="${context.common.integration.dir}/freemarker" includes="**/*.ftl"/>
+    	</copy>
     </target>
 
     <macrodef name="junit-explicit">
