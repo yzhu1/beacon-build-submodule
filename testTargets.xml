@@ -52,7 +52,7 @@
     
     <target
         name="quicktests"
-        depends="jslint,jslint-common,template-lint,checkstyle,test-unit"
+        depends="test-compile,jslint,template-lint,checkstyle,test-unit"
     />
 
     <target name="alltests">
