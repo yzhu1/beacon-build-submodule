@@ -303,7 +303,7 @@
         />
     </target>
 
-    <target name="test-integration" depends="test-clean, test-compile" 
+    <target name="test-integration" depends="test-clean, test-compile, test-integration-wgspringcore" 
         description="Run all integration tests">
         <junit-standard
             label="Integration tests"
@@ -311,6 +311,27 @@
             classpathref="test.classpath.run-integration"
             coverage-file="${coverage.data.file.test-integration}"
         />
+    </target>
+    
+    <target name="test-integration-wgspringcore" description="Run tests found in wgspringcore-integration-test-*.jar"
+        depends="test-clean, test-compile" >
+        <!-- find the latest version of the wgspringcore-integration-test jar -->
+        <pathconvert property="jar-containing-tests" targetos="unix" pathsep="">
+            <fileset dir="${ivy.lib.dir}/test"
+                includes="wgspringcore-integration-test-*.jar"
+                excludes="wgspringcore-integration-test-src-*.jar"/>
+        </pathconvert>
+        <echo>running tests in ${jar-containing-tests}</echo>
+        <sequential>
+            <junit-explicit
+                label="wgspringcore integration tests"
+                classpathref="test.classpath.run-integration"
+                coverage-file="${coverage.data.file.test-integration}" >
+                <zipfileset src="${jar-containing-tests}"
+                            includes="${tests.include}"
+                            excludes="${tests.exclude}" />
+            </junit-explicit>
+        </sequential>
     </target>
 	
     <target name="test-unit" depends="test-clean, test-compile" 
