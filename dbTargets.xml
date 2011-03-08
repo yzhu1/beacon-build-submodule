@@ -260,9 +260,9 @@
 			  <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
 			  <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
 			  <arg value="${migration.dir}"/>
-			  <arg value="${threetwelve.db.username}"/>
-			  <arg value="${threetwelve.db.dbname}"/>
-			  <arg value="${threetwelve.db.host}"/>
+			  <arg value="${wgspring.db.username}"/>
+			  <arg value="${wgspring.db.dbname}"/>
+			  <arg value="${wgspring.db.host}"/>
 		</exec>
 	</target>
 
