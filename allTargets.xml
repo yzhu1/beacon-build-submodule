@@ -93,9 +93,10 @@
 
    <target name="ivy-clean-deploy" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
 
-   <target name="ci-test-pk12-part1"
+   <target name="ci-pk12-part1of2" description="All PK12 ci tests and a migration up from the baseline snap"
        depends="ivy-clean-deploy, checkstyle, template-lint, jslint, test-unit, clear-schema, load-baseline-database, migrate-schema, test-integration, test-webservice" />
 
-   <target name="ci-test-pk12-part2" depends="rollback-schema, load-fixtures" />
+   <target name="ci-pk12-part2of2" description="Separate from ci-pk12-part1of2 so that migrations can be re-run, after a down-migration is tested"
+       depends="rollback-schema, load-fixtures" />
     
 </project>
