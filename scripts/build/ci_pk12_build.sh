@@ -1,6 +1,7 @@
 #!/bin/bash
 
 app=$1
+gitrepo=$2
 
 # remove the code RPM
 /opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV mhcttwebapp remove mclass-tt-$app
@@ -33,4 +34,4 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $NEXT_RPM_REPO -r $WORKSPACE/RPM_
 ## if build is successful, move the last-stable branch to the current commit
 ## (this should always be the last step in the build)
 git branch -f last-stable-$BUILD_BRANCH
-git push -f git@mcgit.mc.wgenhq.net:312/$app.git last-stable-$BUILD_BRANCH
+git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$BUILD_BRANCH
