@@ -71,9 +71,9 @@
     <target name="test-all" description="all tests" depends="alltests"/>
         
     <target name="alltests-run" 
-        depends="clean, test-clean, deploy,
-        checkstyle, template-lint, jslint-common,
-        test-compile, test-unit,
+        depends="ivy-clean-deploy,
+        checkstyle, template-lint,
+        test-unit,
         clear-schema, load-baseline-database, migrate-schema,
         test-integration, test-webservice,
         rollback-schema,
