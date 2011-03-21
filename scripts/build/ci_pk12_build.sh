@@ -32,8 +32,3 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $NEXT_RPM_REPO -r $WORKSPACE/RPM_
 
 # update QA rpm repo
 /opt/wgen/rpmtools/wg_createrepo $NEXT_RPM_REPO
-
-## if build is successful, move the last-stable branch to the current commit
-## (this should always be the last step in the build)
-git branch -f last-stable-$BUILD_BRANCH
-git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$BUILD_BRANCH
