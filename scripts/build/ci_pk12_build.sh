@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 hostclass=$1
 app=$2
 gitrepo=$3
