@@ -4,7 +4,9 @@
     <taskdef resource="net/sf/antcontrib/antlib.xml">
         <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
     </taskdef>
-
+    <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
+    <import file="deployTargets.xml"/>
+    <import file="dbTargets.xml"/>
 
     <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
         <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
@@ -43,9 +45,6 @@
         <!-- copy artifacts from cache to destination dir -->
         <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
         <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
-        <exec executable="/usr/bin/python">
-            <arg value="${imported.basedir}/scripts/build/updateEclipseClasspathWithLatestWgspringcoreVersion.py" />
-        </exec>
     </target>
 
     <!-- WARNING: Use this with target with caution.
@@ -81,5 +80,6 @@
         </ivy:publish>
     </target>
 
+    <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
  
 </project>

@@ -21,6 +21,7 @@
     
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
+    <import file="ivyTargets.xml"/>
     <import file="testTargets.xml"/>
 
     <target name="prepare-pgpass">

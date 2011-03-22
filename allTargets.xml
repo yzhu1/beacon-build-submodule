@@ -91,7 +91,7 @@
          /////////////////////////////////////////////////////////////////////////// -->
         
 
-   <target name="ivy-clean-deploy" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
+   <target name="ivy-clean-deploy" depends="ivy-clean-deploy-steps"/>
 
    <target name="ci-pk12-part1of2" description="All PK12 ci tests and a migration up from the baseline snap"
        depends="ivy-clean-deploy, checkstyle, template-lint, jslint, test-unit, clear-schema, load-baseline-database, migrate-schema, test-integration, test-webservice" />

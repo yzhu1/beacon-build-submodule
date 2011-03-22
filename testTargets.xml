@@ -24,6 +24,7 @@
     <import file="deployTargets.xml"/>
     <import file="dbTargets.xml"/>
     <import file="serverTargets.xml"/>
+    <import file="ivyTargets.xml"/>
 
     <path id="test.classpath.base">
 <!-- TODO get rid of
@@ -71,7 +72,7 @@
     <target name="test-all" description="all tests" depends="alltests"/>
         
     <target name="alltests-run" 
-        depends="ivy-clean-deploy,
+        depends="ivy-clean-deploy-steps,
         checkstyle, template-lint,
         test-unit,
         clear-schema, load-baseline-database, migrate-schema,
