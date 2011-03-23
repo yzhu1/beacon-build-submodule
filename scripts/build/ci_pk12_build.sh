@@ -5,7 +5,8 @@ set -e
 hostclass=$1
 app=$2
 gitrepo=$3
-env=$4
+webapp_service=$4
+env=$5
 
 # remove the code RPM
 /opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass remove mclass-tt-$app
@@ -23,7 +24,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass bcfgcliupdate
 
 # start the webapp
-/opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass service tt-web-app start
+/opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass service $webapp_service start
 
 # run webdriver tests on remote box
 echo $JOB_NAME $ENV_PROPERTY_PREFIX $BUILD_TAG $BUILD_BRANCH "true" | ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net /home/autobuild/devel/3_12/$app-$app-$env-ci/ci-webdriver.sh
