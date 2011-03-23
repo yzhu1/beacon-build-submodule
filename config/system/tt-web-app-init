@@ -18,12 +18,20 @@ PROGRAM="tt-web-app"
 #
 
 HTTPD_INITD=/etc/init.d/httpd
-THREETWELVE_INITD=/etc/init.d/tt
 CATALINA_LOG=/opt/tt/logs/catalina.out
 TMP_STARTUP_LOG=/tmp/tmp_catalina_startup.log
 STARTUP_TIMEOUT_SECS=120
 SLEEP_SECONDS=5
 TOMCAT_SUCCESS_STRING="Server startup in"
+
+#
+# Determine Apache INITD filename programattically from this file name 
+# by trimming the trailing "-web-app"
+# e.g. if this file is tt-web-app, then /etc/init.d/tt
+# e.g. if this file is tt-webassess-web-app, then /etc/init.d/tt-webassess
+# 
+NAME="$(basename $0)"
+THREETWELVE_INITD=/etc/init.d/${NAME%"-web-app"}
 
 source /etc/init.d/functions
 
