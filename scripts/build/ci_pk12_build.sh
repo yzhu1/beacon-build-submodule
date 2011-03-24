@@ -16,7 +16,7 @@ rm -rf $WORKSPACE/RPM_STAGING
 mkdir -p $WORKSPACE/opt/tt/webapps/$app
 python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM_STAGING -D${app}dir=$WORKSPACE -Drpm_version=$RPM_VERSION -Dbuildnumber=$BUILD_NUMBER $WORKSPACE/rpm/tt-$app.spec
 
-# update rpm repo$hostclass
+# update rpm repo
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
 # deploy the rpm should update configs and install rpms.

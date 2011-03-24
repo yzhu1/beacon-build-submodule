@@ -205,13 +205,17 @@ function start() {
             -e "s/8009/${randomPort2}/g" -e "s/8443/${randomPort3}/g" \
             ${CATALINA_HOME}/conf/server.xml
     fi
+    echo "SCRIPT: $SU - $TOMCAT_USER -c TOMCAT_CFG=$TOMCAT_CFG $TOMCAT_SCRIPT start" >> /tmp/pk12debug.out
     if [ "$SECURITY_MANAGER" = "true" ]; then
         $SU - $TOMCAT_USER -c "$TOMCAT_SCRIPT start-security" \
             > /tmp/tomcat_startup.log 2>&1
     else
+        echo "running, CATALINA_BASE=$CATALINA_BASE" >> /tmp/pk12debug.out
         $SU - $TOMCAT_USER -c "TOMCAT_CFG=$TOMCAT_CFG $TOMCAT_SCRIPT start" > /tmp/tomcat_startup.log 2>&1
+        echo "done, CATALINA_BASE=$CATALINA_BASE" >> /tmp/pk12debug.out
     fi
     RETVAL="$?"
+    echo $RETVAL >> /tmp/pk12debug.out
     if [ "$RETVAL" -eq 0 ]; then 
         echo_success
         touch /var/lock/subsys/${NAME}
