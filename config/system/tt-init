@@ -42,8 +42,11 @@ if [ -r "$TOMCAT_CFG" ]; then
 fi
 
 # Get instance specific config file
+echo "Sourcing file /etc/sysconfig/${NAME}" >> /tmp/pk12debug.out
 if [ -r "/etc/sysconfig/${NAME}" ]; then
     . /etc/sysconfig/${NAME}
+    echo "Sourced" >> /tmp/pk12debug.out
+    echo $CATALINA_BASE >>  /tmp/pk12debug.out
 fi
 
 # Define which connector port to use
