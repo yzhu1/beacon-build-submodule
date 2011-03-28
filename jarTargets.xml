@@ -60,7 +60,7 @@
 	<target name="build-test-jars" description="implemented only by wgspringcore" />
 	
     <target name="build-app-jars" 
-                description="Compile the source into jars" >
+                description="Compile the source into jars" depends="unzip-web-assets">
         
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
