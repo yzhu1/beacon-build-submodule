@@ -1,7 +1,6 @@
 <project name="grinder">
     <property file="build.properties" />
     <property file="default.build.properties" />
-
     <path id="grinder.classpath">
         <fileset dir="${grinder.classes.dir}">
              <include name="**/*.jar" />
