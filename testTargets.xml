@@ -155,7 +155,7 @@
         <!-- Copy spring context to integration test dir -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
             <fileset dir="${common.context.src.dir}" includes="*-context.xml"/>
-            <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml"/>
+            <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml,spring.xml"/>
             <filterset begintoken="&quot;" endtoken="&quot;">
                 <filter token="ui-context.xml" value="&quot;test-ui-context.xml&quot;"/>
             </filterset>
