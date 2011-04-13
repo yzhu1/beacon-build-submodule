@@ -13,11 +13,26 @@
              resource="checkstyletask.properties"
     />
 
-    <path id="cobertura.classpath">
-        <fileset dir="${coverage.lib.dir}" />
-        <fileset dir="${test.lib.dir}" includes="*.jar" />
-    </path>
-    <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+    <!-- COBERTURA-RELATED DEFINITIONS -->
+    <if>
+        <!-- if the coverage lib dir is defined, we assume it has something in it-->
+        <available file="${coverage.lib.dir}" type="dir" />
+        <!-- so go ahead and attempt cobertura task definitions -->
+        <then>
+            <path id="cobertura.classpath">
+                <fileset dir="${coverage.lib.dir}" />
+                <fileset dir="${test.lib.dir}" includes="*.jar" />
+            </path>
+            <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+        </then>
+        <!-- otherwise, warn that it isn't there, and fail if coverage reports were requested -->
+        <else>
+            <echo>WARNING: no coverage library directory found at '${coverage.lib.dir}'</echo>
+            <fail if="build.cobertura">FATAL: test coverage requested but not possible</fail>
+            <!-- if we didn't abort, define an empty path with the same ID for test.classpath.* -->
+            <path id="cobertura.classpath" />
+        </else>
+    </if>
 
 
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
@@ -28,7 +43,6 @@
 
     <path id="test.classpath.base">
         <path refid="cobertura.classpath" />
-        <fileset dir="${coverage.lib.dir}" includes="*.jar" />
         <fileset dir="${test.lib.dir}" includes="*.jar" />
         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
         <pathelement location="${unit.test.classes.dir}" />
