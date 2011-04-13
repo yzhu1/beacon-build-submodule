@@ -1,14 +1,7 @@
 <?xml version="1.0"?>
 <project name="test">
     <property file="${imported.basedir}/default.test.properties" />
-	<property environment="sys_env" />
-	<!--
-    <property name="threetwelve.test.checkout.common" value="${sys_env.COMMON_HOME}" />
-    <condition property="threetwelve.test.checkout.app" 
-    	value="${sys_env.OUTCOMES_HOME}" else="${sys_env.THREETWELVE_HOME}" >
-    	<equals arg1="${threetwelve.servlet.name}" arg2="outcomes"/>
-    </condition>
--->
+
     <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
              resource="checkstyletask.properties"
     />
