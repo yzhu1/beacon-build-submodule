@@ -13,12 +13,12 @@
              resource="checkstyletask.properties"
     />
 
-<!-- TODO get rid of
     <path id="cobertura.classpath">
-        <fileset dir="${coverage.lib.dir}" includes="*.jar" />
+        <fileset dir="${coverage.lib.dir}" />
+        <fileset dir="${test.lib.dir}" includes="*.jar" />
     </path>
     <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
--->
+
 
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
@@ -27,9 +27,7 @@
     <import file="ivyTargets.xml"/>
 
     <path id="test.classpath.base">
-<!-- TODO get rid of
         <path refid="cobertura.classpath" />
--->
         <fileset dir="${coverage.lib.dir}" includes="*.jar" />
         <fileset dir="${test.lib.dir}" includes="*.jar" />
         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
@@ -380,7 +378,9 @@
             </fileset>
         </cobertura-merge>
     </target>
-    <target name="cobertura-report" depends="-cobertura-merge">
+    <target name="cobertura-report" depends="-cobertura-merge"
+        description="Create a human-readable test coverage report"
+        >
         <mkdir dir="${coverage.reports.dir}" />
         <cobertura-report
             format="html"
@@ -388,11 +388,12 @@
             destdir="${coverage.reports.dir}"
             >
             <fileset dir="${app.src.dir}" />
-            <fileset dir="${common.src.dir}" />
         </cobertura-report>
     </target>
 
-    <target name="cobertura-report-xml" depends="-cobertura-merge">
+    <target name="cobertura-report-xml" depends="-cobertura-merge"
+        description="Create a machine-readable test coverage report"
+        >
         <mkdir dir="${coverage.reports.dir}" />
         <cobertura-report
             format="xml"
@@ -400,7 +401,6 @@
             destdir="${coverage.reports.dir}"
             >
             <fileset dir="${app.src.dir}" />
-            <fileset dir="${common.src.dir}" />
         </cobertura-report>
     </target>
 
