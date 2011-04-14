@@ -27,7 +27,9 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass service $webapp_service start
 
 # run webdriver tests on remote box
-echo $JOB_NAME $ENV_PROPERTY_PREFIX $BUILD_TAG $BUILD_BRANCH "true" | ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net /home/autobuild/devel/3_12/$app-$app-$env-ci/ci-webdriver.sh
+remote_webdriver_workspace=/home/autobuild/devel/3_12/$app-$app-$env-ci
+scp -i /home/tomcat/.ssh/autobuild_key target/webdriverbundle.zip autobuild@yad124.tt.wgenhq.net:$remote_webdriver_workspace/webdriverbundle.zip
+ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "cd $remote_webdriver_workspace && rm -rf tmp && mkdir tmp && unzip webdriverbundle.zip -d tmp && cd tmp && ant test-webdriver-precompiled"
 
 # build migration rpms to QA repo and move code rpm to the same
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO

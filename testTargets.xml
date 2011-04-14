@@ -178,6 +178,22 @@
         <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
             <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
+    	
+    </target>
+	
+	<target name="zip-webdriver-bundle" depends="test-compile"
+		description="Zips up all the resources you need to run this project's webdriver tests remotely (with the test-webdriver-precompiled target)">
+        <zip destfile="${output.dir}/webdriverbundle.zip">
+            <zipfileset dir="${test.classes.dir}" prefix="${test.classes.dir}" />
+            <zipfileset dir="${test.lib.dir}" prefix="${test.lib.dir}" />
+            <zipfileset dir="${jar.outdir}" prefix="${jar.outdir}" />
+        	<zipfileset dir="${build.web.assets.dir}" prefix="${build.web.assets.dir}" />
+        	<zipfileset dir="${results.dir}" excludes="**/*" prefix="${results.dir}" />
+            <zipfileset dir="${app.dir}" includes="*.xml" />
+            <zipfileset dir="${app.config.dir}" includes="**/*.xml" prefix="${app.config.dir}" />
+            <zipfileset dir="${app.config.dir}" includes="**/*.properties" prefix="${app.config.dir}" />
+        	<zipfileset dir="${app.resources.dir}" prefix="src/main/resources" />
+        </zip>		
     </target>
 
     <macrodef name="junit-explicit">
@@ -277,6 +293,16 @@
 
     <target name="test-webdriver" depends="test-clean, clean, test-compile"
         description="Run all webdriver tests">
+        <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->
+        <junit-standard
+            label="Webdriver tests"
+            classpathref="test.classpath.run-integration"
+            testdir="${webdriver.test.classes.dir}"
+            coverage-file="${coverage.data.file.ignored}"
+        />
+    </target>
+	
+    <target name="test-webdriver-precompiled" description="Run all webdriver tests without compiling them; meant for running the tests on a remote host">
         <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->
         <junit-standard
             label="Webdriver tests"
