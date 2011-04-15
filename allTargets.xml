@@ -52,6 +52,7 @@
                     <pathelement location="${integration.test.classes.dir}" />
                     <pathelement location="${webservice.test.classes.dir}"/>
                     <pathelement location="${webdriver.test.classes.dir}" />
+                	<pathelement location="${app.context.src.dir}" />
                 </classpath>
             </java>
         </sequential>
