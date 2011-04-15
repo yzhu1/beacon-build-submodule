@@ -28,8 +28,9 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 
 # run webdriver tests on remote box
 remote_webdriver_workspace=/home/autobuild/devel/3_12/$app-$app-$env-ci
+env_property_prefix=$ENV_PROPERTY_PREFIX
 scp -i /home/tomcat/.ssh/autobuild_key target/webdriverbundle.zip autobuild@yad124.tt.wgenhq.net:$remote_webdriver_workspace/webdriverbundle.zip
-ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "export RUN_ONLY_SMOKE=true && Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && cd $remote_webdriver_workspace && rm -rf tmp && mkdir tmp && hostname && pwd && unzip webdriverbundle.zip -d tmp && cd tmp && ant test-webdriver-precompiled -Dbuild.env_property_prefix=$env"
+ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "export RUN_ONLY_SMOKE=true && export ENV_PROPERTY_PREFIX=$env_property_prefix Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && cd $remote_webdriver_workspace && rm -rf tmp && mkdir tmp && hostname && pwd && echo $env_property_prefix && unzip webdriverbundle.zip -d tmp && cd tmp && ant test-webdriver-precompiled -Dbuild.env_property_prefix=$env_property_prefix"
 
 # build migration rpms to QA repo and move code rpm to the same
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
