@@ -149,23 +149,39 @@
     <!-- Web Assets                                                       -->
     <!-- ================================================================ -->
 
-    <!-- When amp and javaserver are combined into one module/repo in git,
-         use this task as reference for the directory structure.  -->
     <target name="prepare-web-assets-for-zip">
         <!-- first clean -->
         <delete dir="${build.web.assets.content.dir}" includeemptydirs="true" failonerror="true" />
 
-        <!-- Copy properties, XML config files, etc. under WEB-INF -->
-        <copy todir="${build.web.assets.content.dir.web}">
-            <fileset dir="${web.dir}"/>
+        <!-- copy the freemarker templates, spring context, and web.xml into the web assets dir -->
+        <mkdir dir="${build.web.assets.content.dir.web}"/>
+        <copy todir="${build.web.assets.content.dir.web}" encoding="UTF-8">
+            <fileset dir="${app.dir}/src/main/webapp" includes="*.ftl"/>
+            <filterchain>
+                <replacetokens>
+                <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
+                    <token key="git.revision" value="${git.revision}"/>
+                    <token key="git.common.revision" value="${git.common.revision}"/>
+                    <token key="build.number" value="${build.number}"/>
+                    <token key="build.branch" value="${build.branch}"/>
+                    <token key="rpm.version" value="${rpm.version}"/>
+                </replacetokens>
+            </filterchain>
         </copy>
+        <copy todir="${build.web.assets.content.dir.web}" encoding="UTF-8">
+            <fileset dir="${app.dir}/src/main/webapp" excludes="*.ftl"/>
+	</copy>
 
-        <copy todir="${build.web.assets.content.dir.etc}">
-            <fileset dir="${etc.dir}"/>
+        <!-- copy common resources.
+             This contains test fixture data and should be removed.
+             Come up with better way to include this.
+          -->
+        <mkdir dir="${build.web.assets.content.dir}/resources"/>
+        <copy todir="${build.web.assets.content.dir}/resources" encoding="UTF-8">
+            <fileset dir="${app.dir}/src/main/resources"/>
         </copy>
 
         <echo file="${web.assets.commit.hash.file}">${git.current.hash}</echo>
-
     </target>
 
     <target name="zip-web-assets" depends="prepare-web-assets-for-zip">
