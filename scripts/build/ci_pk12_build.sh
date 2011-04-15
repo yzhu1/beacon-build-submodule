@@ -33,7 +33,7 @@ ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "cd $remot
 echo '#!/bin/bash' > webdriver.sh && \
 echo 'set -e' >> webdriver.sh && \
 echo 'export RUN_ONLY_SMOKE=true' >> webdriver.sh && \
-echo 'export ENV_PROPERTY_PREFIX=$1' >> webdriver.sh && \
+echo 'export ENV_PROPERTY_PREFIX=${env}ci' >> webdriver.sh && \
 echo 'Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 &' >> webdriver.sh && \
 echo 'export DISPLAY=:5.0' >> webdriver.sh && \
 echo 'rm -rf tmp' >> webdriver.sh && \
