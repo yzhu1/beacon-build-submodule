@@ -22,8 +22,10 @@
          </sequential>
     </target>
 	
-    <target name="clean" description="Clean the build directory" >
-    	<delete dir="${output.dir}"/>
+    <target name="clean" description="Clean the build directory" depends="tomcat-clean">
+    	<delete includeemptydirs="true">
+    	    <fileset dir="${output.dir}" includes="**/*" excludes="eclipse"/>
+    	</delete>
         <delete dir="${deploy.classes.dir}"/>
         <delete dir="${deploy.common.classes.dir}"/>
         <delete dir="${deploy.resources.dir}"/>
@@ -38,7 +40,7 @@
         >
     </target>
     
-    <target name="deploy" depends="war" description="Build and deploy the web application">
+    <target name="deploy" depends="tomcat-clean, war" description="Build and deploy the web application">
         <copy file="${war.outdir}/${war.name}" tofile="${tomcat.webapp.dir}/${war.servlet.name}"/>	            
     </target>	
 	
