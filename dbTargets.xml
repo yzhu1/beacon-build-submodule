@@ -5,12 +5,13 @@
     <var file="${app.dir}/conf/${servlet.name}.password.properties"/>
     
     <!-- Override properties with environment-specific ones, if they exist -->
-    <propertycopy name="wgspring.db.username" from="${build.env_property_prefix}.wgspring.db.username" override="true" silent="true"/>
-    <propertycopy name="wgspring.db.password" from="${build.env_property_prefix}.wgspring.db.password" override="true" silent="true"/>
-    <propertycopy name="wgspring.db.host" from="${build.env_property_prefix}.wgspring.db.host" override="true" silent="true"/>
-    <propertycopy name="wgspring.db.dbname" from="${build.env_property_prefix}.wgspring.db.dbname" override="true" silent="true"/>
-    <propertycopy name="wgspring.db.schema" from="${build.env_property_prefix}.wgspring.db.schema" override="true" silent="true"/>
-    <propertycopy name="wgspring.hbm2ddl.auto" from="${build.env_property_prefix}.wgspring.hbm2ddl.auto" override="true" silent="true"/>
+    <property environment="sys_env" />
+    <propertycopy name="wgspring.db.username" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.username" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.password" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.password" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.host" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.host" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.dbname" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.dbname" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.schema" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.schema" override="true" silent="true"/>
+    <propertycopy name="wgspring.hbm2ddl.auto" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.hbm2ddl.auto" override="true" silent="true"/>
 
     <if>
         <equals arg1="${wgspring.hbm2ddl.auto}" arg2="validate"/>
@@ -23,6 +24,17 @@
     <import file="deployTargets.xml"/>
     <import file="ivyTargets.xml"/>
     <import file="testTargets.xml"/>
+
+    <target name="check-props" description="view localized properties for debugging purposes">
+        <echo>
+              Property "wgspring.db.username"  is ${wgspring.db.username}
+              Property "wgspring.db.password"  is ${wgspring.db.password}
+              Property "wgspring.db.dbname"    is ${wgspring.db.dbname}
+              Property "wgspring.db.host"      is ${wgspring.db.host}
+              Property "wgspring.db.schema"    is ${wgspring.db.schema}
+              Property "wgspring.hbm2ddl.auto" is ${wgspring.hbm2ddl.auto}
+        </echo>
+    </target>
 
     <target name="prepare-pgpass">
         <echo>preparing ${app.config.dir}/.pgpass</echo>
