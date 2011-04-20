@@ -379,6 +379,7 @@
     <target name="-cobertura-setup" if="build.cobertura">
         <mkdir dir="${coverage.data.dir}" />
     </target>
+
     <target name="cobertura-instrument-jars" if="build.cobertura" depends="-cobertura-setup">
         <if>
             <not>
@@ -400,6 +401,7 @@
             </then>
         </if>
     </target>
+
     <target name="-cobertura-merge">
         <!-- we could try to get fancy and use a "depend" filter on the fileset below -->
         <!-- or we could just re-do the merge every time.  Seems simpler this way -->
@@ -411,17 +413,59 @@
             </fileset>
         </cobertura-merge>
     </target>
-    <target name="cobertura-report" depends="-cobertura-merge"
-        description="Create a human-readable test coverage report"
-        >
-        <mkdir dir="${coverage.reports.dir}" />
-        <cobertura-report
-            format="html"
-            datafile="${coverage.data.file.combined}"
-            destdir="${coverage.reports.dir}"
+
+    <!-- turn a supplied cobertura data file into a human-readable report -->
+    <macrodef name="cobertura-html-report">
+        <attribute name="datafile" />
+        <attribute name="report-subdir" />
+        <sequential>
+            <mkdir dir="${coverage.reports.dir}/@{report-subdir}" />
+            <cobertura-report
+                format="html"
+                datafile="@{datafile}"
+                destdir="${coverage.reports.dir}/@{report-subdir}"
             >
-            <fileset dir="${app.src.dir}" />
-        </cobertura-report>
+                <fileset dir="${app.src.dir}" />
+            </cobertura-report>
+        </sequential>
+    </macrodef>
+
+    <!-- shortcut to generate an HTML report for a specific test suite -->
+    <macrodef name="cobertura-test-suite-report">
+        <attribute name="subreport-tag" />
+        <sequential>
+            <cobertura-html-report
+                datafile="${coverage.data.file.test-@{subreport-tag}}"
+                report-subdir="@{subreport-tag}"
+            />
+        </sequential>
+    </macrodef>
+
+    <target name="cobertura-report-unit"
+             description="Human-readable coverate report for unit tests">
+        <cobertura-test-suite-report subreport-tag="unit" />
+    </target>
+
+    <target name="cobertura-report-integration"
+             description="Human-readable coverate report for integration tests">
+        <cobertura-test-suite-report subreport-tag="integration" />
+    </target>
+
+    <target name="cobertura-report-webservice"
+             description="Human-readable coverate report for webservice tests">
+            <cobertura-test-suite-report subreport-tag="webservice" />
+    </target>
+
+    <target name="cobertura-report-all"
+        depends="cobertura-report,
+             cobertura-report-unit,cobertura-report-integration,cobertura-report-webservice"
+        description="Create reports for each sub-category of tests."
+    />
+
+    <target name="cobertura-report" depends="-cobertura-merge"
+        description="Create a human-readable test coverage report combining all test suites"
+        >
+        <cobertura-html-report datafile="${coverage.data.file.combined}" report-subdir="" />
     </target>
 
     <target name="cobertura-report-xml" depends="-cobertura-merge"
