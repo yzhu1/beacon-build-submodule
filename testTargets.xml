@@ -291,6 +291,16 @@
         </junit-explicit>
     </target>
 
+    <target name="one-precompiled"
+        description="Run a single test that's already compiled: use with -Dtest=NameOfTest">
+        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
+            <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${webdriver.test.classes.dir}" includes="**/${test}.class" />
+        </junit-explicit>
+    </target>
+
     <target name="test-webdriver" depends="test-clean, clean, test-compile"
         description="Run all webdriver tests">
         <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->
