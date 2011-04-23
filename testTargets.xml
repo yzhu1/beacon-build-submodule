@@ -205,6 +205,7 @@
             <zipfileset dir="${runtime.lib.dir}" includes="**/*joda*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="${runtime.lib.dir}" includes="**/servlet-api*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="${runtime.lib.dir}" includes="**/cglib*.jar" prefix="${runtime.lib.dir}" />
+            <zipfileset dir="${runtime.lib.dir}" includes="**/common-api-java*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="sql_snaps" prefix="sql_snaps" />
         </zip>		
     </target>
