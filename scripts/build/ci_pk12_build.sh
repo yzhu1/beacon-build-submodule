@@ -40,7 +40,7 @@ echo 'rm -rf tmp' >> webdriver.sh && \
 echo 'mkdir tmp' >> webdriver.sh && \
 echo 'hostname' >> webdriver.sh && \
 echo 'pwd' >> webdriver.sh && \
-echo 'unzip testbundle.zip -d tmp' >> webdriver.sh && \
+echo 'unzip testbundle.zip -d tmp > /dev/null' >> webdriver.sh && \
 echo 'cd tmp' >> webdriver.sh && \
 echo 'ant test-webdriver-precompiled' >> webdriver.sh && \
 chmod +x webdriver.sh && \
