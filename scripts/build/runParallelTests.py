@@ -28,20 +28,20 @@ class SyncManager(object):
             self._hostIsFree[host] = False
 
     def registerHostFree(self, host):
-        with self._hostslock:
+        with self._hostslock as _:
             self._hostIsFree[host] = True
 
     def waitForFreeHost(self):
         # Block until a host frees up, return that host
         while 1:
-            with self._hostslock:
+            with self._hostslock as _:
                 for host in self._hostIsFree:
                     if self._hostIsFree[host]:
                         self._hostIsFree[host] = False
                         return host
 
     def registerTestCompleted(self, host, test, succeeded, output):
-        with self._outputlock:
+        with self._outputlock as _:
             if succeeded:
                 print ' > PASSSED <%s>: %s' % (host, test)
                 self._successmessages.append(output)
@@ -54,7 +54,7 @@ class SyncManager(object):
 
     def waitForAllHostsToBeFree(self):
         while 1:
-            with self._hostslock:
+            with self._hostslock as _:
                 if all(self._hostIsFree.values()):
                     return
 
@@ -69,7 +69,7 @@ class SyncManager(object):
         return self._failuremessages != []
 
     def output(self, message):
-        with self._outputlock:
+        with self._outputlock as _:
             print message
 
 def runSubprocess(cmd, manager, assertsuccess=False):

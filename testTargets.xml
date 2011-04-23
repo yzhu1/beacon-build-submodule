@@ -302,7 +302,6 @@
     </target>
 
     <target name="test-parallel-integration-webservice"
-            depends="zip-test-bundle"
             description="Run all integration and webservice tests in parallel">
         <exec executable="python" failonerror="true">
             <arg value="${imported.basedir}/scripts/build/runParallelTests.py" />
