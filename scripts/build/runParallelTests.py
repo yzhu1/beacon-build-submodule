@@ -143,10 +143,10 @@ if __name__ == '__main__':
     assert options.identityfile, 'please provide an ssh identity file'
     assert options.apphome, 'please provide the name of the application home dir environment variable'
 
-    sshuser = options.sshuser
-    remotedir = options.remotedir
-    identityfile = options.identityfile
-    apphome = options.apphome
+    sshuser = options.sshuser.strip()
+    remotedir = options.remotedir.strip()
+    identityfile = options.identityfile.strip()
+    apphome = options.apphome.strip()
     hosts = options.hosts.strip().split(',')
     print 'available hosts: %r' % hosts
     print 'will run tests as %s (using identify file %s) in remote dir %s setting environment variable %s=.' % (sshuser, identityfile, remotedir, apphome)
