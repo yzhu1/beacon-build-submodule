@@ -1,12 +1,10 @@
 #!/usr/bin/python
 
-from __future__ import with_statement
-
 '''
 example usage:
 
 find target/test/unit|grep Test.class|xargs -i basename {} .class | \
-python conf/base/scripts/build/runParallelTests.py -H localhost,127.0.0.1,0.0.0.0,10.15.1.203 -u dan -d /home/dan/devel/3_12/threetwelve -i /home/dan/.ssh/id_rsa -v THREETWELVE_HOME
+python conf/base/scripts/build/runParallelTests.py -H localhost -u dan -d /tmp/test -i /home/dan/.ssh/id_rsa -v THREETWELVE_HOME
 '''
 
 import sys
@@ -20,7 +18,6 @@ class SyncManager(object):
 
     def __init__(self, hosts):
         self._outputlock = threading.Lock()
-        self._hostslock = threading.Lock()
         self._failuremessages = []
         self._successmessages = []
         self._hostIsFree = {}
@@ -28,20 +25,19 @@ class SyncManager(object):
             self._hostIsFree[host] = False
 
     def registerHostFree(self, host):
-        with self._hostslock as _:
-            self._hostIsFree[host] = True
+        self._hostIsFree[host] = True
 
     def waitForFreeHost(self):
         # Block until a host frees up, return that host
         while 1:
-            with self._hostslock as _:
-                for host in self._hostIsFree:
-                    if self._hostIsFree[host]:
-                        self._hostIsFree[host] = False
-                        return host
+            for host in self._hostIsFree:
+                if self._hostIsFree[host]:
+                    self._hostIsFree[host] = False
+                    return host
 
     def registerTestCompleted(self, host, test, succeeded, output):
-        with self._outputlock as _:
+        try:
+            self._outputlock.acquire()
             if succeeded:
                 print ' > PASSSED <%s>: %s' % (host, test)
                 self._successmessages.append(output)
@@ -49,14 +45,15 @@ class SyncManager(object):
                 print ' > FAILED <%s>: %s' % (host, test)
                 print output
                 self._failuremessages.append(output)
+        finally:
+            self._outputlock.release()
         # Free up the host that ran the test
         self.registerHostFree(host)
 
     def waitForAllHostsToBeFree(self):
         while 1:
-            with self._hostslock as _:
-                if all(self._hostIsFree.values()):
-                    return
+            if all(self._hostIsFree.values()):
+                return
 
     def waitForAllTestsToFinishAndGetWhetherAnyFailed(self):
         self.waitForAllHostsToBeFree()
@@ -69,8 +66,11 @@ class SyncManager(object):
         return self._failuremessages != []
 
     def output(self, message):
-        with self._outputlock as _:
+        try:
+            self._outputlock.acquire()
             print message
+        finally:
+            self._outputlock.release()
 
 def runSubprocess(cmd, manager, assertsuccess=False):
     # Print what's being run
