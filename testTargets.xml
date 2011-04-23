@@ -202,6 +202,7 @@
             <zipfileset dir="${runtime.lib.dir}" includes="**/*spring*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="${runtime.lib.dir}" includes="**/*log*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="${runtime.lib.dir}" includes="**/*aspectj*.jar" prefix="${runtime.lib.dir}" />
+            <zipfileset dir="${runtime.lib.dir}" includes="**/*joda*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="sql_snaps" prefix="sql_snaps" />
         </zip>		
     </target>
