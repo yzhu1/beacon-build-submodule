@@ -77,7 +77,7 @@ def runSubprocess(cmd, manager, assertsuccess=False):
     # Print what's being run
     manager.output('%s' % ' '.join(cmd))
     # Start the process
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     # Wait for it to complete
     returncode = process.wait()
     # Collect output
