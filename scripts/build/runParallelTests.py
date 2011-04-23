@@ -10,6 +10,7 @@ find target/test/unit|grep Test.class|xargs -i basename {} .class | \
 '''
 
 import sys
+import time
 import thread
 import optparse
 import threading
@@ -35,6 +36,7 @@ class SyncManager(object):
                 if self._slaveIsAvailable[slave]:
                     self._slaveIsAvailable[slave] = False
                     return slave
+            time.sleep(.1)
 
     def registerTestCompleted(self, slave, test, succeeded, output):
         try:
@@ -53,7 +55,7 @@ class SyncManager(object):
 
     def waitForAllSlavesToBeAvailable(self):
         while False in self._slaveIsAvailable.values():
-            pass
+            time.sleep(.1)
 
     def waitForAllTestsToFinishAndGetWhetherAnyFailed(self):
         self.waitForAllSlavesToBeAvailable()
@@ -151,7 +153,6 @@ if __name__ == '__main__':
     apphomeenvvar = options.apphomeenvvar.strip()
     slaves = options.slaves.strip().split(',')
     print 'available slaves: %r' % slaves
-    print 'will run tests as %s (using identify file %s) in remote dir %s setting environment variable %s=.' % (sshuser, identityfile, slaveworkspace, apphomeenvvar)
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
