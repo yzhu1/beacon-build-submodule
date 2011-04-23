@@ -302,6 +302,7 @@
     </target>
 
     <target name="test-parallel-integration-webservice"
+            depends="zip-test-bundle"
             description="Run all integration and webservice tests in parallel">
         <exec executable="bash" failonerror="true">
             <arg value="-c" />
