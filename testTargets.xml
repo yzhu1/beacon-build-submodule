@@ -198,6 +198,7 @@
             <zipfileset dir="${app.resources.dir}" prefix="src/main/resources" />
             <zipfileset dir="${test.resources.dir}" prefix="src/test/resources" />
             <zipfileset dir="${runtime.lib.dir}" prefix="${runtime.lib.dir}" /> <!-- runtime jars needed for migrate-schema -->
+            <zipfileset dir="src/test" includes="**/*.xml" prefix="src/test" /> <!-- necessary to make OutcomesFullStackTestBase work; todo: change that -->
             <zipfileset dir="sql_snaps" prefix="sql_snaps" />
         </zip>		
     </target>
