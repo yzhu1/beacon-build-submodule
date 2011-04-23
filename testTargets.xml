@@ -197,8 +197,8 @@
             <zipfileset dir="${app.config.dir}" includes="**/*.template" prefix="${app.config.dir}" />
             <zipfileset dir="${app.resources.dir}" prefix="src/main/resources" />
             <zipfileset dir="${test.resources.dir}" prefix="src/test/resources" />
-            <zipfileset dir="scripts/standards/data" includes="**/*.xml" prefix="scripts/standards/data" /> <!-- standards xml, some of which tests need -->
-            <zipfileset dir="sql_snaps" prefix="sql_snaps" />
+            <zipfileset dir="scripts/standards/data" includes="**/*.xml" prefix="scripts/standards/data" erroronmissingarchive="false" /> <!-- standards xml, some of which tests need -->
+            <zipfileset dir="sql_snaps" prefix="sql_snaps" erroronmissingarchive="false"/>
         </zip>		
     </target>
 
