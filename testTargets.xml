@@ -181,9 +181,9 @@
     	
     </target>
 	
-	<target name="zip-webdriver-bundle" depends="test-compile"
-		description="Zips up all the resources you need to run this project's webdriver tests remotely (with the test-webdriver-precompiled target)">
-        <zip destfile="${output.dir}/webdriverbundle.zip">
+	<target name="zip-test-bundle" depends="test-compile"
+		description="Zips up all the resources you need to run this project's tests remotely (with the test-one-precompiled or test-webdriver-precompiled target)">
+        <zip destfile="${output.dir}/testbundle.zip">
             <zipfileset dir="${test.classes.dir}" prefix="${test.classes.dir}" />
             <zipfileset dir="${test.lib.dir}" prefix="${test.lib.dir}" />
             <zipfileset dir="${jar.outdir}" prefix="${jar.outdir}" />
@@ -291,7 +291,7 @@
         </junit-explicit>
     </target>
 
-    <target name="one-precompiled"
+    <target name="test-one-precompiled"
         description="Run a single test that's already compiled: use with -Dtest=NameOfTest">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
@@ -299,6 +299,19 @@
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webdriver.test.classes.dir}" includes="**/${test}.class" />
         </junit-explicit>
+    </target>
+
+    <target name="test-parallel-integration-webservice"
+            depends="zip-test-bundle"
+            description="Run all integration and webservice tests in parallel">
+        <exec executable="python" failonerror="true">
+            <arg value="${imported.basedir}/scripts/build/runParallelTests.py" />
+            <arg value="-H ${parallel.test.hosts}" />
+            <arg value="-u ${parallel.test.ssh.user}" />
+            <arg value="-i ${parallel.test.ssh.identity.file}" />
+            <arg value="-d ${build.name}" /> <!-- set in conf/test.properties by hudson -->
+            <arg value="-v ${parallel.test.app.home.env.var}" />
+        </exec>
     </target>
 
     <target name="test-webdriver" depends="test-clean, clean, test-compile"
