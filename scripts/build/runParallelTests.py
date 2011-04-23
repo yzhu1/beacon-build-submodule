@@ -4,7 +4,7 @@
 example usage:
 
 find target/test/unit|grep Test.class|xargs -i basename {} .class | \
-python conf/base/scripts/build/runParallelTests.py -H localhost,127.0.0.1,0.0.0.0,10.15.1.203 -u dan -d /home/dan/devel/3_12/threetwelve
+python conf/base/scripts/build/runParallelTests.py -H localhost,127.0.0.1,0.0.0.0,10.15.1.203 -u dan -d /home/dan/devel/3_12/threetwelve -i /home/dan/.ssh/id_rsa -v THREETWELVE_HOME
 '''
 
 import sys
@@ -12,6 +12,7 @@ import thread
 import optparse
 import threading
 import subprocess
+from __future__ import with_statement
 
 class SyncManager(object):
     '''Manages synchronization: maintains threadsafe status information about hosts and test output.'''
