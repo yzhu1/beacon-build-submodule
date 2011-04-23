@@ -75,7 +75,7 @@ class SyncManager(object):
 
 def runSubprocess(cmd, manager, assertsuccess=False):
     # Print what's being run
-    manager.output('%s' % ' '.join(cmd))
+    manager.output(cmd)
     # Start the process
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     # Wait for it to complete
@@ -90,9 +90,9 @@ def setupHost(host, manager, sshuser, identityfile, remotedir):
 
     try:
         for cmd in [
-            ['ssh', '-i %s' % identityfile, '%s@%s' % (sshuser, host), 'rm -rf %s; mkdir %s' % (remotedir, remotedir)],
-            ['scp', '-i %s' % identityfile, 'target/testbundle.zip', '%s@%s:%s/testbundle.zip' % (sshuser, host, remotedir)],
-            ['ssh', '-i %s' % identityfile, '%s@%s' % (sshuser, host), 'cd %s && unzip testbundle.zip > /dev/null' % remotedir]]:
+            'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, host, remotedir, remotedir),
+            'scp -i %s target/testbundle.zip %s@%s:%s/testbundle.zip' % (identityfile, sshuser, host, remotedir),
+            'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null"' % (identityfile, sshuser, host, remotedir)]:
             runSubprocess(cmd, manager, assertsuccess=True)
         manager.output('> finished setting up %s' % host)
         manager.registerHostFree(host)
@@ -103,10 +103,7 @@ def setupHost(host, manager, sshuser, identityfile, remotedir):
 def runTest(test, host, manager, sshuser, identityfile, remotedir, apphome):
     try:
         # Run the test remotely via ssh
-        cmd = ['ssh',
-               '-i %s' % identityfile,
-               '%s@%s' % (sshuser, host),
-               'cd %s && export %s=. && ant test-one-precompiled -Dtest=%s' % (remotedir, apphome, test)]
+        cmd = 'ssh -i %s %s@%s "cd %s && export %s=. && ant test-one-precompiled -Dtest=%s"' % (identityfile, sshuser, host, remotedir, apphome, test)
         returncode, output = runSubprocess(cmd, manager)
         output = '<run on %s> ' % host + output
         manager.registerTestCompleted(host, test, returncode == 0, output)
