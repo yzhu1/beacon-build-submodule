@@ -155,9 +155,9 @@
     
     <target name="load-fixtures" depends="update-schema,fixture-run-all-datamakers" description="Load fixtures"/>
 
-    <target name="prepare-db-for-integration-tests"
+    <target name="prepare-db-for-parallel-tests"
             depends="load-fixtures-snapshot"
-            description="Used in runParallelTests.py and should be overridden for non-snapshot projects" />
+            description="Used in runParallelTests.py; should be overridden for non-snapshot projects" />
 
     <target name="fixture-run-all-datamakers" depends="test-compile" description="Run all fixture Datamakers">
        <mkdir dir="${fixture.export.dir}"/>

@@ -305,9 +305,9 @@
         </junit-explicit>
     </target>
 
-    <target name="test-parallel-integration-webservice"
+    <target name="test-parallel"
             depends="zip-test-bundle"
-            description="Run all integration and webservice tests in parallel">
+            description="Run all integration and webservice tests (webdriver coming soon) in parallel using runParallelTests.py">
         <exec executable="bash" failonerror="true">
             <arg value="-c" />
             <!-- All but one of these values come from conf/default.test.properties.  build.name gets written to conf/build.properties by hudson. -->

@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
 '''
+Runs tests, their names read from stdin, in parallel.  Invoked by the test-parallel ant target.
+
 example usage:
 
 find target/test/unit|grep Test.class|xargs -i basename {} .class | \
-python conf/base/scripts/build/runParallelTests.py -H localhost -u dan -d /tmp/test -i /home/dan/.ssh/id_rsa -v THREETWELVE_HOME
+    python conf/base/scripts/build/runParallelTests.py -H localhost -u $USER -d /tmp/test -i ~/.ssh/id_rsa -v THREETWELVE_HOME
 '''
 
 import sys
@@ -92,7 +94,7 @@ def setupHost(host, manager, sshuser, identityfile, remotedir):
         for cmd in [
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, host, remotedir, remotedir),
             'scp -i %s target/testbundle.zip %s@%s:%s/testbundle.zip' % (identityfile, sshuser, host, remotedir),
-            'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null && ant prepare-db-for-integration-tests"' % (identityfile, sshuser, host, remotedir)]:
+            'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null && ant prepare-db-for-parallel-tests"' % (identityfile, sshuser, host, remotedir)]:
             runSubprocess(cmd, manager, assertsuccess=True)
         manager.output('> finished setting up %s' % host)
         manager.registerHostFree(host)
