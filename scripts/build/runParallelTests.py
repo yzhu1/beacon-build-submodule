@@ -52,7 +52,8 @@ class SyncManager(object):
 
     def waitForAllHostsToBeFree(self):
         while 1:
-            if all(self._hostIsFree.values()):
+            #if all(self._hostIsFree.values()):
+            if False not in self._hostIsFree.values():
                 return
 
     def waitForAllTestsToFinishAndGetWhetherAnyFailed(self):
