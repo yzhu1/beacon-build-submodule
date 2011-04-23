@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import with_statement
+
 '''
 example usage:
 
@@ -12,7 +14,6 @@ import thread
 import optparse
 import threading
 import subprocess
-from __future__ import with_statement
 
 class SyncManager(object):
     '''Manages synchronization: maintains threadsafe status information about hosts and test output.'''
