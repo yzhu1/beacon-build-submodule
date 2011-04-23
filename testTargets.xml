@@ -199,6 +199,7 @@
             <zipfileset dir="${test.resources.dir}" prefix="src/test/resources" />
             <zipfileset dir="${runtime.lib.dir}" includes="**/liquibase-core-*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="${runtime.lib.dir}" includes="**/postgresql*.jar" prefix="${runtime.lib.dir}" />
+            <zipfileset dir="${runtime.lib.dir}" includes="**/wgspring*.jar" prefix="${runtime.lib.dir}" />
             <zipfileset dir="sql_snaps" prefix="sql_snaps" />
         </zip>		
     </target>
