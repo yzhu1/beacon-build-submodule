@@ -96,7 +96,7 @@
         <pg-run sql="alter user ${wgspring.db.username} set search_path to ${wgspring.db.schema}" />
     </target>
 
-    <target name="migrate-schema" if="wgspring.db.migrate" depends="test-compile"
+    <target name="migrate-schema" if="wgspring.db.migrate"
             description="run migrations for current release">
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
