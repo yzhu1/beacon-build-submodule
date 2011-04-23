@@ -123,7 +123,10 @@ def runAllTests(hosts, tests, sshuser, identityfile, remotedir, apphome):
         host = manager.waitForFreeHost()
         thread.start_new_thread(runTest, (test, host, manager, sshuser, identityfile, remotedir, apphome))
     somefailures = manager.waitForAllTestsToFinishAndGetWhetherAnyFailed()
-    return 1 if somefailures else 0
+    if somefailures:
+        return 1
+    else:
+        return 0
 
 if __name__ == '__main__':
 
