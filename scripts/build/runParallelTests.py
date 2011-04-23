@@ -52,10 +52,8 @@ class SyncManager(object):
         self.registerSlaveAvailable(slave)
 
     def waitForAllSlavesToBeAvailable(self):
-        while 1:
-            #if all(self._slaveIsAvailable.values()):
-            if False not in self._slaveIsAvailable.values():
-                return
+        while False in self._slaveIsAvailable.values():
+            pass
 
     def waitForAllTestsToFinishAndGetWhetherAnyFailed(self):
         self.waitForAllSlavesToBeAvailable()
@@ -74,7 +72,7 @@ class SyncManager(object):
         finally:
             self._outputlock.release()
 
-def runSubprocess(cmd, manager, assertsuccess=False):
+def runSubprocess(cmd, manager, failonerror=False):
     # Print what's being run
     manager.output(cmd)
     # Start the process
@@ -83,7 +81,7 @@ def runSubprocess(cmd, manager, assertsuccess=False):
     returncode = process.wait()
     # Collect output
     output = process.stdout.read() + process.stderr.read()
-    if assertsuccess:
+    if failonerror:
         assert returncode == 0, output
     return returncode, output
 
@@ -95,9 +93,9 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace):
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, slave, slaveworkspace, slaveworkspace),
             # Copy testbundle.zip, which the host has built (with ant zip-test-bundle), into the slave workspace
             'scp -i %s target/testbundle.zip %s@%s:%s/testbundle.zip' % (identityfile, sshuser, slave, slaveworkspace),
-            # Have the slave unzip testbundle.zip and run an ant target to get the slave's db reading for testing
+            # Have the slave unzip testbundle.zip and run an ant target to get the slave's db ready for testing
             'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null && ant prepare-db-for-parallel-tests"' % (identityfile, sshuser, slave, slaveworkspace)]:
-            runSubprocess(cmd, manager, assertsuccess=True)
+            runSubprocess(cmd, manager, failonerror=True)
         manager.output('> finished setting up %s' % slave)
         manager.registerSlaveAvailable(slave)
     except Exception, e:
