@@ -92,7 +92,7 @@ def setupHost(host, manager, sshuser, identityfile, remotedir):
         for cmd in [
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, host, remotedir, remotedir),
             'scp -i %s target/testbundle.zip %s@%s:%s/testbundle.zip' % (identityfile, sshuser, host, remotedir),
-            'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null"' % (identityfile, sshuser, host, remotedir)]:
+            'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null && ant prepare-db-for-integration-tests"' % (identityfile, sshuser, host, remotedir)]:
             runSubprocess(cmd, manager, assertsuccess=True)
         manager.output('> finished setting up %s' % host)
         manager.registerHostFree(host)
