@@ -41,10 +41,10 @@ class SyncManager(object):
         try:
             self._outputlock.acquire()
             if succeeded:
-                print ' > PASSSED <%s>: %s' % (host, test)
+                print 'PASSSED: %s (%s)' % (test, host)
                 self._successmessages.append(output)
             else:
-                print ' > FAILED <%s>: %s' % (host, test)
+                print 'FAILED: %s (%s)' % (test, host)
                 print output
                 self._failuremessages.append(output)
         finally:
