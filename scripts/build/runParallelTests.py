@@ -21,6 +21,7 @@ class SyncManager(object):
     def __init__(self, slaves):
         self._outputlock = threading.Lock()
         self._failuremessages = []
+        self._failuresummaries = []
         self._successmessages = []
         self._slaveIsAvailable = {}
         for slave in slaves:
@@ -42,12 +43,13 @@ class SyncManager(object):
         try:
             self._outputlock.acquire()
             if succeeded:
-                print 'PASSSED: %s (%s)' % (test, slave)
+                print '%s: %s PASSSED' % (slave, test)
                 self._successmessages.append(output)
             else:
-                print 'FAILED: %s (%s)' % (test, slave)
+                print '%s: %s FAILED' % (slave, test)
                 print output
                 self._failuremessages.append(output)
+                self._failuresummaries.append('%s: %s' % (slave, test))
         finally:
             self._outputlock.release()
         # Free up the slave that ran the test
@@ -63,7 +65,10 @@ class SyncManager(object):
             print '\nSUCCESSES:\n\n' + '\n'.join(self._successmessages)
         if self._failuremessages:
             print '\nFAILURES:\n\n' + '\n'.join(self._failuremessages)
-        print '\nPARALLEL TESTS: %i successes and %i failures\n' % (len(self._successmessages), len(self._failuremessages))
+            print '\nFAILURE SUMMARY:\n\n'
+            for summary in self._failuresummaries:
+                print '   ' + summary
+        print '\nPARALLEL TESTS: %i test classes passed and %i failed\n' % (len(self._successmessages), len(self._failuremessages))
         return self._failuremessages != []
 
     def output(self, message):
