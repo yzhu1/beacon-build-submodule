@@ -313,8 +313,8 @@
             description="Run all integration and webservice tests (webdriver coming soon) in parallel using runParallelTests.py">
         <exec executable="bash" failonerror="true">
             <arg value="-c" />
-            <!-- All but one of these values come from conf/default.test.properties.  build.name gets written to conf/build.properties by hudson. -->
-            <arg value="time find target/test/integration target/test/webservice | grep Test.class | xargs -i basename {} .class | python ${imported.basedir}/scripts/build/runParallelTests.py -s ${parallel.test.hosts} -u ${parallel.test.ssh.user} -i ${parallel.test.ssh.identity.file} -w ${build.name} -v ${parallel.test.app.home.env.var}" />
+            <!-- These values come from default.test.properties. -->
+            <arg value="time find target/test/integration target/test/webservice | grep Test.class | xargs -i basename {} .class | python ${imported.basedir}/scripts/build/runParallelTests.py -s ${parallel.test.slaves} -u ${parallel.test.ssh.user} -i ${parallel.test.ssh.identity.file} -w ${parallel.test.slave.workspace} -v ${parallel.test.app.home.env.var}" />
         </exec>
     </target>
 
