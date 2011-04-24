@@ -50,7 +50,7 @@ class SyncManager(object):
                 self._failuremessages.append(output)
         finally:
             self._outputlock.release()
-        # Available up the slave that ran the test
+        # Free up the slave that ran the test
         self.registerSlaveAvailable(slave)
 
     def waitForAllSlavesToBeAvailable(self):
@@ -59,12 +59,11 @@ class SyncManager(object):
 
     def waitForAllTestsToFinishAndGetWhetherAnyFailed(self):
         self.waitForAllSlavesToBeAvailable()
-        # Print all test output
         if self._successmessages:
             print '\nSUCCESSES:\n\n' + '\n'.join(self._successmessages)
         if self._failuremessages:
             print '\nFAILURES:\n\n' + '\n'.join(self._failuremessages)
-        print '\n%s: %i successes and %i failures\n' % (sys.argv[0], len(self._successmessages), len(self._failuremessages))
+        print '\nPARALLEL TESTS: %i successes and %i failures\n' % (len(self._successmessages), len(self._failuremessages))
         return self._failuremessages != []
 
     def output(self, message):
@@ -107,7 +106,8 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace):
 def runTest(test, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar):
     try:
         # Run the test remotely via ssh
-        cmd = 'ssh -i %s %s@%s "cd %s && export %s=. && ant test-one-precompiled -Dtest=%s"' % (identityfile, sshuser, slave, slaveworkspace, apphomeenvvar, test)
+        cmd = 'ssh -i %s %s@%s "cd %s && export %s=%s && ant test-one-precompiled -Dtest=%s"' % \
+            (identityfile, sshuser, slave, slaveworkspace, apphomeenvvar, slaveworkspace, test)
         returncode, output = runSubprocess(cmd, manager)
         output = '<run on %s> ' % slave + output
         manager.registerTestCompleted(slave, test, returncode == 0, output)
@@ -116,14 +116,17 @@ def runTest(test, slave, manager, sshuser, identityfile, slaveworkspace, apphome
         manager.registerTestCompleted(slave, test, False, repr(e))
 
 def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar):
+
     manager = SyncManager(slaves)
     for slave in slaves:
         thread.start_new_thread(setupSlave, (slave, manager, sshuser, identityfile, slaveworkspace))
     manager.waitForAllSlavesToBeAvailable()
+
     while tests:
         test = tests.pop()
         slave = manager.waitForAvailableSlave()
         thread.start_new_thread(runTest, (test, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar))
+
     somefailures = manager.waitForAllTestsToFinishAndGetWhetherAnyFailed()
     if somefailures:
         return 1
