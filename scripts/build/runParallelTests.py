@@ -23,30 +23,31 @@ class SyncManager(object):
         self._failuremessages = []
         self._failuresummaries = []
         self._successmessages = []
-        self._slaveIsAvailable = {}
+        self._lastStatusTime = 0
+        self._slaveToCurrentTest = {}
         for slave in slaves:
-            self._slaveIsAvailable[slave] = False
+            self._slaveToCurrentTest[slave] = 'setup...'
 
     def registerSlaveAvailable(self, slave):
-        self._slaveIsAvailable[slave] = True
+        self._slaveToCurrentTest[slave] = None
 
-    def waitForAvailableSlave(self):
+    def waitForAvailableSlave(self, test):
         # Block until a slave frees up, return that slave
         while 1:
-            for slave in self._slaveIsAvailable:
-                if self._slaveIsAvailable[slave]:
-                    self._slaveIsAvailable[slave] = False
+            for slave in self._slaveToCurrentTest:
+                if self._slaveToCurrentTest[slave] is None:
+                    self._slaveToCurrentTest[slave] = test
                     return slave
-            time.sleep(.1)
+            self.sleepAndCheckStatus()
 
     def registerTestCompleted(self, slave, test, succeeded, output):
         try:
             self._outputlock.acquire()
             if succeeded:
-                print '%s: %s PASSSED' % (slave, test)
+                print '  (success) %s: %s PASSSED' % (slave, test)
                 self._successmessages.append(output)
             else:
-                print '%s: %s FAILED' % (slave, test)
+                print '  (failure) %s: %s FAILED' % (slave, test)
                 print output
                 self._failuremessages.append(output)
                 self._failuresummaries.append('%s: %s' % (slave, test))
@@ -56,8 +57,8 @@ class SyncManager(object):
         self.registerSlaveAvailable(slave)
 
     def waitForAllSlavesToBeAvailable(self):
-        while False in self._slaveIsAvailable.values():
-            time.sleep(.1)
+        while filter(bool, self._slaveToCurrentTest.values()):
+            self.sleepAndCheckStatus()
 
     def waitForAllTestsToFinishAndGetWhetherAnyFailed(self):
         self.waitForAllSlavesToBeAvailable()
@@ -65,7 +66,7 @@ class SyncManager(object):
             print '\nSUCCESSES:\n\n' + '\n'.join(self._successmessages)
         if self._failuremessages:
             print '\nFAILURES:\n\n' + '\n'.join(self._failuremessages)
-            print '\nFAILURE SUMMARY:\n\n'
+            print '\nFAILURE SUMMARY:\n'
             for summary in self._failuresummaries:
                 print '   ' + summary
         print '\nPARALLEL TESTS: %i test classes passed and %i failed\n' % (len(self._successmessages), len(self._failuremessages))
@@ -78,9 +79,16 @@ class SyncManager(object):
         finally:
             self._outputlock.release()
 
+    def sleepAndCheckStatus(self):
+        time.sleep(.1)
+        if time.time() - self._lastStatusTime > 30:
+            self._lastStatusTime = time.time()
+            for slave, test in self._slaveToCurrentTest.items():
+                self.output('  (status) %s is running %s' % (slave, test))
+
 def runSubprocess(cmd, manager, failonerror=False):
     # Print what's being run
-    manager.output(cmd)
+    manager.output('  (launching) ' + cmd)
     # Start the process
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     # Wait for it to complete
@@ -102,7 +110,7 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace):
             # Have the slave unzip testbundle.zip and run an ant target to get the slave's db ready for testing
             'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null && ant prepare-db-for-parallel-tests"' % (identityfile, sshuser, slave, slaveworkspace)]:
             runSubprocess(cmd, manager, failonerror=True)
-        manager.output('> finished setting up %s' % slave)
+        manager.output('  (ready) finished setting up %s' % slave)
         manager.registerSlaveAvailable(slave)
     except Exception, e:
         print e
@@ -114,7 +122,7 @@ def runTest(test, slave, manager, sshuser, identityfile, slaveworkspace, apphome
         cmd = 'ssh -i %s %s@%s "cd %s && export %s=%s && ant test-one-precompiled -Dtest=%s"' % \
             (identityfile, sshuser, slave, slaveworkspace, apphomeenvvar, slaveworkspace, test)
         returncode, output = runSubprocess(cmd, manager)
-        output = '<run on %s> ' % slave + output
+        output = '<ran on %s> ' % slave + output
         manager.registerTestCompleted(slave, test, returncode == 0, output)
     except Exception, e:
         # Handle errors spawning the ssh process
@@ -129,7 +137,7 @@ def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenv
 
     while tests:
         test = tests.pop()
-        slave = manager.waitForAvailableSlave()
+        slave = manager.waitForAvailableSlave(test)
         thread.start_new_thread(runTest, (test, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar))
 
     somefailures = manager.waitForAllTestsToFinishAndGetWhetherAnyFailed()
