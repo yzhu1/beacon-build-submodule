@@ -17,7 +17,7 @@ masteruser=$2              # e.g., autobuild
 identityfile=$3            # e.g., /home/tomcat/.ssh/autobuild_key
 slaveworkspace=$4          # e.g., /home/autobuild/$JOB_NAME
 apphomeenvvar=$5           # e.g., OUTCOMES_HOME
-numtestsperslavesession=$6 # e.g., 8, to farm 8 tests to each slave at at time
+numtestsperslavesession=$6 # e.g., 8, to farm 8 tests to each slave at a time
 
 find target/test/integration target/test/webservice \
   | grep Test.class \

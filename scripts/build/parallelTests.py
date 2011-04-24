@@ -3,16 +3,23 @@
 '''
 Runs tests, their names read from stdin, in parallel on an arbitrary set of slaves.
 
-  - assumes you have run ant zip-test-bundle on the master in order to build a file called target/testbundle.zip containing everything the slaves need to run tests
+  - assumes you have run ant zip-test-bundle on the master in order to build a file
+    called target/testbundle.zip containing everything the slaves need to run tests
   - (re-)creates a workspace on each slave
   - copies to and unzips testbundle.zip on each slave
-  - runs ant prepare-db-for-parallel-tests, a task defining whatever pre-test schema setup is needed, on each slave
+  - runs ant prepare-db-for-parallel-tests, a task defining whatever pre-test schema
+    setup is needed, on each slave
   - farms the tests out to the slaves in batches of the size you specify
 
 Example usage (using localhost as the only slave):
 
 find target/test/unit|grep Test.class|xargs -i basename {} .class | \
-    python conf/base/scripts/build/parallelTests.py -s localhost -u $USER -w /tmp/test -i ~/.ssh/id_rsa -v OUTCOMES_HOME -n 4
+    python conf/base/scripts/build/parallelTests.py \
+    -s localhost -u $USER -w /tmp/test -i ~/.ssh/id_rsa -v OUTCOMES_HOME -n 4
+
+Instructions for setting up slaves are found here:
+  https://wgencontractorwiki.mc.wgenhq.net/index.php/3-12_Platform/Development/Create_a_new_Test_Slave
+
 '''
 
 import sys
@@ -57,7 +64,7 @@ class SyncManager(object):
                 print '  (failure) %s: FAILURE AMONG %s' % (slave, testnames)
                 print output
                 self._failuremessages.append(output)
-                self._failuresummaries.append('%s: %s' % (slave, testnames))
+                self._failuresummaries.append('%s: some tests failed in this batch: %s' % (slave, testnames))
         finally:
             self._outputlock.release()
         # Free up the slave that ran the test
