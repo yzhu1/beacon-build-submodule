@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
 '''
-Runs tests, their names read from stdin, in parallel.  Invoked by the test-parallel ant target.
+Runs tests, their names read from stdin, in parallel.
 
-example usage:
+Example usage (using localhost as the only slave):
 
 find target/test/unit|grep Test.class|xargs -i basename {} .class | \
-    python conf/base/scripts/build/runParallelTests.py -s localhost -u $USER -w /tmp/test -i ~/.ssh/id_rsa -v THREETWELVE_HOME
+    python conf/base/scripts/build/parallelTests.py -s localhost -u $USER -w /tmp/test -i ~/.ssh/id_rsa -v OUTCOMES_HOME
 '''
 
 import sys
@@ -84,7 +84,7 @@ class SyncManager(object):
         if time.time() - self._lastStatusTime > 30:
             self._lastStatusTime = time.time()
             for slave, test in self._slaveToCurrentTest.items():
-                self.output('  (status) %s is running %s' % (slave, test))
+                self.output('  (status) %s is running %s' % (slave, test or 'nothing'))
 
 def runSubprocess(cmd, manager, failonerror=False):
     # Print what's being run
@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
-    print 'tests to run: %i' % len(tests)
+    print 'test classes to run: %i' % len(tests)
 
     exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar)
     sys.exit(exitstatus)

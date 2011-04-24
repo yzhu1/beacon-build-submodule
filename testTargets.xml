@@ -309,16 +309,6 @@
         </junit-explicit>
     </target>
 
-    <target name="test-parallel"
-            depends="zip-test-bundle"
-            description="Run all integration and webservice tests (webdriver coming soon) in parallel using runParallelTests.py">
-        <exec executable="bash" failonerror="true">
-            <arg value="-c" />
-            <!-- These values come from default.test.properties. -->
-            <arg value="time find target/test/integration target/test/webservice | grep Test.class | xargs -i basename {} .class | python ${imported.basedir}/scripts/build/runParallelTests.py -s ${parallel.test.slaves} -u ${parallel.test.ssh.user} -i ${parallel.test.ssh.identity.file} -w ${parallel.test.slave.workspace} -v ${parallel.test.app.home.env.var}" />
-        </exec>
-    </target>
-
     <target name="test-webdriver" depends="test-clean, clean, test-compile"
         description="Run all webdriver tests">
         <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->
