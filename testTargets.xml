@@ -309,6 +309,16 @@
         </junit-explicit>
     </target>
 
+    <target name="test-several-precompiled"
+        description="Run several tests that are already compiled: use with -Dtests=[comma-separated list of patterns to match]">
+        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
+            <fileset dir="${unit.test.classes.dir}" includes="${tests}" />
+            <fileset dir="${integration.test.classes.dir}" includes="${tests}" />
+            <fileset dir="${webservice.test.classes.dir}" includes="${tests}" />
+            <fileset dir="${webdriver.test.classes.dir}" includes="${tests}" />
+        </junit-explicit>
+    </target>
+
     <target name="test-webdriver" depends="test-clean, clean, test-compile"
         description="Run all webdriver tests">
         <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->

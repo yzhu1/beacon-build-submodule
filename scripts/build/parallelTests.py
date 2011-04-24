@@ -1,12 +1,18 @@
 #!/usr/bin/python
 
 '''
-Runs tests, their names read from stdin, in parallel.
+Runs tests, their names read from stdin, in parallel on an arbitrary set of slaves.
+
+  - assumes you have run ant zip-test-bundle on the master in order to build a file called target/testbundle.zip containing everything the slaves need to run tests
+  - (re-)creates a workspace on each slave
+  - copies to and unzips testbundle.zip on each slave
+  - runs ant prepare-db-for-parallel-tests, a task defining whatever pre-test schema setup is needed, on each slave
+  - farms the tests out to the slaves in batches of the size you specify
 
 Example usage (using localhost as the only slave):
 
 find target/test/unit|grep Test.class|xargs -i basename {} .class | \
-    python conf/base/scripts/build/parallelTests.py -s localhost -u $USER -w /tmp/test -i ~/.ssh/id_rsa -v OUTCOMES_HOME
+    python conf/base/scripts/build/parallelTests.py -s localhost -u $USER -w /tmp/test -i ~/.ssh/id_rsa -v OUTCOMES_HOME -n 4
 '''
 
 import sys
@@ -31,26 +37,27 @@ class SyncManager(object):
     def registerSlaveAvailable(self, slave):
         self._slaveToCurrentTest[slave] = None
 
-    def waitForAvailableSlave(self, test):
+    def waitForAvailableSlave(self, tests):
         # Block until a slave frees up, return that slave
         while 1:
             for slave in self._slaveToCurrentTest:
                 if self._slaveToCurrentTest[slave] is None:
-                    self._slaveToCurrentTest[slave] = test
+                    self._slaveToCurrentTest[slave] = ', '.join(tests)
                     return slave
             self.sleepAndCheckStatus()
 
-    def registerTestCompleted(self, slave, test, succeeded, output):
+    def registerTestsCompleted(self, slave, tests, succeeded, output):
         try:
             self._outputlock.acquire()
+            testnames = ', '.join(tests)
             if succeeded:
-                print '  (success) %s: %s PASSSED' % (slave, test)
+                print '  (success) %s: %s PASSSED' % (slave, testnames)
                 self._successmessages.append(output)
             else:
-                print '  (failure) %s: %s FAILED' % (slave, test)
+                print '  (failure) %s: FAILURE AMONG %s' % (slave, testnames)
                 print output
                 self._failuremessages.append(output)
-                self._failuresummaries.append('%s: %s' % (slave, test))
+                self._failuresummaries.append('%s: %s' % (slave, testnames))
         finally:
             self._outputlock.release()
         # Free up the slave that ran the test
@@ -69,7 +76,7 @@ class SyncManager(object):
             print '\nFAILURE SUMMARY:\n'
             for summary in self._failuresummaries:
                 print '   ' + summary
-        print '\nPARALLEL TESTS: %i test classes passed and %i failed\n' % (len(self._successmessages), len(self._failuremessages))
+        print '\nPARALLEL TESTS: %i batches of tests passed and %i failed\n' % (len(self._successmessages), len(self._failuremessages))
         return self._failuremessages != []
 
     def output(self, message):
@@ -116,19 +123,19 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace):
         print e
         thread.interrupt_main()
 
-def runTest(test, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar):
+def runTests(tests, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar):
     try:
-        # Run the test remotely via ssh
-        cmd = 'ssh -i %s %s@%s "cd %s && export %s=%s && ant test-one-precompiled -Dtest=%s"' % \
-            (identityfile, sshuser, slave, slaveworkspace, apphomeenvvar, slaveworkspace, test)
+        # Run the tests on the slave
+        cmd = 'ssh -i %s %s@%s "cd %s && export %s=%s && ant test-several-precompiled -Dtests=%s"' % \
+            (identityfile, sshuser, slave, slaveworkspace, apphomeenvvar, slaveworkspace, ','.join(['**/%s.class' % test for test in tests]))
         returncode, output = runSubprocess(cmd, manager)
         output = '<ran on %s> ' % slave + output
-        manager.registerTestCompleted(slave, test, returncode == 0, output)
+        manager.registerTestsCompleted(slave, tests, returncode == 0, output)
     except Exception, e:
         # Handle errors spawning the ssh process
-        manager.registerTestCompleted(slave, test, False, repr(e))
+        manager.registerTestsCompleted(slave, tests, False, repr(e))
 
-def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar):
+def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, numtestsperslavesession):
 
     manager = SyncManager(slaves)
     for slave in slaves:
@@ -136,9 +143,11 @@ def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenv
     manager.waitForAllSlavesToBeAvailable()
 
     while tests:
-        test = tests.pop()
-        slave = manager.waitForAvailableSlave(test)
-        thread.start_new_thread(runTest, (test, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar))
+        testsforslave = []
+        while len(testsforslave) < numtestsperslavesession and tests:
+            testsforslave.append(tests.pop())
+        slave = manager.waitForAvailableSlave(testsforslave)
+        thread.start_new_thread(runTests, (testsforslave, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar))
 
     somefailures = manager.waitForAllTestsToFinishAndGetWhetherAnyFailed()
     if somefailures:
@@ -154,6 +163,7 @@ if __name__ == '__main__':
     parser.add_option('-w', dest='slaveworkspace', help='remote directory to run tests in')
     parser.add_option('-i', dest='identityfile', help='ssh identity file')
     parser.add_option('-v', dest='apphomeenvvar', help='e.g., THREETWELVE_HOME')
+    parser.add_option('-n', dest='numtestsperslavesession', help='number of tests to delegate to each slave at a time')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
@@ -162,17 +172,21 @@ if __name__ == '__main__':
     assert options.slaveworkspace, 'please provide a remote directory where tests should be run'
     assert options.identityfile, 'please provide an ssh identity file'
     assert options.apphomeenvvar, 'please provide the name of the application home dir environment variable, e.g., THREETWELVE_HOME'
+    assert options.numtestsperslavesession, 'please provide the number of tests to delegate to each slave at a time'
 
     sshuser = options.sshuser.strip()
     slaveworkspace = options.slaveworkspace.strip()
     identityfile = options.identityfile.strip()
     apphomeenvvar = options.apphomeenvvar.strip()
+    numtestsperslavesession = int(options.numtestsperslavesession.strip())
     slaves = options.slaves.strip().split(',')
     print 'available slaves: %r' % slaves
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
-    print 'test classes to run: %i' % len(tests)
+    numtestclasses = len(tests)
+    print 'test classes to run: %i' % numtestclasses
 
-    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar)
+    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, numtestsperslavesession)
+    print 'ran %i test classes' % numtestclasses
     sys.exit(exitstatus)
