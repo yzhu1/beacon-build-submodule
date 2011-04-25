@@ -203,7 +203,7 @@
             <zipfileset dir="${build.web.assets.dir}" prefix="${build.web.assets.dir}" /> <!-- static files and Spring configs -->
             <zipfileset dir="${results.dir}" excludes="**/*" prefix="${results.dir}" /> <!-- junit needs an empty target/results dir -->
             <zipfileset dir="${app.dir}" includes="*.xml" /> <!-- build.xml and others -->
-            <zipfileset dir="${app.dir}/src" includes="*.java" prefix="${app.dir}/src" /> <!-- needed for static analysis unit tests -->
+            <zipfileset dir="${app.dir}/src" includes="**/*.java" prefix="${app.dir}/src" /> <!-- needed for static analysis unit tests -->
             <zipfileset dir="${app.config.dir}" includes="**/*.xml" prefix="${app.config.dir}" /> <!-- conf and conf/base -->
             <zipfileset dir="${app.config.dir}" includes="**/*.properties" prefix="${app.config.dir}" />
             <zipfileset dir="${app.config.dir}" includes="**/*.pgpass" prefix="${app.config.dir}" />
