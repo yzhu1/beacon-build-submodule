@@ -97,10 +97,10 @@ class SyncManager(object):
         # Print their output
         print
         if self._successmessages:
-            print 'SUCCESSES:\n'
+            print 'PARALLEL TEST SUCCESSES:\n'
             print '\n'.join(self._successmessages)
         if self._failuremessages:
-            print 'FAILURES:\n'
+            print 'PARALLEL TEST FAILURES:\n'
             print '\n'.join(self._failuremessages)
             print
             print 'FAILURE SUMMARY:\n'
