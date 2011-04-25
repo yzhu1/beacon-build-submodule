@@ -97,8 +97,21 @@
         <delete dir="${reports.dir}" />
     </target>
 
+    <target name="check-for-tests-junit-wont-find"
+            description="Check for java sources containing '@Test' but not named according to the *Test.java convention that junit follows: these tests won't run">
+        <echo>checking for tests junit won't find</echo>
+        <exec executable="sh">
+            <arg line="-c" />
+            <arg value="grep @Test * -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|uniq" />
+        </exec>
+        <exec executable="sh" failonerror="true">
+            <arg line="-c" />
+            <arg value="exit `grep @Test * -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|wc -l`" />
+        </exec>
+    </target>
+
     <!-- Compile junit test classes -->
-    <target name="test-compile" depends="test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
+    <target name="test-compile" depends="check-for-tests-junit-wont-find, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
         description="Compile the tests">
 
         <mkdir dir="${test.classes.dir}" />
