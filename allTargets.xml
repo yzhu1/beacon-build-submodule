@@ -95,7 +95,7 @@
    <target name="ivy-clean-deploy" depends="ivy-clean-deploy-steps"/>
 
    <target name="ci-pk12-part1of2" description="All PK12 ci tests (excluding integration and webservice tests, which are run in parallel by a shell script) and a migration up from the baseline snap"
-       depends="ivy-clean-deploy, checkstyle, template-lint, jslint, test-unit, clear-schema, load-baseline-database, migrate-schema, test-integration-wgspringcore, zip-test-bundle" />
+       depends="ivy-clean-deploy, checkstyle, template-lint, jslint, clear-schema, load-baseline-database, migrate-schema, test-integration-wgspringcore, zip-test-bundle" />
 
    <target name="ci-pk12-part2of2-without-fixtures-snap" description="Separate from ci-pk12-part1of2 so that migrations can be re-run, after a down-migration is tested"
        depends="rollback-schema, load-fixtures" />
