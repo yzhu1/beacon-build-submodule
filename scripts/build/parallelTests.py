@@ -19,7 +19,7 @@ Spring or Pylons, a db or no db.
 
 Example usage (runs the pk12 outcomes integration tests on three slaves):
 
-find target/test/integration|grep Test.class|xargs -i basename {} .class | \
+find target/test/integration target/test/webservice -name *Test.class|xargs -i basename {} .class | \
     python conf/base/scripts/build/parallelTests.py \
     -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net \
     -u autobuild \
