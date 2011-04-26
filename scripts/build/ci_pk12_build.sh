@@ -28,20 +28,15 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 
 # run webdriver tests on remote box
 remote_webdriver_workspace=/home/autobuild/devel/3_12/$app-$app-$env-ci
-scp -i /home/tomcat/.ssh/autobuild_key target/testbundle.zip autobuild@yad124.tt.wgenhq.net:$remote_webdriver_workspace/testbundle.zip
-ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "cd $remote_webdriver_workspace && \
+ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "cd $remote_webdriver_workspace && rm -rf tmp && mkdir tmp"
+scp -qr -i /home/tomcat/.ssh/autobuild_key ./* autobuild@yad124.tt.wgenhq.net:$remote_webdriver_workspace/tmp
+ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "cd $remote_webdriver_workspace/tmp && \
 echo '#!/bin/bash' > webdriver.sh && \
 echo 'set -e' >> webdriver.sh && \
 echo 'export RUN_ONLY_SMOKE=true' >> webdriver.sh && \
 echo 'export ENV_PROPERTY_PREFIX=${env}ci' >> webdriver.sh && \
 echo 'Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 &' >> webdriver.sh && \
 echo 'export DISPLAY=:5.0' >> webdriver.sh && \
-echo 'rm -rf tmp' >> webdriver.sh && \
-echo 'mkdir tmp' >> webdriver.sh && \
-echo 'hostname' >> webdriver.sh && \
-echo 'pwd' >> webdriver.sh && \
-echo 'unzip testbundle.zip -d tmp > /dev/null' >> webdriver.sh && \
-echo 'cd tmp' >> webdriver.sh && \
 echo 'ant test-webdriver-precompiled' >> webdriver.sh && \
 chmod +x webdriver.sh && \
 ./webdriver.sh $ENV_PROPERTY_PREFIX"

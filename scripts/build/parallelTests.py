@@ -134,7 +134,7 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace):
         # 3. Have the slave run a task to get its db ready for testing
         for cmd in [
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, slave, slaveworkspace, slaveworkspace),
-            'scp -r -i %s ./* %s@%s:%s/' % (identityfile, sshuser, slave, slaveworkspace),
+            'scp -qr -i %s ./* %s@%s:%s/' % (identityfile, sshuser, slave, slaveworkspace),
             'ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_SELF_SETUP_TASK)
             ]:
             runSubprocess(cmd, manager, failonerror=True)
