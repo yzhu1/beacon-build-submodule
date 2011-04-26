@@ -21,8 +21,8 @@
         <!-- otherwise, warn that it isn't there, and fail if coverage reports were requested -->
         <else>
             <echo>WARNING: no coverage library directory found at '${coverage.lib.dir}'</echo>
-            <fail if="build.cobertura">FATAL: test coverage requested but not possible</fail>
-            <!-- if we didn't abort, define an empty path with the same ID for test.classpath.* -->
+            <!-- define an empty path with the same ID for test.classpath.*, and set property to check later -->
+            <property name="build.coverage.lib.missing" value="true" />
             <path id="cobertura.classpath" />
         </else>
     </if>
@@ -111,7 +111,7 @@
     </target>
 
     <!-- Compile junit test classes -->
-    <target name="test-compile" depends="check-for-tests-junit-wont-find, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
+    <target name="test-compile" depends="-cobertura-setup,check-for-tests-junit-wont-find, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
         description="Compile the tests">
 
         <mkdir dir="${test.classes.dir}" />
@@ -395,6 +395,7 @@
     </target>
 
     <target name="-cobertura-setup" if="build.cobertura">
+        <fail if="build.coverage.lib.missing">FATAL: test coverage requested but lib dir is missing</fail>
         <mkdir dir="${coverage.data.dir}" />
     </target>
 
