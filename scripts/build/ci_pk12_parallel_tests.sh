@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Prereq: run "ant zip-test-bundle" to build a file named target/testbundle.zip containing everything the slaves need to run tests.
 # See parallelTests.py for more details.
 
 set -eu

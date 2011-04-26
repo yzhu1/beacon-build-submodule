@@ -5,11 +5,7 @@ Reads in names of tests from stdin and runs them in parallel batches on an arbit
 set of slave machines.  Pretty much agnostic to whether you're using junit or pyunit,
 Spring or Pylons, a db or no db.
 
-  - assumes you've run something like "ant zip-test-bundle" on the machine where you're
-    running this script in order to build a file named target/testbundle.zip containing
-    everything the slaves need to run tests
-
-  - (re-)creates a workspace on each slave, then copies in and unzips testbundle.zip
+  - (re-)creates a workspace on each slave, then copies in the contents of your pwd
 
   - runs a task on each slave preparing its schema for testing if necessary
 
@@ -34,6 +30,7 @@ Instructions for setting up new pk12-style slaves: https://wgencontractorwiki.mc
 import sys
 import time
 import thread
+import random
 import optparse
 from threading import Lock
 from subprocess import Popen, PIPE
@@ -48,7 +45,6 @@ class SyncManager(object):
     def __init__(self, slaves):
         self._outputlock = Lock()
         self._failuremessages = []
-        self._failuresummaries = []
         self._successmessages = []
         self._lastTimeStatusGiven = 0
         self._slaveToCurrentBatchOfTests = {}
@@ -77,10 +73,8 @@ class SyncManager(object):
                 print '  (success) %s: %s PASSSED' % (slave, testnames)
                 self._successmessages.append(output)
             else:
-                print '  (failure) %s: FAILURE AMONG %s' % (slave, testnames)
                 print output
                 self._failuremessages.append(output)
-                self._failuresummaries.append('%s: some tests failed in this batch: %s' % (slave, testnames))
         finally:
             self._outputlock.release()
         # Free up the slave that ran the batch
@@ -102,10 +96,6 @@ class SyncManager(object):
         if self._failuremessages:
             print 'PARALLEL TEST FAILURES:\n'
             print '\n'.join(self._failuremessages)
-            print
-            print 'FAILURE SUMMARY:\n'
-            for summary in self._failuresummaries:
-                print '   ' + summary
         print '\nPARALLEL TESTS: %i batches of tests passed and %i failed\n' % (len(self._successmessages), len(self._failuremessages))
         # Return whether any tests failed
         return self._failuremessages != []
@@ -140,12 +130,12 @@ def runSubprocess(cmd, manager, failonerror=False):
 def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace):
     try:
         # 1. Clean out and re-create a workspace directory on the slave
-        # 2. Copy testbundle.zip, which the host has built (with ant zip-test-bundle), into the slave's workspace
-        # 3. Have the slave unzip testbundle.zip and run a task to get its db ready for testing
+        # 2. Copy the contents of pwd into the slave's workspace
+        # 3. Have the slave run a task to get its db ready for testing
         for cmd in [
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, slave, slaveworkspace, slaveworkspace),
-            'scp -i %s target/testbundle.zip %s@%s:%s/testbundle.zip' % (identityfile, sshuser, slave, slaveworkspace),
-            'ssh -i %s %s@%s "cd %s && unzip testbundle.zip > /dev/null && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_SELF_SETUP_TASK)
+            'scp -r -i %s ./* %s@%s:%s/' % (identityfile, sshuser, slave, slaveworkspace),
+            'ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_SELF_SETUP_TASK)
             ]:
             runSubprocess(cmd, manager, failonerror=True)
         manager.output('  (ready) finished setting up %s' % slave)
@@ -218,6 +208,8 @@ if __name__ == '__main__':
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
+    # Shuffle tests to give slaves an even burden
+    random.shuffle(tests)
     numtestclasses = len(tests)
     print 'test classes to run: %i' % numtestclasses
     print 'available slaves: %r' % slaves

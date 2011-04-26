@@ -194,30 +194,6 @@
     	
     </target>
 	
-    <target name="zip-test-bundle" depends="test-compile"
-            description="Zips up all the resources you need to run this project's tests remotely (with the test-one-precompiled or test-webdriver-precompiled target)">
-        <zip destfile="${output.dir}/testbundle.zip">
-            <zipfileset dir="${test.classes.dir}" prefix="${test.classes.dir}" /> <!-- compiled tests -->
-            <zipfileset dir="${test.lib.dir}" prefix="${test.lib.dir}" /> <!-- ivy_lib/test -->
-            <zipfileset dir="${jar.outdir}" prefix="${jar.outdir}" /> <!-- webapp jars -->
-            <zipfileset dir="${build.web.assets.dir}" prefix="${build.web.assets.dir}" /> <!-- static files and Spring configs -->
-            <zipfileset dir="${results.dir}" excludes="**/*" prefix="${results.dir}" /> <!-- junit needs an empty target/results dir -->
-            <zipfileset dir="${app.dir}" includes="*.xml" /> <!-- build.xml and others -->
-            <zipfileset dir="${app.dir}/src" includes="**/*.java" prefix="${app.dir}/src" /> <!-- needed for static analysis unit tests -->
-            <zipfileset dir="${app.config.dir}" includes="**/*.xml" prefix="${app.config.dir}" /> <!-- conf and conf/base -->
-            <zipfileset dir="${app.config.dir}" includes="**/*.properties" prefix="${app.config.dir}" />
-            <zipfileset dir="${app.config.dir}" includes="**/*.pgpass" prefix="${app.config.dir}" />
-            <zipfileset dir="${app.config.dir}" includes="**/*.sh" prefix="${app.config.dir}" />
-            <zipfileset dir="${app.config.dir}" includes="**/*.template" prefix="${app.config.dir}" />
-            <zipfileset dir="${app.resources.dir}" prefix="src/main/resources" />
-            <zipfileset dir="${test.resources.dir}" prefix="src/test/resources" />
-            <zipfileset dir="${runtime.lib.dir}" prefix="${runtime.lib.dir}" /> <!-- runtime jars needed for migrate-schema -->
-            <zipfileset dir="src/test" includes="**/*.xml" prefix="src/test" /> <!-- necessary to make OutcomesFullStackTestBase work; todo: change that -->
-            <zipfileset dir="${app.dir}/src/main/webapp/WEB-INF/freemarker" prefix="${app.dir}/src/main/webapp/WEB-INF/freemarker" /> <!-- needed for fullstack tests -->
-            <zipfileset dir="sql_snaps" prefix="sql_snaps" />
-        </zip>		
-    </target>
-
     <macrodef name="junit-explicit">
         <attribute name="label" />
         <attribute name="classpathref" />
