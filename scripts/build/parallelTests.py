@@ -5,9 +5,10 @@ Reads in names of tests from stdin and runs them in parallel batches on an arbit
 set of slave machines.  Pretty much agnostic to whether you're using junit or pyunit,
 Spring or Pylons, a db or no db.
 
-  - (re-)creates a workspace on each slave, then copies in the contents of your pwd
+  - optionally (re-)creates a workspace on each slave, then copies in the contents of
+    your working directory
 
-  - runs a task on each slave preparing its schema for testing if necessary
+  - optionally runs a task on each slave preparing its schema for testing
 
   - farms the tests out to the slaves in parallel batches of the size you specify
     (sending a batch of tests to be run serially on each slave cuts down the Spring
@@ -36,7 +37,7 @@ from threading import Lock
 from subprocess import Popen, PIPE
 
 # Constants for now, can be parameterized if we want to use this script for non-ant or db-less projects
-SLAVE_SELF_SETUP_TASK = 'ant prepare-db-for-parallel-tests'
+SLAVE_DB_UPDATE_TASK = 'ant prepare-db-for-parallel-tests'
 def getTaskToRunBatchOfTests(tests):
     return 'ant test-several-precompiled -Dtests=' + ','.join(['**/%s.class' % test for test in tests])
 
@@ -127,7 +128,7 @@ def runSubprocess(cmd, manager, failonerror=False):
         assert returncode == 0, output
     return returncode, output
 
-def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace):
+def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace, updatedb):
     try:
         # 1. Clean out and re-create a workspace directory on the slave
         # 2. Copy the contents of pwd into the slave's workspace
@@ -139,7 +140,8 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace, copyworksp
             ]
         else:
             cmds = []
-        cmds.append('ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_SELF_SETUP_TASK))
+        if updatedb:
+            cmds.append('ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_DB_UPDATE_TASK))
         for cmd in cmds:
             runSubprocess(cmd, manager, failonerror=True)
         manager.output('  (ready) finished setting up %s' % slave)
@@ -164,11 +166,11 @@ def runBatchOfTests(tests, slave, manager, sshuser, identityfile, slaveworkspace
     except Exception, e:
         manager.registerBatchOfTestsCompleted(slave, tests, succeeded=False, output=repr(e))
 
-def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace):
+def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb):
     # Do setup on each slave
     manager = SyncManager(slaves)
     for slave in slaves:
-        thread.start_new_thread(setupSlave, (slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace))
+        thread.start_new_thread(setupSlave, (slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace, updatedb))
     manager.waitForAllSlavesToBeAvailable()
     # Farm out the tests in batches until they're all gone
     while tests:
@@ -194,6 +196,7 @@ if __name__ == '__main__':
     parser.add_option('-v', dest='apphomeenvvar', help='e.g., THREETWELVE_HOME')
     parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each slave at a time')
     parser.add_option('-c', dest='copyworkspace', action='store_true', help='does your workspace need to be copied over to the slaves?')
+    parser.add_option('-d', dest='updatedb', action='store_true', help='do your slaves\' dbs need to be updated?')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
@@ -211,6 +214,7 @@ if __name__ == '__main__':
     apphomeenvvar = options.apphomeenvvar.strip()
     testsperbatch = int(options.testsperbatch.strip())
     copyworkspace = bool(options.copyworkspace)
+    updatedb = bool(options.updatedb)
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
@@ -220,6 +224,6 @@ if __name__ == '__main__':
     print 'test classes to run: %i' % numtestclasses
     print 'available slaves: %r' % slaves
 
-    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace)
+    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb)
     print 'ran %i test classes' % numtestclasses
     sys.exit(exitstatus)
