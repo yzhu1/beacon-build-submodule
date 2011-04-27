@@ -127,16 +127,20 @@ def runSubprocess(cmd, manager, failonerror=False):
         assert returncode == 0, output
     return returncode, output
 
-def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace):
+def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace):
     try:
         # 1. Clean out and re-create a workspace directory on the slave
         # 2. Copy the contents of pwd into the slave's workspace
         # 3. Have the slave run a task to get its db ready for testing
-        for cmd in [
+        if copyworkspace:
+            cmds = [
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, slave, slaveworkspace, slaveworkspace),
-            'scp -qr -c arcfour -i %s ./* %s@%s:%s/' % (identityfile, sshuser, slave, slaveworkspace),
-            'ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_SELF_SETUP_TASK)
-            ]:
+            'scp -qr -c arcfour -i %s ./* %s@%s:%s/' % (identityfile, sshuser, slave, slaveworkspace)
+            ]
+        else:
+            cmds = []
+        cmds.append('ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_SELF_SETUP_TASK))
+        for cmd in cmds:
             runSubprocess(cmd, manager, failonerror=True)
         manager.output('  (ready) finished setting up %s' % slave)
         manager.makeSlaveAvailable(slave)
@@ -160,11 +164,11 @@ def runBatchOfTests(tests, slave, manager, sshuser, identityfile, slaveworkspace
     except Exception, e:
         manager.registerBatchOfTestsCompleted(slave, tests, succeeded=False, output=repr(e))
 
-def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch):
+def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace):
     # Do setup on each slave
     manager = SyncManager(slaves)
     for slave in slaves:
-        thread.start_new_thread(setupSlave, (slave, manager, sshuser, identityfile, slaveworkspace))
+        thread.start_new_thread(setupSlave, (slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace))
     manager.waitForAllSlavesToBeAvailable()
     # Farm out the tests in batches until they're all gone
     while tests:
@@ -189,6 +193,7 @@ if __name__ == '__main__':
     parser.add_option('-w', dest='slaveworkspace', help='remote workspace directory to run tests in')
     parser.add_option('-v', dest='apphomeenvvar', help='e.g., THREETWELVE_HOME')
     parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each slave at a time')
+    parser.add_option('-c', dest='copyworkspace', action='store_true', help='does your workspace need to be copied over to the slaves?')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
@@ -205,6 +210,7 @@ if __name__ == '__main__':
     slaveworkspace = options.slaveworkspace.strip()
     apphomeenvvar = options.apphomeenvvar.strip()
     testsperbatch = int(options.testsperbatch.strip())
+    copyworkspace = bool(options.copyworkspace)
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
@@ -214,6 +220,6 @@ if __name__ == '__main__':
     print 'test classes to run: %i' % numtestclasses
     print 'available slaves: %r' % slaves
 
-    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch)
+    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace)
     print 'ran %i test classes' % numtestclasses
     sys.exit(exitstatus)
