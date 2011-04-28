@@ -123,7 +123,8 @@ def runSubprocess(cmd, manager, failonerror=False):
     process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     # Wait for it to complete, and collect its output
     returncode = process.wait()
-    output = process.stdout.read() + process.stderr.read()
+    stdout, stderr = process.communicate()
+    output = stdout + stderr
     if failonerror:
         assert returncode == 0, output
     return returncode, output
