@@ -36,8 +36,10 @@ import optparse
 from threading import Lock
 from subprocess import Popen, PIPE
 
-# Constants for now, can be parameterized if we want to use this script for non-ant or db-less projects
+# Constant for now, can be parameterized if we want to use this script for non-ant or db-less projects
 SLAVE_DB_UPDATE_TASK = 'ant prepare-db-for-parallel-tests'
+
+# Implemented here for ant
 def getTaskToRunBatchOfTests(tests):
     return 'ant test-several-precompiled -Dtests=' + ','.join(['**/%s.class' % test for test in tests])
 
@@ -158,11 +160,12 @@ def runBatchOfTests(tests, slave, manager, sshuser, identityfile, slaveworkspace
                          sshuser,
                             slave) \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
-            + 'cd %s && export %s=%s && %s"' % \
+            + 'cd %s && export %s=%s && %s ' % \
                  (slaveworkspace,
                                apphomeenvvar,
                                   slaveworkspace,
-                                        getTaskToRunBatchOfTests(tests))
+                                        getTaskToRunBatchOfTests(tests)) \
+            + '&> test.log; exitstatus=\$? && tail -n 100 test.log && exit \$exitstatus"'
         returncode, output = runSubprocess(cmd, manager)
         output = '<ran on %s> ' % slave + output
         manager.registerBatchOfTestsCompleted(slave, tests, succeeded=(returncode==0), output=output)
