@@ -150,23 +150,25 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace, copyworksp
         print e
         thread.interrupt_main()
 
-def runBatchOfTests(tests, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar):
+def runBatchOfTests(tests, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar, envpropertyprefix):
     try:
-        cmd = 'ssh -i %s %s@%s "cd %s && export %s=%s && %s"' % \
+        cmd = 'ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
                      (identityfile,
                          sshuser,
-                            slave,
-                                   slaveworkspace,
-                                                apphomeenvvar,
-                                                   slaveworkspace,
-                                                         getTaskToRunBatchOfTests(tests))
+                            slave) \
+            + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
+            + 'cd %s && export %s=%s && %s"' % \
+                 (slaveworkspace,
+                               apphomeenvvar,
+                                  slaveworkspace,
+                                        getTaskToRunBatchOfTests(tests))
         returncode, output = runSubprocess(cmd, manager)
         output = '<ran on %s> ' % slave + output
         manager.registerBatchOfTestsCompleted(slave, tests, succeeded=(returncode==0), output=output)
     except Exception, e:
         manager.registerBatchOfTestsCompleted(slave, tests, succeeded=False, output=repr(e))
 
-def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb):
+def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix):
     # Do setup on each slave
     manager = SyncManager(slaves)
     for slave in slaves:
@@ -178,7 +180,7 @@ def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenv
         while tests and len(batch) < testsperbatch:
             batch.append(tests.pop())
         slave = manager.getNextAvailableSlave(batch)
-        thread.start_new_thread(runBatchOfTests, (batch, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar))
+        thread.start_new_thread(runBatchOfTests, (batch, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar, envpropertyprefix))
     # Report the overall exit status
     somefailures = manager.letTestsFinishAndGetWhetherAnyFailed()
     if somefailures:
@@ -197,6 +199,7 @@ if __name__ == '__main__':
     parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each slave at a time')
     parser.add_option('-c', dest='copyworkspace', action='store_true', help='does your workspace need to be copied over to the slaves?')
     parser.add_option('-d', dest='updatedb', action='store_true', help='do your slaves\' dbs need to be updated?')
+    parser.add_option('-p', dest='envpropertyprefix', help='ENV_PROPERTY_PREFIX for webdriver')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
@@ -215,15 +218,17 @@ if __name__ == '__main__':
     testsperbatch = int(options.testsperbatch.strip())
     copyworkspace = bool(options.copyworkspace)
     updatedb = bool(options.updatedb)
+    envpropertyprefix = options.envpropertyprefix
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
     # Shuffle tests to give slaves an even burden
     random.shuffle(tests)
     numtestclasses = len(tests)
+    print 'RUNNING PARALLEL TESTS'
     print 'test classes to run: %i' % numtestclasses
     print 'available slaves: %r' % slaves
 
-    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb)
-    print 'ran %i test classes' % numtestclasses
+    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix)
+    print 'ran %i test classes\n' % numtestclasses
     sys.exit(exitstatus)

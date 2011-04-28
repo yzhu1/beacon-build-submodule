@@ -26,20 +26,10 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 # start the webapp
 /opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass service $webapp_service start
 
-# run webdriver tests on remote box
-remote_webdriver_workspace=/home/autobuild/devel/3_12/$app-$app-$env-ci
-ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "cd $remote_webdriver_workspace && rm -rf tmp && mkdir tmp"
-scp -qr -i /home/tomcat/.ssh/autobuild_key ./* autobuild@yad124.tt.wgenhq.net:$remote_webdriver_workspace/tmp
-ssh -i /home/tomcat/.ssh/autobuild_key autobuild@yad124.tt.wgenhq.net "cd $remote_webdriver_workspace/tmp && \
-echo '#!/bin/bash' > webdriver.sh && \
-echo 'set -e' >> webdriver.sh && \
-echo 'export RUN_ONLY_SMOKE=true' >> webdriver.sh && \
-echo 'export ENV_PROPERTY_PREFIX=${env}ci' >> webdriver.sh && \
-echo 'Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 &' >> webdriver.sh && \
-echo 'export DISPLAY=:5.0' >> webdriver.sh && \
-echo 'ant test-webdriver-precompiled' >> webdriver.sh && \
-chmod +x webdriver.sh && \
-./webdriver.sh $ENV_PROPERTY_PREFIX"
+# run webdriver tests in parallel on slave
+find target/test/webdriver -name *Test.class \
+  | xargs -i basename {} .class \
+  | python conf/base/scripts/build/parallelTests.py -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net -u autobuild -i /home/tomcat/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $testsperbatch -p $ENV_PROPERTY_PREFIX
 
 # build migration rpms to QA repo and move code rpm to the same
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
