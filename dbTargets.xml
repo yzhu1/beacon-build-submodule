@@ -156,7 +156,7 @@
     <target name="load-fixtures" depends="update-schema,fixture-run-all-datamakers" description="Load fixtures"/>
 
     <target name="prepare-db-for-parallel-tests"
-            depends="load-fixtures-snapshot"
+            depends="clear-schema, load-fixtures-snapshot, repair-migration-filenames, tag-schema, migrate-schema"
             description="Run on test slaves by parallelTests.py to get them prepared for integration testing; overridden in projects that don't use snapshots" />
 
     <target name="fixture-run-all-datamakers" depends="test-compile" description="Run all fixture Datamakers">
