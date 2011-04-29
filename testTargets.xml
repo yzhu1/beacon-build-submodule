@@ -291,21 +291,34 @@
 
     <target name="test-one-precompiled"
         description="Run a single test that's already compiled: use with -Dtest=NameOfTest">
+        <pathconvert property="jar-containing-tests" targetos="unix" pathsep="">
+            <fileset dir="${ivy.lib.dir}/test"
+                includes="wgspringcore-integration-test-*.jar"
+                excludes="wgspringcore-integration-test-src-*.jar"/>
+        </pathconvert>
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webdriver.test.classes.dir}" includes="**/${test}.class" />
+            <zipfileset src="${jar-containing-tests}"
+                        includes="**/${test}.class" />
         </junit-explicit>
     </target>
 
     <target name="test-several-precompiled"
         description="Run several tests that are already compiled: use with -Dtests=[comma-separated list of patterns to match]">
+        <pathconvert property="jar-containing-tests" targetos="unix" pathsep="">
+            <fileset dir="${ivy.lib.dir}/test"
+                includes="wgspringcore-integration-test-*.jar"
+                excludes="wgspringcore-integration-test-src-*.jar"/>
+        </pathconvert>
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
             <fileset dir="${unit.test.classes.dir}" includes="${tests}" />
             <fileset dir="${integration.test.classes.dir}" includes="${tests}" />
             <fileset dir="${webservice.test.classes.dir}" includes="${tests}" />
             <fileset dir="${webdriver.test.classes.dir}" includes="${tests}" />
+            <zipfileset src="${jar-containing-tests}" includes="${tests}" />
         </junit-explicit>
     </target>
 
