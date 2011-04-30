@@ -139,7 +139,7 @@ def setupTestdog(testdog, manager, sshuser, identityfile, testdogworkspace, copy
         if copyworkspace:
             cmds = [
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, testdog, testdogworkspace, testdogworkspace),
-            'rsync -e "ssh -i %s -c arcfour" -a . %s@%s:%s/ --exclude=scripts/standards/ --exclude=ivy_lib/compile --exclude=.git/ --exclude=conf/base/.git/' % (identityfile, sshuser, testdog, testdogworkspace)
+            'rsync -e "ssh -i %s -c arcfour" -a . %s@%s:%s/ --exclude=scripts/standards/ --exclude=ivy_lib/compile --exclude=.git/ --exclude=conf/base/.git/ --exclude=*.war' % (identityfile, sshuser, testdog, testdogworkspace)
             ]
         else:
             cmds = []

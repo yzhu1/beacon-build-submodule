@@ -29,6 +29,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass service $webapp_service start
 
 # run webdriver tests in parallel on testdog
+echo "RUNNING WEBDRIVER TESTS"
 find target/test/webdriver -name *Test.class \
   | xargs -i basename {} .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad127.tt.wgenhq.net -u autobuild -i /home/tomcat/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $webdrivertestsperbatch -p $ENV_PROPERTY_PREFIX
