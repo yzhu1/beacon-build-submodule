@@ -139,7 +139,7 @@ def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace, copyworksp
         if copyworkspace:
             cmds = [
             'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, slave, slaveworkspace, slaveworkspace),
-            'scp -qr -c arcfour -i %s ./* %s@%s:%s/' % (identityfile, sshuser, slave, slaveworkspace)
+            'rsync -e "ssh -i %s -c arcfour" -a . %s@%s:%s/ --exclude=scripts/standards/' % (identityfile, sshuser, slave, slaveworkspace)
             ]
         else:
             cmds = []
