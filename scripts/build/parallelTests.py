@@ -2,19 +2,19 @@
 
 '''
 Reads in names of tests from stdin and runs them in parallel batches on an arbitrary
-set of slave machines.  Pretty much agnostic to whether you're using junit or pyunit,
+set of testdog machines.  Pretty much agnostic to whether you're using junit or pyunit,
 Spring or Pylons, a db or no db.
 
-  - optionally (re-)creates a workspace on each slave, then copies in the contents of
+  - optionally (re-)creates a workspace on each testdog, then copies in the contents of
     your working directory
 
-  - optionally runs a task on each slave preparing its schema for testing
+  - optionally runs a task on each testdog preparing its schema for testing
 
-  - farms the tests out to the slaves in parallel batches of the size you specify
-    (sending a batch of tests to be run serially on each slave cuts down the Spring
+  - farms the tests out to the testdogs in parallel batches of the size you specify
+    (sending a batch of tests to be run serially on each testdog cuts down the Spring
     context startup time if you're using Spring)
 
-Example usage (runs the pk12 outcomes integration tests on three slaves):
+Example usage (runs the pk12 outcomes integration tests on three testdogs):
 
 find target/test/integration target/test/webservice -name *Test.class|xargs -i basename {} .class | \
     python conf/base/scripts/build/parallelTests.py \
@@ -25,7 +25,7 @@ find target/test/integration target/test/webservice -name *Test.class|xargs -i b
     -v OUTCOMES_HOME \
     -n 8
 
-Instructions for setting up new pk12-style slaves: https://wgencontractorwiki.mc.wgenhq.net/index.php/3-12_Platform/Development/Create_a_new_Test_Slave.
+Instructions for setting up new pk12-style testdogs: https://wgencontractorwiki.mc.wgenhq.net/index.php/3-12_Platform/Development/Create_a_new_Testdog.
 '''
 
 import sys
@@ -37,7 +37,7 @@ from threading import Lock
 from subprocess import Popen, PIPE
 
 # Constant for now, can be parameterized if we want to use this script for non-ant or db-less projects
-SLAVE_DB_UPDATE_TASK = 'ant prepare-db-for-parallel-tests'
+TESTDOG_DB_UPDATE_TASK = 'ant prepare-db-for-parallel-tests'
 
 # Implemented here for ant
 def getTaskToRunBatchOfTests(tests):
@@ -45,52 +45,52 @@ def getTaskToRunBatchOfTests(tests):
 
 class SyncManager(object):
 
-    def __init__(self, slaves):
+    def __init__(self, testdogs):
         self._outputlock = Lock()
         self._failuremessages = []
         self._successmessages = []
         self._lastTimeStatusGiven = 0
-        self._slaveToCurrentBatchOfTests = {}
-        for slave in slaves:
-            self._slaveToCurrentBatchOfTests[slave] = 'setup...'
+        self._testdogToCurrentBatchOfTests = {}
+        for testdog in testdogs:
+            self._testdogToCurrentBatchOfTests[testdog] = 'setup...'
 
-    def makeSlaveAvailable(self, slave):
-        self._slaveToCurrentBatchOfTests[slave] = None
+    def makeTestdogAvailable(self, testdog):
+        self._testdogToCurrentBatchOfTests[testdog] = None
 
     # Called only from this script's main thread, so no need for locking
-    def getNextAvailableSlave(self, tests):
+    def getNextAvailableTestdog(self, tests):
         while 1:
-            for slave in self._slaveToCurrentBatchOfTests:
-                if self._slaveToCurrentBatchOfTests[slave] is None:
-                    self._slaveToCurrentBatchOfTests[slave] = ', '.join(tests)
-                    return slave
+            for testdog in self._testdogToCurrentBatchOfTests:
+                if self._testdogToCurrentBatchOfTests[testdog] is None:
+                    self._testdogToCurrentBatchOfTests[testdog] = ', '.join(tests)
+                    return testdog
             # If we're going to keep waiting, give cpu a break and check status
             self.sleepAndCheckStatus()
 
-    def registerBatchOfTestsCompleted(self, slave, tests, succeeded, output):
+    def registerBatchOfTestsCompleted(self, testdog, tests, succeeded, output):
         try:
             # Record the tests' output
             self._outputlock.acquire()
             testnames = ', '.join(tests)
             if succeeded:
-                print '  (success) %s: %s PASSSED' % (slave, testnames)
+                print '  (success) %s: %s PASSSED' % (testdog, testnames)
                 self._successmessages.append(output)
             else:
                 print output
                 self._failuremessages.append(output)
         finally:
             self._outputlock.release()
-        # Free up the slave that ran the batch
-        self.makeSlaveAvailable(slave)
+        # Free up the testdog that ran the batch
+        self.makeTestdogAvailable(testdog)
 
-    def waitForAllSlavesToBeAvailable(self):
-        while filter(bool, self._slaveToCurrentBatchOfTests.values()):
+    def waitForAllTestdogsToBeAvailable(self):
+        while filter(bool, self._testdogToCurrentBatchOfTests.values()):
             # If we're going to keep waiting, give cpu a break and check status
             self.sleepAndCheckStatus()
 
     def letTestsFinishAndGetWhetherAnyFailed(self):
         # Let the tests finish
-        self.waitForAllSlavesToBeAvailable()
+        self.waitForAllTestdogsToBeAvailable()
         # Print their output
         print
         if self._successmessages:
@@ -113,11 +113,11 @@ class SyncManager(object):
 
     def sleepAndCheckStatus(self):
         time.sleep(.1)
-        # If it's been 30 seconds since last status update, report what each slave is doing
+        # If it's been 30 seconds since last status update, report what each testdog is doing
         if time.time() - self._lastTimeStatusGiven > 30:
             self._lastTimeStatusGiven = time.time()
-            for slave, test in self._slaveToCurrentBatchOfTests.items():
-                self.output('  (status) %s is running %s' % (slave, test or 'nothing'))
+            for testdog, test in self._testdogToCurrentBatchOfTests.items():
+                self.output('  (status) %s is running %s' % (testdog, test or 'nothing'))
 
 def runSubprocess(cmd, manager, failonerror=False):
     # Run cmd in a new subprocess
@@ -131,60 +131,60 @@ def runSubprocess(cmd, manager, failonerror=False):
         assert returncode == 0, output
     return returncode, output
 
-def setupSlave(slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace, updatedb):
+def setupTestdog(testdog, manager, sshuser, identityfile, testdogworkspace, copyworkspace, updatedb):
     try:
-        # 1. Clean out and re-create a workspace directory on the slave
-        # 2. Copy the contents of pwd into the slave's workspace
-        # 3. Have the slave run a task to get its db ready for testing
+        # 1. Clean out and re-create a workspace directory on the testdog
+        # 2. Copy the contents of pwd into the testdog's workspace
+        # 3. Have the testdog run a task to get its db ready for testing
         if copyworkspace:
             cmds = [
-            'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, slave, slaveworkspace, slaveworkspace),
-            'rsync -e "ssh -i %s -c arcfour" -a . %s@%s:%s/ --exclude=scripts/standards/ --exclude=ivy_lib/compile --exclude=.git/ --exclude=conf/base/.git/' % (identityfile, sshuser, slave, slaveworkspace)
+            'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, testdog, testdogworkspace, testdogworkspace),
+            'rsync -e "ssh -i %s -c arcfour" -a . %s@%s:%s/ --exclude=scripts/standards/ --exclude=ivy_lib/compile --exclude=.git/ --exclude=conf/base/.git/' % (identityfile, sshuser, testdog, testdogworkspace)
             ]
         else:
             cmds = []
         if updatedb:
-            cmds.append('ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, slave, slaveworkspace, SLAVE_DB_UPDATE_TASK))
+            cmds.append('ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, testdog, testdogworkspace, TESTDOG_DB_UPDATE_TASK))
         for cmd in cmds:
             runSubprocess(cmd, manager, failonerror=True)
-        manager.output('  (ready) finished setting up %s' % slave)
-        manager.makeSlaveAvailable(slave)
+        manager.output('  (ready) finished setting up %s' % testdog)
+        manager.makeTestdogAvailable(testdog)
     except Exception, e:
         print e
         thread.interrupt_main()
 
-def runBatchOfTests(tests, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar, envpropertyprefix):
+def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix):
     try:
         cmd = 'ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
                      (identityfile,
                          sshuser,
-                            slave) \
+                            testdog) \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
             + 'cd %s && export %s=%s && %s ' % \
-                 (slaveworkspace,
+                 (testdogworkspace,
                                apphomeenvvar,
-                                  slaveworkspace,
+                                  testdogworkspace,
                                         getTaskToRunBatchOfTests(tests)) \
             + '&> test.log; exitstatus=\$? && tail -n 100 test.log && exit \$exitstatus"'
         returncode, output = runSubprocess(cmd, manager)
-        output = '<ran on %s> ' % slave + output
-        manager.registerBatchOfTestsCompleted(slave, tests, succeeded=(returncode==0), output=output)
+        output = '<ran on %s> ' % testdog + output
+        manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=(returncode==0), output=output)
     except Exception, e:
-        manager.registerBatchOfTestsCompleted(slave, tests, succeeded=False, output=repr(e))
+        manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
 
-def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix):
-    # Do setup on each slave
-    manager = SyncManager(slaves)
-    for slave in slaves:
-        thread.start_new_thread(setupSlave, (slave, manager, sshuser, identityfile, slaveworkspace, copyworkspace, updatedb))
-    manager.waitForAllSlavesToBeAvailable()
+def runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix):
+    # Do setup on each testdog
+    manager = SyncManager(testdogs)
+    for testdog in testdogs:
+        thread.start_new_thread(setupTestdog, (testdog, manager, sshuser, identityfile, testdogworkspace, copyworkspace, updatedb))
+    manager.waitForAllTestdogsToBeAvailable()
     # Farm out the tests in batches until they're all gone
     while tests:
         batch = []
         while tests and len(batch) < testsperbatch:
             batch.append(tests.pop())
-        slave = manager.getNextAvailableSlave(batch)
-        thread.start_new_thread(runBatchOfTests, (batch, slave, manager, sshuser, identityfile, slaveworkspace, apphomeenvvar, envpropertyprefix))
+        testdog = manager.getNextAvailableTestdog(batch)
+        thread.start_new_thread(runBatchOfTests, (batch, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix))
     # Report the overall exit status
     somefailures = manager.letTestsFinishAndGetWhetherAnyFailed()
     if somefailures:
@@ -195,29 +195,29 @@ def runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenv
 if __name__ == '__main__':
 
     parser = optparse.OptionParser()
-    parser.add_option('-s', dest='slaves', help='comma-separated list of slaves to run tests on')
-    parser.add_option('-u', dest='sshuser', help='user to ssh to slaves as')
+    parser.add_option('-s', dest='testdogs', help='comma-separated list of testdogs to run tests on')
+    parser.add_option('-u', dest='sshuser', help='user to ssh to testdogs as')
     parser.add_option('-i', dest='identityfile', help='ssh identity file')
-    parser.add_option('-w', dest='slaveworkspace', help='remote workspace directory to run tests in')
+    parser.add_option('-w', dest='testdogworkspace', help='remote workspace directory to run tests in')
     parser.add_option('-v', dest='apphomeenvvar', help='e.g., THREETWELVE_HOME')
-    parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each slave at a time')
-    parser.add_option('-c', dest='copyworkspace', action='store_true', help='does your workspace need to be copied over to the slaves?')
-    parser.add_option('-d', dest='updatedb', action='store_true', help='do your slaves\' dbs need to be updated?')
+    parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each testdog at a time')
+    parser.add_option('-c', dest='copyworkspace', action='store_true', help='does your workspace need to be copied over to the testdogs?')
+    parser.add_option('-d', dest='updatedb', action='store_true', help='do your testdogs\' dbs need to be updated?')
     parser.add_option('-p', dest='envpropertyprefix', help='ENV_PROPERTY_PREFIX for webdriver')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
-    assert options.slaves, 'please provide a comma-separated list of slaves'
-    assert options.sshuser, 'please provide a user to ssh to the slaves as'
+    assert options.testdogs, 'please provide a comma-separated list of testdogs'
+    assert options.sshuser, 'please provide a user to ssh to the testdogs as'
     assert options.identityfile, 'please provide an ssh identity file'
-    assert options.slaveworkspace, 'please provide a remote directory where tests should be run'
+    assert options.testdogworkspace, 'please provide a remote directory where tests should be run'
     assert options.apphomeenvvar, 'please provide the name of the application home dir environment variable, e.g., THREETWELVE_HOME'
-    assert options.testsperbatch, 'please provide the number of tests to delegate to each slave at a time'
+    assert options.testsperbatch, 'please provide the number of tests to delegate to each testdog at a time'
 
-    slaves = options.slaves.strip().split(',')
+    testdogs = options.testdogs.strip().split(',')
     sshuser = options.sshuser.strip()
     identityfile = options.identityfile.strip()
-    slaveworkspace = options.slaveworkspace.strip()
+    testdogworkspace = options.testdogworkspace.strip()
     apphomeenvvar = options.apphomeenvvar.strip()
     testsperbatch = int(options.testsperbatch.strip())
     copyworkspace = bool(options.copyworkspace)
@@ -226,13 +226,13 @@ if __name__ == '__main__':
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
-    # Shuffle tests to give slaves an even burden
+    # Shuffle tests to give testdogs an even burden
     random.shuffle(tests)
     numtestclasses = len(tests)
     print 'RUNNING PARALLEL TESTS'
     print 'test classes to run: %i' % numtestclasses
-    print 'available slaves: %r' % slaves
+    print 'available testdogs: %r' % testdogs
 
-    exitstatus = runAllTests(slaves, tests, sshuser, identityfile, slaveworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix)
+    exitstatus = runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix)
     print 'ran %i test classes\n' % numtestclasses
     sys.exit(exitstatus)

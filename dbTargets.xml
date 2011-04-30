@@ -157,7 +157,7 @@
 
     <target name="prepare-db-for-parallel-tests"
             depends="load-fixtures-snapshot"
-            description="Run on test slaves by parallelTests.py to get them prepared for integration testing; overridden in projects that don't use snapshots" />
+            description="Run on testdogs by parallelTests.py to get them prepared for integration testing; overridden in projects that don't use snapshots" />
 
     <target name="fixture-run-all-datamakers" depends="test-compile" description="Run all fixture Datamakers">
        <mkdir dir="${fixture.export.dir}"/>
