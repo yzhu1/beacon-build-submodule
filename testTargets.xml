@@ -97,9 +97,9 @@
         <delete dir="${reports.dir}" />
     </target>
 
-    <target name="check-for-tests-junit-wont-find"
-            description="Check for java sources containing '@Test' but not named according to the *Test.java convention that junit follows: these tests won't run">
-        <echo>checking for tests junit won't find</echo>
+    <target name="check-for-tests-junit-wont-find">
+
+        <echo>checking for tests junit won't find because they don't follow the *Test.java naming convention</echo>
         <exec executable="sh">
             <arg line="-c" />
             <arg value="grep @Test * -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|uniq" />
@@ -108,10 +108,21 @@
             <arg line="-c" />
             <arg value="exit `grep @Test * -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|wc -l`" />
         </exec>
+
+        <echo>checking for tests junit won't run because their names are not unique</echo>
+        <exec executable="sh">
+            <arg line="-c" />
+            <arg value="(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -i basename {} .class|sort|uniq -d" />
+        </exec>
+        <exec executable="sh" failonerror="true">
+            <arg line="-c" />
+            <arg value="exit `(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -i basename {} .class|sort|uniq -d|wc -l`" />
+        </exec>
+
     </target>
 
     <!-- Compile junit test classes -->
-    <target name="test-compile" depends="-cobertura-setup,check-for-tests-junit-wont-find, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
+    <target name="test-compile" depends="-cobertura-setup, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
         description="Compile the tests">
 
         <mkdir dir="${test.classes.dir}" />
@@ -191,6 +202,8 @@
         <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
             <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
+
+        <antcall target="check-for-tests-junit-wont-find" />
     	
     </target>
 	
