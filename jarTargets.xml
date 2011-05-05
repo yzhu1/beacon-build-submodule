@@ -29,7 +29,8 @@
         <sequential>
             <javac-standard srcdir="@{srcdir}" destdir="@{destdir}">
                 <javac-nested />
-                <compilerarg value="-Xlint:unchecked" />
+                <compilerarg value="-Xlint" />
+                <compilerarg value="-Xlint:-path" />
                 <compilerarg value="-Werror" />
             </javac-standard>
         </sequential>
