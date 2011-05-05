@@ -169,6 +169,11 @@
             </sequential>
         </macrodef>
 
+        <!-- copy some static files from the class path in the test directory; skylight runs some tests that need to do this -->
+        <copy todir="${unit.test.classes.dir}">
+            <fileset dir="${app.unit.src.dir}" includes="**/*.js" />
+        </copy>
+
         <!-- Compile the app unit tests -->
         <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
 
