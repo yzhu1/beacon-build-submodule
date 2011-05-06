@@ -45,6 +45,16 @@
         <!-- copy artifacts from cache to destination dir -->
         <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
         <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
+        <if>
+            <isfalse value="${use.eclipse.ivyde.plugin}" />
+                <then>
+                    <antcall target="rebuild-eclipse-classpath" />
+                </then>
+        </if>
+    </target>
+
+    <target name="rebuild-eclipse-classpath" description="gets run by ivy-resolve if you have use.eclipse.ivyde.plugin=false">
+        <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh" />
     </target>
 
     <!-- WARNING: Use this with target with caution.
