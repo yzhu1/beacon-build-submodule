@@ -32,7 +32,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 echo "RUNNING WEBDRIVER TESTS"
 find target/test/webdriver -name *Test.class \
   | xargs -i basename {} .class \
-  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad127.tt.wgenhq.net -u autobuild -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $webdrivertestsperbatch -p $ENV_PROPERTY_PREFIX
+  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad128.tt.wgenhq.net -u autobuild -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $webdrivertestsperbatch -p $ENV_PROPERTY_PREFIX
 
 # build migration rpms to QA repo and move code rpm to the same
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
