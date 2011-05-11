@@ -28,10 +28,12 @@ find target/test/integration target/test/webservice -name *Test.class|xargs -i b
 Instructions for setting up new pk12-style testdogs: https://wgencontractorwiki.mc.wgenhq.net/index.php/3-12_Platform/Development/Create_a_new_Testdog.
 '''
 
+import os
 import sys
 import time
 import thread
 import random
+import string
 import optparse
 from threading import Lock
 from subprocess import Popen, PIPE
@@ -158,10 +160,10 @@ def setupTestdog(testdog, manager, sshuser, identityfile, testdogworkspace, copy
 
 def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix):
     try:
-        cmd = 'ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
-                     (identityfile,
-                         sshuser,
-                            testdog) \
+        cmd = 'nohup ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
+                           (identityfile,
+                               sshuser,
+                                  testdog) \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
             + 'cd %s && export %s=%s && %s ' % \
                  (testdogworkspace,
@@ -171,6 +173,12 @@ def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworks
             + '&> test.log; exitstatus=\$? && tail -n 100 test.log && exit \$exitstatus"'
         returncode, output = runSubprocess(cmd, manager)
         output = '<ran on %s> ' % testdog + output
+        # Download and print the contents of test.log
+        if returncode != 0:
+            testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+            runSubprocess('scp -i %s %s@%s:%s/test.log %s' % (identityfile, sshuser, testdog, testdogworkspace, testlogfile), manager)
+            manager.output('tests failed on %s: %s' % (testdog, open(testlogfile, 'r').read()))
+            os.remove(testlogfile)
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=(returncode==0), output=output)
     except Exception, e:
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
