@@ -165,6 +165,7 @@ def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworks
                                sshuser,
                                   testdog) \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
+            + 'killall firefox && ' \
             + 'cd %s && export %s=%s && %s ' % \
                  (testdogworkspace,
                                apphomeenvvar,
