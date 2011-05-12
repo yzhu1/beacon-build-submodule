@@ -160,7 +160,7 @@ def setupTestdog(testdog, manager, sshuser, identityfile, testdogworkspace, copy
 
 def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix):
     try:
-        cmd = 'nohup ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
+        cmd = 'ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
                            (identityfile,
                                sshuser,
                                   testdog) \
