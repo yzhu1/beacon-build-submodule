@@ -176,10 +176,11 @@ def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworks
         output = '<ran on %s> ' % testdog + output
         # Download and print the contents of test.log
         if returncode != 0:
-            testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-            runSubprocess('scp -i %s %s@%s:%s/test.log %s' % (identityfile, sshuser, testdog, testdogworkspace, testlogfile), manager)
-            manager.output('tests failed on %s: %s' % (testdog, open(testlogfile, 'r').read()))
-            os.remove(testlogfile)
+            pass
+            #testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+            #runSubprocess('scp -i %s %s@%s:%s/test.log %s' % (identityfile, sshuser, testdog, testdogworkspace, testlogfile), manager)
+            #manager.output('tests failed on %s: %s' % (testdog, open(testlogfile, 'r').read()))
+            #os.remove(testlogfile)
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=(returncode==0), output=output)
     except Exception, e:
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
