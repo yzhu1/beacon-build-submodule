@@ -160,12 +160,12 @@ def setupTestdog(testdog, manager, sshuser, identityfile, testdogworkspace, copy
 
 def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix):
     try:
-        cmd = 'ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
+        cmd = 'nohup ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
                            (identityfile,
                                sshuser,
                                   testdog) \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
-            + 'killall firefox && ' \
+            + 'killall firefox; ' \
             + 'cd %s && export %s=%s && %s ' % \
                  (testdogworkspace,
                                apphomeenvvar,
@@ -176,11 +176,10 @@ def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworks
         output = '<ran on %s> ' % testdog + output
         # Download and print the contents of test.log
         if returncode != 0:
-            pass
-            #testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-            #runSubprocess('scp -i %s %s@%s:%s/test.log %s' % (identityfile, sshuser, testdog, testdogworkspace, testlogfile), manager)
-            #manager.output('tests failed on %s: %s' % (testdog, open(testlogfile, 'r').read()))
-            #os.remove(testlogfile)
+            testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+            runSubprocess('scp -i %s %s@%s:%s/test.log %s' % (identityfile, sshuser, testdog, testdogworkspace, testlogfile), manager)
+            manager.output('tests failed on %s: %s' % (testdog, open(testlogfile, 'r').read()))
+            os.remove(testlogfile)
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=(returncode==0), output=output)
     except Exception, e:
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
