@@ -413,7 +413,7 @@
         </sequential>
     </target>
 	
-    <target name="test-unit" depends="test-clean, test-compile, check-for-tests-junit-wont-find"
+    <target name="test-unit" depends="test-clean, test-compile"
         description="Run all unit tests">
         <junit-standard
             label="Unit tests"
@@ -541,7 +541,7 @@
         </fail>
     </target>
 
-    <target name="checkstyle" description="Run checkstyle">
+    <target name="checkstyle" description="Run checkstyle" depends="check-for-tests-junit-wont-find">
         <mkdir dir="${results.dir}"/>
 
         <checkstyle config="${imported.basedir}/checkstyle.xml" failonviolation="true">
