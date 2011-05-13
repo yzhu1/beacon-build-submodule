@@ -208,6 +208,8 @@
             <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
 
+        <antcall target="check-for-tests-junit-wont-find" />
+
     </target>
 	
     <macrodef name="junit-explicit">
@@ -541,7 +543,7 @@
         </fail>
     </target>
 
-    <target name="checkstyle" description="Run checkstyle" depends="check-for-tests-junit-wont-find">
+    <target name="checkstyle" description="Run checkstyle">
         <mkdir dir="${results.dir}"/>
 
         <checkstyle config="${imported.basedir}/checkstyle.xml" failonviolation="true">
