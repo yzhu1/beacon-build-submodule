@@ -56,4 +56,6 @@ CMD="java -Xmx1024m
     --defaultSchemaName=${LIQUIBASE_DB_SCHEMA}
     ${LIQUIBASE_CMD}"
 
+echo $CMD
+
 exec $CMD
