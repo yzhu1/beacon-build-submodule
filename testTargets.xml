@@ -51,7 +51,7 @@
         <pathelement location="${test.src.dir}" />
         <pathelement location="${webdriver.test.classes.dir}" />
         <pathelement location="${integration.test.classes.dir}" />
-    	<pathelement location="${webservice.test.classes.dir}" />
+        <pathelement location="${webservice.test.classes.dir}" />
     </path>
 
     <target name="test-quick" description="Run embarassing-to-fail tests" depends="quicktests"/>
@@ -211,7 +211,7 @@
         <antcall target="check-for-tests-junit-wont-find" />
 
     </target>
-	
+
     <macrodef name="junit-explicit">
         <attribute name="label" />
         <attribute name="classpathref" />
@@ -251,7 +251,7 @@
                 <sysproperty key="net.sourceforge.cobertura.datafile" file="@{coverage-file}" />
 
                 <jvmarg value="-Xmx256m" />
-            	<!--<jvmarg value="${test.vm.args}" />-->
+                <!--<jvmarg value="${test.vm.args}" />-->
                 <batchtest todir="${results.dir}">
                     <junit-filesets />
                 </batchtest>
@@ -350,7 +350,7 @@
             coverage-file="${coverage.data.file.ignored}"
         />
     </target>
-	
+
     <target name="test-webdriver-precompiled" description="Run all webdriver tests without compiling them; meant for running the tests on a remote host">
         <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->
         <junit-standard
@@ -364,11 +364,11 @@
     <target name="test-slow" depends="test-clean, test-compile" 
         description="Run all tests with the @Slow annotation">
 
-		<!--set slow tests to run in the properties file-->
-		<property name="run.slow.smoke.tests" value="true" file="${app.config.dir}/${servlet.name}.properties" />
+        <!--set slow tests to run in the properties file-->
+        <property name="run.slow.smoke.tests" value="true" file="${app.config.dir}/${servlet.name}.properties" />
 
         <antcall target="test-webdriver" />
-		
+
         <!--unset slow tests to run in the properties file-->
         <property name="run.slow.smoke.tests" value="false" file="${app.config.dir}/${servlet.name}.properties" />
 
@@ -414,7 +414,7 @@
             </junit-explicit>
         </sequential>
     </target>
-	
+
     <target name="test-unit" depends="test-clean, test-compile"
         description="Run all unit tests">
         <junit-standard

@@ -77,8 +77,8 @@
     <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
             update="true" overwrite="true" forcedeliver="true">
-        	<artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-        	<artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
+            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
+            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
         </ivy:publish>
     </target>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <project name="wgspring-dbTargets">
-	
+
     <var file="${app.dir}/conf/${servlet.name}.properties"/>
     <var file="${app.dir}/conf/${servlet.name}.password.properties"/>
     
@@ -50,9 +50,9 @@
         <attribute name="schema-name" />
         <sequential>
             <echo>Clearing schema @{schema-name} ${wgspring.db.host}
-	          using PGPASSFILE=${app.config.dir}/.pgpass,
-		  dbname ${wgspring.db.dbname},
-		  and username ${wgspring.db.username}
+              using PGPASSFILE=${app.config.dir}/.pgpass,
+          dbname ${wgspring.db.dbname},
+          and username ${wgspring.db.username}
             </echo>
             <exec executable="bash" failonerror="true">
                 <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
@@ -175,15 +175,15 @@
          <arg value="${dm}" />
        </spring-runner>
     </target>
-	
-	<target name="run-fixture-exporters" depends="test-compile" description="Run just the fixture exporters.">
-	   <mkdir dir="${fixture.export.dir}"/>
-	   <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
+
+    <target name="run-fixture-exporters" depends="test-compile" description="Run just the fixture exporters.">
+       <mkdir dir="${fixture.export.dir}"/>
+       <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
            bean="fixtureRunnerLoadDatamakers"
            method="exportAllData">
-	     <arg value="${fixture.export.dir}"/>
-	   </spring-runner>
-	</target>
+         <arg value="${fixture.export.dir}"/>
+       </spring-runner>
+    </target>
 
     <target name="run-some-exporters" depends="test-compile"
         description="Run fewer than all exporters, use with -Dexporter=FixtureExporterClassName">
@@ -206,16 +206,16 @@
     </target>
     
     <target name="load-fixtures-snapshot" description="Load fixtures snapshot">
-	<antcall target="clear-schema"/>
-	<antcall target="load-snapshot-provided">
-	    <param name="snapshot" value="${sql.fixtures}"/>
-	</antcall>
+    <antcall target="clear-schema"/>
+    <antcall target="load-snapshot-provided">
+        <param name="snapshot" value="${sql.fixtures}"/>
+    </antcall>
     </target>
     
     <target name="load-snapshot" description="Load March 2010 snapshot">
-	<antcall target="load-snapshot-provided">
-	    <param name="snapshot" value="${sql.snapshot}"/>
-	</antcall>
+    <antcall target="load-snapshot-provided">
+        <param name="snapshot" value="${sql.snapshot}"/>
+    </antcall>
     </target>
 
     <target name="load-baseline-database"
@@ -281,17 +281,17 @@
             <arg value="${cmd}"/>
         </exec>
     </target>
-	
-	<target name="change-migration-filenames-to-opt-tt" depends="prepare-pgpass">
-	    <property name="migration.dir" location="/opt/tt/migrations/migrations"/>
-		<exec executable="bash" failonerror="true">
-			  <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
-			  <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
-			  <arg value="${migration.dir}"/>
-			  <arg value="${wgspring.db.username}"/>
-			  <arg value="${wgspring.db.dbname}"/>
-			  <arg value="${wgspring.db.host}"/>
-		</exec>
-	</target>
+
+    <target name="change-migration-filenames-to-opt-tt" depends="prepare-pgpass">
+        <property name="migration.dir" location="/opt/tt/migrations/migrations"/>
+        <exec executable="bash" failonerror="true">
+              <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
+              <arg value="${app.dir}/scripts/db/repair_migration_filenames.sh"/>
+              <arg value="${migration.dir}"/>
+              <arg value="${wgspring.db.username}"/>
+              <arg value="${wgspring.db.dbname}"/>
+              <arg value="${wgspring.db.host}"/>
+        </exec>
+    </target>
 
 </project>

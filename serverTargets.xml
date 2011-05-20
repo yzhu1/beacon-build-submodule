@@ -24,7 +24,7 @@
             </else>
         </if>
     </target>
-	
+
     <target name="set-apache-props-lb">
         <exec executable="which" failonerror="false" resultproperty="vm">
             <arg value="/usr/sbin/apachectl"/>
@@ -51,7 +51,7 @@
             <arg value="start"/>
         </exec>
     </target>
-	
+
     <target name="apache-start-lb" depends="set-apache-props-lb" description="Start apache for the local load balancer">
         <exec executable="bash" failonerror="true">
             <arg value="${apachectl}"/>
@@ -71,7 +71,7 @@
             <arg value="stop"/>
         </exec>
     </target>
-	
+
     <target name="apache-stop-lb" depends="set-apache-props-lb" description="Stop apache">
         <exec executable="bash" failonerror="true">
             <arg value="${apachectl}"/>
