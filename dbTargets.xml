@@ -184,12 +184,23 @@
 	     <arg value="${fixture.export.dir}"/>
 	   </spring-runner>
 	</target>
-	
-   <target name="run-napi-fixture-exporters" depends="test-compile" description="Run just the napi fixture exporters.">
+
+    <target name="run-some-exporters" depends="test-compile"
+        description="Run fewer than all exporters, use with -Dexporter=FixtureExporterClassName">
+       <mkdir dir="${fixture.export.dir}"/>
+       <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
+           bean="fixtureRunnerLoadDatamakers"
+           method="exportSomeData">
+           <arg value="${fixture.export.dir}"/>
+           <arg value="${exporter}" />
+       </spring-runner>
+    </target>
+
+    <target name="run-napi-fixture-exporters" depends="test-compile" description="Run just the napi fixture exporters.">
        <mkdir dir="${napi.fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
            bean="fixtureRunnerLoadDatamakers"
-           method="exportNAPIData">
+           method="runNAPIDatamakers">
          <arg value="${napi.fixture.export.dir}"/>
        </spring-runner>
     </target>
