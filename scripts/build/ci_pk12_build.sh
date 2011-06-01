@@ -44,7 +44,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 
 # move both rpms to the QA repo
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
-cp $BUILD_RPM_REPO/mclass-tt-migrations-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
+cp $BUILD_RPM_REPO/tt-migrations-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
 
 # update QA rpm repo
 /opt/wgen/rpmtools/wg_createrepo $NEXT_RPM_REPO
