@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 hostclass=$1
 app=$2
@@ -18,7 +18,7 @@ rm -rf $WORKSPACE/RPM_STAGING
 mkdir -p $WORKSPACE/opt/tt/webapps/$app
 python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM_STAGING -D${app}dir=$WORKSPACE -Drpm_version=$RPM_VERSION -Dbuildnumber=$BUILD_NUMBER $WORKSPACE/rpm/tt-$app.spec
 
-# update rpm repo
+# update CI rpm repo
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
 # deploy the rpm should update configs and install rpms.
@@ -34,14 +34,22 @@ find target/test/webdriver -name *Test.class \
   | xargs -i basename {} .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad128.tt.wgenhq.net -u autobuild -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $webdrivertestsperbatch -p $ENV_PROPERTY_PREFIX
 
-# build migration rpms to QA repo and move code rpm to the same
+# all tests have passed!  rpms may be promoted to QA
+
+# build migration rpms to CI repo
+python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM_STAGING -Dcheckoutroot=$WORKSPACE -Drpm_version=$RPM_VERSION -Dbuildnumber=$BUILD_NUMBER $WORKSPACE/rpm/tt-migrations-$app.spec
+
+# update CI rpm repo
+/opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
+
+# move both rpms to the QA repo
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $NEXT_RPM_REPO -r $WORKSPACE/RPM_STAGING -Dcheckoutroot=$WORKSPACE -Drpm_version=$RPM_VERSION -Dbuildnumber=$BUILD_NUMBER $WORKSPACE/rpm/tt-migrations-$app.spec
+cp $BUILD_RPM_REPO/mclass-tt-migrations-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
 
 # update QA rpm repo
 /opt/wgen/rpmtools/wg_createrepo $NEXT_RPM_REPO
 
-## if build is successful, move the last-stable branch to the current commit
+## build is successful!  move the last-stable branch to the current commit
 ## (this should always be the last step in the build)
 git branch -f last-stable-$BUILD_BRANCH
 git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$BUILD_BRANCH
