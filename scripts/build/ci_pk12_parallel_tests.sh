@@ -15,8 +15,7 @@ find target/test/unit -name *Test.class \
 
 # Run db updates on the testdogs and then all integration and webservice tests
 echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-(   find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
- && find target/test/integration target/test/webservice \
+( find target/test/integration target/test/webservice \
 ) | grep Test.class \
   | xargs -i basename {} .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net -u autobuild -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $testsperbatch -d
