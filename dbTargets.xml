@@ -232,7 +232,7 @@
                 <fail>Could not find snapshot ${snapshot}</fail>
             </then>
         </if>
-        <exec executable="/usr/bin/psql" 
+        <exec executable="psql" 
             failonerror="true" 
             input="${snapshot}">
             <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>

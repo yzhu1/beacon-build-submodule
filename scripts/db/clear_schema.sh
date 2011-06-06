@@ -29,9 +29,9 @@ mkdir -p `dirname $clear_sql_filename`
 sed -e "s|#SCHEMA#|$db_schema|" $this_dir/generate_clear_sql.sql.template > $tmp_sql_file
 
 psql -t -h $db_host -U $db_user $db -f $tmp_sql_file > $clear_sql_filename
-
+echo "Filename is $clear_sql_filename"
 # HACK: mperpick get rid of the output of the search_path set command
-sed -i '1d' $clear_sql_filename
+sed -i.bak '1d' $clear_sql_filename
 
 echo "the sql used to clear the db $db in $clear_sql_filename:"
 cat $clear_sql_filename

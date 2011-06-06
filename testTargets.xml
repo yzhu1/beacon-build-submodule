@@ -112,11 +112,11 @@
         <echo>checking for tests junit won't run because their names are not unique</echo>
         <exec executable="sh">
             <arg line="-c" />
-            <arg value="(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -i basename {} .class|sort|uniq -d" />
+            <arg value="(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d" />
         </exec>
         <exec executable="sh" failonerror="true">
             <arg line="-c" />
-            <arg value="exit `(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -i basename {} .class|sort|uniq -d|wc -l`" />
+            <arg value="exit `(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d|wc -l`" />
         </exec>
 
     </target>
