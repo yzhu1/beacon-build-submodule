@@ -10,24 +10,21 @@ env=$5
 apphomeenvvar=$6
 webdrivertestsperbatch=$7
 migrationsappname=$8
+autoreleasebox=$9
+releaseversion=$10
+wgrenv=$11
 
-# remove the code RPM
-/opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass remove mclass-tt-$app
-
-# build the RPM
+# build rpms
 rm -rf $WORKSPACE/RPM_STAGING
 mkdir -p $WORKSPACE/opt/tt/webapps/$app
 python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM_STAGING -D${app}dir=$WORKSPACE -Drpm_version=$RPM_VERSION -Dbuildnumber=$BUILD_NUMBER $WORKSPACE/rpm/tt-$app.spec
+python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM_STAGING -Dcheckoutroot=$WORKSPACE -Drpm_version=$RPM_VERSION -Dbuildnumber=$BUILD_NUMBER $WORKSPACE/rpm/tt-migrations-$app.spec
 
-# update CI rpm repo
+# promote them to CI rpm repo
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
-# deploy the rpm should update configs and install rpms.
-/opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass install mclass-tt-$app
-/opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass bcfgcliupdate
-
-# start the webapp
-/opt/wgen/funcdeploy/wg_funcdeploy.py -e $FUNC_ENV $hostclass service $webapp_service start
+# deploy and start the webapp
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"mhcttdbitembank mhcttwebapp\"
 
 # run webdriver tests in parallel on testdog
 echo "RUNNING WEBDRIVER TESTS"
@@ -36,18 +33,8 @@ find target/test/webdriver -name *Test.class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad128.tt.wgenhq.net -u autobuild -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $webdrivertestsperbatch -p $ENV_PROPERTY_PREFIX
 
 # all tests have passed!  rpms may be promoted to QA
-
-# build migration rpms to CI repo
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM_STAGING -Dcheckoutroot=$WORKSPACE -Drpm_version=$RPM_VERSION -Dbuildnumber=$BUILD_NUMBER $WORKSPACE/rpm/tt-migrations-$app.spec
-
-# update CI rpm repo
-/opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
-
-# move both rpms to the QA repo
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
 cp $BUILD_RPM_REPO/tt-migrations-$migrationsappname-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
-
-# update QA rpm repo
 /opt/wgen/rpmtools/wg_createrepo $NEXT_RPM_REPO
 
 ## build is successful!  move the last-stable branch to the current commit
