@@ -11,8 +11,9 @@ apphomeenvvar=$6
 webdrivertestsperbatch=$7
 migrationsappname=$8
 autoreleasebox=$9
-releaseversion=$10
-wgrenv=$11
+releaseversion=${10}
+wgrenv=${11}
+wgrgroups=${12}
 
 # build rpms
 rm -rf $WORKSPACE/RPM_STAGING
@@ -24,7 +25,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
 # deploy and start the webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"mhcttdbitembank mhcttwebapp\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$wgrgroups\"
 
 # run webdriver tests in parallel on testdog
 echo "RUNNING WEBDRIVER TESTS"
