@@ -25,7 +25,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
 # deploy and start the webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$wgrgroups\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$wgrgroups\" -a \"\"
 
 # run webdriver tests in parallel on testdog
 echo "RUNNING WEBDRIVER TESTS"
