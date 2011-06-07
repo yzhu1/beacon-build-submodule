@@ -2,7 +2,7 @@
 
 set -ex
 
-hostclass=$1
+webapphostclass=$1
 app=$2
 gitrepo=$3
 webapp_service=$4
@@ -13,7 +13,6 @@ migrationsappname=$8
 autoreleasebox=$9
 releaseversion=${10}
 wgrenv=${11}
-wgrgroups=${12}
 
 # build rpms
 rm -rf $WORKSPACE/RPM_STAGING
@@ -25,7 +24,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
 # deploy and start the webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$wgrgroups\" -a \"\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$webapphostclass\" -a "release_start.sh ${webapphostclass}_stop.sh ${webapphostclass}_rm_rpm.sh ${webapphostclass}_bcfg.sh ${webapphostclass}_start.sh" -v
 
 # run webdriver tests in parallel on testdog
 echo "RUNNING WEBDRIVER TESTS"
