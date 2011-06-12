@@ -158,13 +158,14 @@ def setupTestdog(testdog, manager, sshuser, identityfile, testdogworkspace, copy
         print e
         thread.interrupt_main()
 
-def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix):
+def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix, runonlysmoketests):
     try:
         cmd = 'nohup ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
                            (identityfile,
                                sshuser,
                                   testdog) \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
+            + 'export RUN_ONLY_SMOKE=%s && ' % runonlysmoketests \
             + 'killall firefox; ' \
             + 'cd %s && export %s=%s && %s ' % \
                  (testdogworkspace,
@@ -184,7 +185,7 @@ def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworks
     except Exception, e:
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
 
-def runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix):
+def runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix, runonlysmoketests):
     # Do setup on each testdog
     manager = SyncManager(testdogs)
     for testdog in testdogs:
@@ -196,7 +197,7 @@ def runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphom
         while tests and len(batch) < testsperbatch:
             batch.append(tests.pop())
         testdog = manager.getNextAvailableTestdog(batch)
-        thread.start_new_thread(runBatchOfTests, (batch, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix))
+        thread.start_new_thread(runBatchOfTests, (batch, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix, runonlysmoketests))
     # Report the overall exit status
     somefailures = manager.letTestsFinishAndGetWhetherAnyFailed()
     if somefailures:
@@ -216,6 +217,7 @@ if __name__ == '__main__':
     parser.add_option('-c', dest='copyworkspace', action='store_true', help='does your workspace need to be copied over to the testdogs?')
     parser.add_option('-d', dest='updatedb', action='store_true', help='do your testdogs\' dbs need to be updated?')
     parser.add_option('-p', dest='envpropertyprefix', help='ENV_PROPERTY_PREFIX for webdriver')
+    parser.add_option('-l', dest='runonlysmoketests', default=True, action='store_false', help='run slow tests')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
@@ -234,6 +236,7 @@ if __name__ == '__main__':
     testsperbatch = int(options.testsperbatch.strip())
     copyworkspace = bool(options.copyworkspace)
     updatedb = bool(options.updatedb)
+    runonlysmoketests = bool(options.runonlysmoketests)
     envpropertyprefix = options.envpropertyprefix
 
     # Get names of tests to run from stdin
@@ -245,6 +248,6 @@ if __name__ == '__main__':
     print 'test classes to run: %i' % numtestclasses
     print 'available testdogs: %r' % testdogs
 
-    exitstatus = runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix)
+    exitstatus = runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix, runonlysmoketests)
     print 'ran %i test classes\n' % numtestclasses
     sys.exit(exitstatus)
