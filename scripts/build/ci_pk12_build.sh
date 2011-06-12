@@ -28,14 +28,14 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 
 # run webdriver tests in parallel on testdog
 echo "RUNNING WEBDRIVER TESTS"
-if [ $RUN_ONLY_SMOKE = 'true' ]; then
-    runonlysmokeflag='-l'
+if [ $RUN_ONLY_SMOKE = 'false' ]; then
+    runslowtestsflag='-l'
 else
-    runonlysmokeflag=
+    runslowtestsflag=
 fi
 find target/test/webdriver -name *Test.class \
   | xargs -i basename {} .class \
-  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad128.tt.wgenhq.net -u autobuild -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $webdrivertestsperbatch -p $ENV_PROPERTY_PREFIX $runonlysmokeflag
+  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s yad128.tt.wgenhq.net -u autobuild -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $webdrivertestsperbatch -p $ENV_PROPERTY_PREFIX $runslowtestsflag
 
 # all tests have passed!  rpms may be promoted to QA
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
