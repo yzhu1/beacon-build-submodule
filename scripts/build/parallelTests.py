@@ -165,7 +165,7 @@ def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworks
                                sshuser,
                                   testdog) \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
-            + 'export RUN_ONLY_SMOKE=%s && ' % runonlysmoketests \
+            + 'export RUN_ONLY_SMOKE=%s && ' % ('true' if runonlysmoketests else 'false') \
             + 'killall firefox; ' \
             + 'cd %s && export %s=%s && %s ' % \
                  (testdogworkspace,
