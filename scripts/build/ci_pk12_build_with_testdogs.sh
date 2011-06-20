@@ -66,9 +66,9 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 
 # hack to set each testdog to use right db
 ssh tomcat@yad107.tt.wgenhq.net "sed -i 's/wgspring\.db\.host.*/wgspring\.db\.host=yad114\.tt\.wgenhq\.net/' /opt/tt/app-config/oib.properties"
-ssh tomcat@yad141.tt.wgenhq.net "sed -i 's/wgspring\.db\.host.*/wgspring\.db\.host=yad138\.tt\.wgenhq\.net/' /opt/tt/app-config/oib.properties"
-ssh tomcat@yad142.tt.wgenhq.net "sed -i 's/wgspring\.db\.host.*/wgspring\.db\.host=yad139\.tt\.wgenhq\.net/' /opt/tt/app-config/oib.properties"
-ssh tomcat@yad143.tt.wgenhq.net "sed -i 's/wgspring\.db\.host.*/wgspring\.db\.host=yad140\.tt\.wgenhq\.net/' /opt/tt/app-config/oib.properties"
+ssh tomcat@yad141.tt.wgenhq.net "sed -i 's/wgspring\.db\.host.*/wgspring\.db\.host=yad127\.tt\.wgenhq\.net/' /opt/tt/app-config/oib.properties"
+ssh tomcat@yad142.tt.wgenhq.net "sed -i 's/wgspring\.db\.host.*/wgspring\.db\.host=yad128\.tt\.wgenhq\.net/' /opt/tt/app-config/oib.properties"
+ssh tomcat@yad143.tt.wgenhq.net "sed -i 's/wgspring\.db\.host.*/wgspring\.db\.host=yad129\.tt\.wgenhq\.net/' /opt/tt/app-config/oib.properties"
 
 # start the webapp
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_start.sh\"
