@@ -5,9 +5,6 @@ Reads in names of tests from stdin and runs them in parallel batches on an arbit
 set of testdog machines.  Pretty much agnostic to whether you're using junit or pyunit,
 Spring or Pylons, a db or no db.
 
-  - optionally (re-)creates a workspace on each testdog, then copies in the contents of
-    your working directory
-
   - optionally runs a task on each testdog preparing its schema for testing
 
   - farms the tests out to the testdogs in parallel batches of the size you specify
@@ -19,9 +16,6 @@ Example usage (runs the pk12 outcomes integration tests on three testdogs):
 find target/test/integration target/test/webservice -name *Test.class|xargs -i basename {} .class | \
     python conf/base/scripts/build/parallelTests.py \
     -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net \
-    -u autobuild \
-    -i ~/.ssh/id_rsa \
-    -w /home/autobuild/tmp \
     -v OUTCOMES_HOME \
     -n 8
 
@@ -43,7 +37,7 @@ TESTDOG_DB_UPDATE_TASK = 'ant prepare-db-for-parallel-tests'
 
 # Implemented here for ant
 def getTaskToRunBatchOfTests(tests):
-    return 'ant test-several-precompiled -Dtests=' + ','.join(['**/%s.class' % test for test in tests])
+    return '/opt/wgen-3p/ant-1.7.0/bin/ant test-several-precompiled -Dtests=' + ','.join(['**/%s.class' % test for test in tests])
 
 class SyncManager(object):
 
@@ -133,63 +127,39 @@ def runSubprocess(cmd, manager, failonerror=False):
         assert returncode == 0, output
     return returncode, output
 
-def setupTestdog(testdog, manager, sshuser, identityfile, testdogworkspace, copyworkspace, updatedb):
+def setupTestdog(testdog, manager, updatedb):
     try:
-        # 1. Clean out and re-create a workspace directory on the testdog
-        # 2. Copy the contents of pwd into the testdog's workspace
-        # 3. Have the testdog run a task to get its db ready for testing
-        if copyworkspace:
-            cmds = [
-            'ssh -i %s %s@%s "rm -rf %s; mkdir %s"' % (identityfile, sshuser, testdog, testdogworkspace, testdogworkspace),
-            'rsync -e "ssh -i %s -c arcfour" -a . %s@%s:%s/ ' % (identityfile, sshuser, testdog, testdogworkspace) \
-                + '--exclude=scripts/standards/data/*.xml --exclude=scripts/standards/data/2011-01\ New\ NJ\ standards/ ' \
-                + '--exclude=scripts/standards/data/2011-04_updated_standards/ --exclude=scripts/standards/data/sept_2010_standards/ ' \
-                + '--exclude=scripts/standards/data/new_standards/ --exclude=ivy_lib/compile --exclude=.git/ --exclude=conf/base/.git/ --exclude=*.war'
-            ]
-        else:
-            cmds = []
         if updatedb:
-            cmds.append('ssh -i %s %s@%s "cd %s && %s"' % (identityfile, sshuser, testdog, testdogworkspace, TESTDOG_DB_UPDATE_TASK))
-        for cmd in cmds:
-            runSubprocess(cmd, manager, failonerror=True)
+            runSubprocess('export ENV_PROPERTY_PREFIX=%s && /opt/wgen-3p/ant-1.7.0/bin/ant %s"' % (testdog, TESTDOG_DB_UPDATE_TASK), manager, failonerror=True)
         manager.output('  (ready) finished setting up %s' % testdog)
         manager.makeTestdogAvailable(testdog)
     except Exception, e:
         print e
         thread.interrupt_main()
 
-def runBatchOfTests(tests, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix, runonlysmoketests):
+def runBatchOfTests(tests, testdog, manager, apphomeenvvar, runonlysmoketests):
     try:
-        cmd = 'nohup ssh -i %s %s@%s "Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' % \
-                           (identityfile,
-                               sshuser,
-                                  testdog) \
-            + 'export ENV_PROPERTY_PREFIX=%s && ' % envpropertyprefix \
+        testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        cmd = 'Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' \
+            + 'export ENV_PROPERTY_PREFIX=%s && ' % testdog \
             + 'export RUN_ONLY_SMOKE=%s && ' % ('true' if runonlysmoketests else 'false') \
-            + 'killall firefox; ' \
-            + 'cd %s && export %s=%s && %s ' % \
-                 (testdogworkspace,
-                               apphomeenvvar,
-                                  testdogworkspace,
-                                        getTaskToRunBatchOfTests(tests)) \
-            + '&> test.log; exitstatus=\$? && tail -n 100 test.log && exit \$exitstatus"'
+            + 'export %s=. && %s ' % (apphomeenvvar, getTaskToRunBatchOfTests(tests)) \
+            + '&> %s; exitstatus=\$? && tail -n 100 %s && exit \$exitstatus"' % (testlogfile, testlogfile)
         returncode, output = runSubprocess(cmd, manager)
         output = '<ran on %s> ' % testdog + output
         # Download and print the contents of test.log
         if returncode != 0:
-            testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-            runSubprocess('scp -i %s %s@%s:%s/test.log %s' % (identityfile, sshuser, testdog, testdogworkspace, testlogfile), manager)
             manager.output('tests failed on %s: %s' % (testdog, open(testlogfile, 'r').read()))
             os.remove(testlogfile)
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=(returncode==0), output=output)
     except Exception, e:
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
 
-def runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix, runonlysmoketests):
+def runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, runonlysmoketests):
     # Do setup on each testdog
     manager = SyncManager(testdogs)
     for testdog in testdogs:
-        thread.start_new_thread(setupTestdog, (testdog, manager, sshuser, identityfile, testdogworkspace, copyworkspace, updatedb))
+        thread.start_new_thread(setupTestdog, (testdog, manager, updatedb))
     manager.waitForAllTestdogsToBeAvailable()
     # Farm out the tests in batches until they're all gone
     while tests:
@@ -197,7 +167,7 @@ def runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphom
         while tests and len(batch) < testsperbatch:
             batch.append(tests.pop())
         testdog = manager.getNextAvailableTestdog(batch)
-        thread.start_new_thread(runBatchOfTests, (batch, testdog, manager, sshuser, identityfile, testdogworkspace, apphomeenvvar, envpropertyprefix, runonlysmoketests))
+        thread.start_new_thread(runBatchOfTests, (batch, testdog, manager, apphomeenvvar, runonlysmoketests))
     # Report the overall exit status
     somefailures = manager.letTestsFinishAndGetWhetherAnyFailed()
     if somefailures:
@@ -209,35 +179,22 @@ if __name__ == '__main__':
 
     parser = optparse.OptionParser()
     parser.add_option('-s', dest='testdogs', help='comma-separated list of testdogs to run tests on')
-    parser.add_option('-u', dest='sshuser', help='user to ssh to testdogs as')
-    parser.add_option('-i', dest='identityfile', help='ssh identity file')
-    parser.add_option('-w', dest='testdogworkspace', help='remote workspace directory to run tests in')
     parser.add_option('-v', dest='apphomeenvvar', help='e.g., THREETWELVE_HOME')
     parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each testdog at a time')
-    parser.add_option('-c', dest='copyworkspace', action='store_true', help='does your workspace need to be copied over to the testdogs?')
     parser.add_option('-d', dest='updatedb', action='store_true', help='do your testdogs\' dbs need to be updated?')
-    parser.add_option('-p', dest='envpropertyprefix', help='ENV_PROPERTY_PREFIX for webdriver')
     parser.add_option('-l', dest='runonlysmoketests', default=True, action='store_false', help='run slow tests')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
     assert options.testdogs, 'please provide a comma-separated list of testdogs'
-    assert options.sshuser, 'please provide a user to ssh to the testdogs as'
-    assert options.identityfile, 'please provide an ssh identity file'
-    assert options.testdogworkspace, 'please provide a remote directory where tests should be run'
     assert options.apphomeenvvar, 'please provide the name of the application home dir environment variable, e.g., THREETWELVE_HOME'
     assert options.testsperbatch, 'please provide the number of tests to delegate to each testdog at a time'
 
     testdogs = options.testdogs.strip().split(',')
-    sshuser = options.sshuser.strip()
-    identityfile = options.identityfile.strip()
-    testdogworkspace = options.testdogworkspace.strip()
     apphomeenvvar = options.apphomeenvvar.strip()
     testsperbatch = int(options.testsperbatch.strip())
-    copyworkspace = bool(options.copyworkspace)
     updatedb = bool(options.updatedb)
     runonlysmoketests = bool(options.runonlysmoketests)
-    envpropertyprefix = options.envpropertyprefix
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
@@ -248,6 +205,6 @@ if __name__ == '__main__':
     print 'test classes to run: %i' % numtestclasses
     print 'available testdogs: %r' % testdogs
 
-    exitstatus = runAllTests(testdogs, tests, sshuser, identityfile, testdogworkspace, apphomeenvvar, testsperbatch, copyworkspace, updatedb, envpropertyprefix, runonlysmoketests)
+    exitstatus = runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, runonlysmoketests)
     print 'ran %i test classes\n' % numtestclasses
     sys.exit(exitstatus)

@@ -206,16 +206,25 @@
     </target>
     
     <target name="load-fixtures-snapshot" description="Load fixtures snapshot">
-    <antcall target="clear-schema"/>
-    <antcall target="load-snapshot-provided">
-        <param name="snapshot" value="${sql.fixtures}"/>
-    </antcall>
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="./conf/base/scripts/build/check_for_postgres_user_in_db_snap.sh" />
+            <arg value="${sql.fixtures}" />
+        </exec>
+        <antcall target="clear-schema"/>
+        <antcall target="load-snapshot-provided">
+            <param name="snapshot" value="${sql.fixtures}"/>
+        </antcall>
     </target>
     
     <target name="load-snapshot" description="Load March 2010 snapshot">
-    <antcall target="load-snapshot-provided">
-        <param name="snapshot" value="${sql.snapshot}"/>
-    </antcall>
+        <echo>checking for "postgres" in snapshot, should be "tt_manage" instead</echo>
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="./conf/base/scripts/build/check_for_postgres_user_in_db_snap.sh" />
+            <arg value="${sql.snapshot}" />
+        </exec>
+        <antcall target="load-snapshot-provided">
+            <param name="snapshot" value="${sql.snapshot}"/>
+        </antcall>
     </target>
 
     <target name="load-baseline-database"
