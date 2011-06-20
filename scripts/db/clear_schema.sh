@@ -13,10 +13,10 @@ then
     exit -1
 fi
 
-clear_sql_filename=/tmp/db_clear.sql
+clear_sql_filename=/tmp/db_clear${RANDOM}.sql
 
 this_dir=`dirname $0`
-tmp_sql_file=/tmp/tt/itembank/sql/clear.sql
+tmp_sql_file=/tmp/tt/itembank/sql/clear${RANDOM}.sql
 
 # remove any existing temp sql
 rm -f $tmp_sql_file
