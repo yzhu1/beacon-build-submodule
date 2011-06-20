@@ -49,7 +49,7 @@ echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
 ) | grep Test.class \
   | xargs -i basename {} .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s testdog0,testdog1,testdog2,testdog3 \
+    -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
     -v $apphomeenvvar -n $testsperbatch -d
 
 # build rpms
@@ -82,7 +82,7 @@ else
 fi
 find target/test/webdriver -name *Test.class \
   | xargs -i basename {} .class \
-  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s testdog0,testdog1,testdog2,testdog3 -v $apphomeenvvar -n $testsperbatch -d$runslowtestsflag
+  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 -v $apphomeenvvar -n $testsperbatch -d$runslowtestsflag
 
 # all tests have passed!  rpms may be promoted to QA
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
