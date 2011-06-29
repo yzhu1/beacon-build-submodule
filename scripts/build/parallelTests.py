@@ -140,6 +140,7 @@ def setupTestdog(testdog, manager, updatedb):
 def runBatchOfTests(tests, testdog, manager, apphomeenvvar, runonlysmoketests):
     try:
         testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        open(testlogfile, 'w') # create the file
         cmd = 'Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % testdog \
             + 'export RUN_ONLY_SMOKE=%s && ' % ('true' if runonlysmoketests else 'false') \
