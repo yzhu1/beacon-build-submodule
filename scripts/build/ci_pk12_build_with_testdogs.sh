@@ -8,7 +8,6 @@ webapphostclass=$WEBAPP_HOSTCLASS
 dbhostclass=$DB_HOSTCLASS
 app=$APP
 gitrepo=$GIT_REPO
-webapp_service=$WEBAPP_SERVICE
 env=$ENV
 migrationsappname=$MIGRATIONS_APP_NAME
 autoreleasebox=$AUTORELEASE_BOX
