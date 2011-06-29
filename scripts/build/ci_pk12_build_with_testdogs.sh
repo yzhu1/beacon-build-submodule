@@ -35,7 +35,7 @@ echo "build.branch=$BUILD_BRANCH" >> conf/build.properties
 echo "rpm.version=$RPM_VERSION" >> conf/build.properties
 
 # stop the webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$AUTORELEASE_BOX /opt/wgen/wgr/bin/wgr.py -r $RELEASE_VERSION -e $FUNC_ENV -f -s -g \"mhcttwebapp\" -a \"release_start.sh mhcttwebapp_stop.sh\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$AUTORELEASE_BOX /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\"
 
 # compile, run unit tests, lint, migrate up and down
 /opt/wgen-3p/ant-1.7.0/bin/ant clean-deploy checkstyle template-lint jslint test-compile test-unit clear-schema load-baseline-database migrate-schema rollback-schema
