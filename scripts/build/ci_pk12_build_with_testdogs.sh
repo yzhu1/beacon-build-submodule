@@ -18,10 +18,7 @@ export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit
 export RUN_ONLY_SMOKE=true
 export ENV_PROPERTY_PREFIX=testdog${env}0 # so that we can test up/down migrations on one testdog
 
-alias ant='/opt/wgen-3p/ant-1.7.0/bin/ant'
-alias python='/opt/wgen-3p/python26/bin/python'
-
-ant ivy-resolve
+/opt/wgen-3p/ant-1.7.0/bin/ant ivy-resolve
 
 rm -rf target
 
@@ -41,7 +38,7 @@ echo "rpm.version=$RPM_VERSION" >> conf/build.properties
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$AUTORELEASE_BOX /opt/wgen/wgr/bin/wgr.py -r $RELEASE_VERSION -e $FUNC_ENV -f -s -g \"mhcttwebapp\" -a \"release_start.sh mhcttwebapp_stop.sh\"
 
 # compile, run unit tests, lint, migrate up and down
-ant clean-deploy checkstyle template-lint jslint test-compile test-unit clear-schema load-baseline-database migrate-schema rollback-schema
+/opt/wgen-3p/ant-1.7.0/bin/ant clean-deploy checkstyle template-lint jslint test-compile test-unit clear-schema load-baseline-database migrate-schema rollback-schema
 
 # Run db updates on the testdogs and then all integration and webservice tests
 echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
@@ -49,7 +46,7 @@ echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
  && find target/test/integration/net/wgen/threetwelve/oib/app/userappstate target/test/webservice/net/wgen/threetwelve/assignment/app \
 ) | grep Test.class \
   | xargs -i basename {} .class \
-  | python conf/base/scripts/build/parallelTests.py \
+  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
     -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
     -v $apphomeenvvar -n $testsperbatch -d
 
@@ -74,7 +71,7 @@ else
 fi
 find target/test/webdriver/net/wgen/threetwelve/oib/test/rubric -name *Test.class \
   | xargs -i basename {} .class \
-  | python conf/base/scripts/build/parallelTests.py \
+  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
     -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
     -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
 
