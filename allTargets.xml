@@ -94,7 +94,4 @@
 
    <target name="ivy-clean-deploy" depends="ivy-clean-deploy-steps"/>
 
-   <target name="ci-pk12" description="All PK12 ci tests (excluding integration and webservice tests, which are run in parallel by a shell script) and a migration up from the baseline snap"
-       depends="ivy-clean-deploy, checkstyle, template-lint, jslint, test-compile, test-unit, clear-schema, load-baseline-database, migrate-schema, rollback-schema" />
-
 </project>
