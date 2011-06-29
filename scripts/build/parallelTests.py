@@ -108,7 +108,7 @@ class SyncManager(object):
             self._outputlock.release()
 
     def sleepAndCheckStatus(self):
-        time.sleep(.1)
+        time.sleep(.5)
         # If it's been 30 seconds since last status update, report what each testdog is doing
         if time.time() - self._lastTimeStatusGiven > 30:
             self._lastTimeStatusGiven = time.time()
