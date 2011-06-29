@@ -14,7 +14,7 @@ autoreleasebox=$AUTORELEASE_BOX
 releaseversion=$RELEASE_VERSION
 wgrenv=$WGR_ENV
 
-export ANT_OPTS=-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit
+export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 export RUN_ONLY_SMOKE=true
 export ENV_PROPERTY_PREFIX=testdog${env}0 # so that we can test up/down migrations on one testdog
 
