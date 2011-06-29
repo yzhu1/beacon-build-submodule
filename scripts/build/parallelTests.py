@@ -33,7 +33,7 @@ from threading import Lock
 from subprocess import Popen, PIPE
 
 # Constant for now, can be parameterized if we want to use this script for non-ant or db-less projects
-TESTDOG_DB_UPDATE_TASK = 'ant prepare-db-for-parallel-tests'
+TESTDOG_DB_UPDATE_TASK = 'prepare-db-for-parallel-tests'
 
 # Implemented here for ant
 def getTaskToRunBatchOfTests(tests):
@@ -130,7 +130,7 @@ def runSubprocess(cmd, manager, failonerror=False):
 def setupTestdog(testdog, manager, updatedb):
     try:
         if updatedb:
-            runSubprocess('export ENV_PROPERTY_PREFIX=%s && /opt/wgen-3p/ant-1.7.0/bin/ant %s"' % (testdog, TESTDOG_DB_UPDATE_TASK), manager, failonerror=True)
+            runSubprocess('export ENV_PROPERTY_PREFIX=%s && /opt/wgen-3p/ant-1.7.0/bin/ant %s' % (testdog, TESTDOG_DB_UPDATE_TASK), manager, failonerror=True)
         manager.output('  (ready) finished setting up %s' % testdog)
         manager.makeTestdogAvailable(testdog)
     except Exception, e:
