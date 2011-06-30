@@ -54,7 +54,8 @@ echo "rpm.version=$rpmversion" >> conf/build.properties
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\"
 
 # Compile, run static and unit tests, migrate one db up and down
-/opt/wgen-3p/ant-1.7.0/bin/ant clean-deploy checkstyle template-lint jslint test-compile test-unit clear-schema load-baseline-database migrate-schema rollback-schema
+/opt/wgen-3p/ant-1.7.0/bin/ant clean test-clean deploy checkstyle template-lint jslint test-unit \
+    clear-schema load-baseline-database migrate-schema rollback-schema
 
 # Run db updates on all the testdog dbs and then run all integration and webservice tests
 echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
