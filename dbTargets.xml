@@ -159,7 +159,7 @@
             depends="load-fixtures-snapshot, repair-migration-filenames, tag-schema, migrate-schema"
             description="Run on testdogs by parallelTests.py to get them prepared for integration testing; overridden in projects that don't use snapshots" />
 
-    <target name="fixture-run-all-datamakers" depends="test-compile" description="Run all fixture Datamakers">
+    <target name="fixture-run-all-datamakers" description="Run all fixture Datamakers">
        <mkdir dir="${fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
             bean="fixtureRunnerLoadDatamakers"
