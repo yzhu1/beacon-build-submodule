@@ -94,4 +94,10 @@
 
    <target name="ivy-clean-deploy" depends="ivy-clean-deploy-steps"/>
 
+    <target name="ci-pk12-webassess-part1of2"
+       depends="ivy-clean-deploy, checkstyle, template-lint, jslint, test-compile, clear-schema, load-baseline-database, migrate-schema, rollback-schema" />
+
+    <target name="ci-pk12-webassess-part2of2-without-fixtures-snap"
+       depends="load-fixtures" />
+
 </project>
