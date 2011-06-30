@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This is the master build script for PK12 oib and outcomes ci builds.
+# Our builds should not have to do anything other than set environment
+# variables (as required by this script) and run this script!
+
 set -eux
 
 apphomeenvvar=$APP_HOME_ENV_VAR # e.g., OUTCOMES_HOME
@@ -60,7 +64,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
 # deploy, update bcfg, start webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$webapphostclass $dbhostclass\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $wgrenv -f -s -g \"$webapphostclass\"
 
 # run webdriver tests in parallel on testdog
 echo "RUNNING WEBDRIVER TESTS"
