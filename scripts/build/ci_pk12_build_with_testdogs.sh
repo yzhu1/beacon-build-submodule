@@ -67,7 +67,7 @@ python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $BUILD_RPM_REPO -r $WORKSPACE/RPM
 /opt/wgen/rpmtools/wg_createrepo $BUILD_RPM_REPO
 
 # Deploy webapp, update bcfg, start webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_rm_rpm.sh ${webapphostclass}_bcfg.sh ${webapphostclass}_start.sh\"
 
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
 echo "RUNNING WEBDRIVER TESTS"
