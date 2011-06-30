@@ -83,6 +83,11 @@
             <property name="tokens" value="METHOD_DEF"/>
             <property name="max" value="60"/>
         </module>
+        
+        <module name="Regexp">
+            <property name="format" value="/home/"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
 
     </module>
 
