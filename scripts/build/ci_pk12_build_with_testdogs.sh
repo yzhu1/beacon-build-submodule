@@ -79,8 +79,8 @@ fi
 find target/test/webdriver -name *Test.class \
   | xargs -i basename {} .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
-    -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
+    -s testdog${env}0 \
+    -v $apphomeenvvar -n 1000 -d $runslowtestsflag
 
 # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
 cp $BUILD_RPM_REPO/mclass-tt-$app-$RPM_VERSION-$BUILD_NUMBER.noarch.rpm $NEXT_RPM_REPO
