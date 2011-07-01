@@ -9,6 +9,7 @@
     <propertycopy name="wgspring.db.username" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.username" override="true" silent="true"/>
     <propertycopy name="wgspring.db.password" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.password" override="true" silent="true"/>
     <propertycopy name="wgspring.db.host" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.host" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.port" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.host" override="true" silent="true"/>
     <propertycopy name="wgspring.db.dbname" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.dbname" override="true" silent="true"/>
     <propertycopy name="wgspring.db.schema" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.schema" override="true" silent="true"/>
     <propertycopy name="wgspring.hbm2ddl.auto" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.hbm2ddl.auto" override="true" silent="true"/>
@@ -79,6 +80,8 @@
                 <arg value="postgres" />
                 <arg value="-h" />
                 <arg value="localhost" />
+                <arg value="-p" />
+                <arg value="${wgspring.db.port}" />
                 <arg value="${wgspring.db.dbname}" />
                 <arg value="-c" />
                 <arg value="@{sql}" />

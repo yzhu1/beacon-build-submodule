@@ -16,6 +16,8 @@
 #
 # LIQUIBASE_DB_HOST: hostname of db to run migrations against
 #
+# LIQUIBASE_DB_PORT: network port of db to run migrations against
+#
 # LIQUIBASE_DB_NAME: database name of db to run migrations against
 #
 # LIQUIBASE_DB_USER: user to run migrations as
