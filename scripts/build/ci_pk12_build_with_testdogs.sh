@@ -21,6 +21,7 @@ buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
 nextrpmrepo=$NEXT_RPM_REPO              # e.g., $REPO_FUTURE_QA
 runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
+isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG
@@ -57,24 +58,30 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 /opt/wgen-3p/ant-1.7.0/bin/ant clean test-clean deploy checkstyle template-lint jslint test-unit \
     clear-schema load-baseline-database migrate-schema rollback-schema
 
-# Run db updates on all the testdog dbs and then run all integration and webservice tests
-echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-(   find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
- && find target/test/integration target/test/webservice \
-) | grep Test.class \
-  | xargs -i basename {} .class \
-  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
-    -v $apphomeenvvar -n $testsperbatch -d
+if [ $isnightlybuild != 'true' ]; then
 
-# Build webapp and db rpms
-rm -rf $workspace/RPM_STAGING
-mkdir -p $workspace/opt/tt/webapps/$app
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
+    # Run db updates on all the testdog dbs and then run all integration and webservice tests
+    echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+    (   find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+     && find target/test/integration target/test/webservice \
+    ) | grep Test.class \
+      | xargs -i basename {} .class \
+      | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+        -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
+        -v $apphomeenvvar -n $testsperbatch -d
 
-# Promote them to CI rpm repo
-/opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+    # Build webapp and db rpms
+    rm -rf $workspace/RPM_STAGING
+    mkdir -p $workspace/opt/tt/webapps/$app
+    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
+            -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
+    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
+            -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
+
+    # Promote them to CI rpm repo
+    /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+
+fi
 
 # Deploy webapp, update bcfg, start webapp
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_rm_rpm.sh ${webapphostclass}_bcfg.sh ${webapphostclass}_start.sh\"
@@ -92,11 +99,16 @@ find target/test/webdriver -name *Test.class \
     -s testdog${env}0 \
     -v $apphomeenvvar -n 1000 -d $runslowtestsflag
 
-# All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
-cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-/opt/wgen/rpmtools/wg_createrepo $nextrpmrepo
 
-# Move the last-stable tag to the current commit
-git branch -f last-stable-$buildbranch
-git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$buildbranch
+if [ $isnightlybuild != 'true' ]; then
+
+    # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
+    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    /opt/wgen/rpmtools/wg_createrepo $nextrpmrepo
+
+    # Move the last-stable tag to the current commit
+    git branch -f last-stable-$buildbranch
+    git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$buildbranch
+
+fi
