@@ -4,12 +4,13 @@ set -e
 
 db_user=$1
 db_host=$2
-db=$3
-db_schema=$4
+db_port=$3
+db=$4
+db_schema=$5
 
-if [ -z $db_user ] || [ -z $db_host ] || [ -z $db ] || [ -z $db_schema ]
+if [ -z $db_user ] || [ -z $db_host ] || [ -z $db_port ] || [ -z $db ] || [ -z $db_schema ]
 then
-    echo "usage: $0 db_user db_host db_name db_schema"
+    echo "usage: $0 db_user db_host db_port db_name db_schema"
     exit -1
 fi
 
@@ -28,7 +29,7 @@ mkdir -p `dirname $clear_sql_filename`
 # replace the schema name
 sed -e "s|#SCHEMA#|$db_schema|" $this_dir/generate_clear_sql.sql.template > $tmp_sql_file
 
-psql -t -h $db_host -U $db_user $db -f $tmp_sql_file > $clear_sql_filename
+psql -t -h $db_host -p $db_port -U $db_user $db -f $tmp_sql_file > $clear_sql_filename
 echo "Filename is $clear_sql_filename"
 # HACK: mperpick get rid of the output of the search_path set command
 sed -i.bak '1d' $clear_sql_filename
@@ -40,7 +41,7 @@ echo
 echo "running cleanup"
 echo 
 
-psql -t -h $db_host -U $db_user $db -f $clear_sql_filename
+psql -t -h $db_host -p $db_port -U $db_user $db -f $clear_sql_filename
 
 # clean-up
 rm -f $tmp_sql_file
