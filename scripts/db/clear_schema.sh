@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eux
 
 db_user=$1
 db_host=$2
