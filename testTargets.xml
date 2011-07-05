@@ -606,7 +606,7 @@
         <condition property="build.js.errors">
             <and>
                 <equals arg1="0" arg2="${build.js.grep.return}" />
-                <istrue value="${jslint.fatal}" />
+                <istrue value="${jqueryajax.fatal}" />
             </and>
         </condition>
         <fail if="build.js.errors" >
