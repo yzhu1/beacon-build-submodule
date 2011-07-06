@@ -81,6 +81,11 @@ if [ $isnightlybuild != 'true' ]; then
     # Promote them to CI rpm repo
     /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
 
+else
+
+    # Migrate schema back up so webapp may start
+    /opt/wgen-3p/ant-1.7.0/bin/ant migrate-schema
+
 fi
 
 # Deploy webapp, update bcfg, start webapp
