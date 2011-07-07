@@ -46,10 +46,21 @@
 	
     <target name="do-deploy" depends="build-app-jars">
         <mkdir dir="${deploy.root.dir}"/>
-        
         <!-- copy the freemarker templates, spring context, and web.xml into the war -->
         <copy todir="${deploy.root.dir}" encoding="UTF-8">
             <fileset dir="${common.web.dir}" includes="**" excludes="static/**"/>
+            <filterchain>
+                <replacetokens>
+                <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
+                    <token key="git.revision" value="${git.revision}"/>
+                    <token key="git.common.revision" value="${git.common.revision}"/>
+                    <token key="build.number" value="${build.number}"/>
+                    <token key="build.branch" value="${build.branch}"/>
+                    <token key="rpm.version" value="${rpm.version}"/>
+                </replacetokens>
+            </filterchain>
+        </copy>
+        <copy todir="${deploy.root.dir}" overwrite="true" encoding="UTF-8">
             <fileset dir="${app.web.dir}" includes="**" excludes="static/**"/>
             <filterchain>
                 <replacetokens>
