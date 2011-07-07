@@ -54,8 +54,24 @@
     </target>
 
     <target name="rebuild-eclipse-classpath" description="gets run by ivy-resolve if you have use.eclipse.ivyde.plugin=false">
-        <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh" />
+        <if>
+            <isset property="cygwin.bash" />
+            <then>
+                <path id="basedir.path"><pathelement path="${basedir}"/></path>
+                <pathconvert targetos="unix" property="basedir.unix" refid="basedir.path"/>
+                <exec executable="${cygwin.bash}">
+                    <arg value="--login"/>
+                    <arg value="-i"/>
+                    <arg value="-c"/>
+                    <arg value="cd ${basedir.unix}; ./conf/base/scripts/dev/rebuild_eclipse_classpath.sh" />
+                </exec>
+            </then>
+            <else>
+                <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh" />
+            </else>
+        </if>
     </target>
+
 
     <!-- WARNING: Use this with target with caution.
   
