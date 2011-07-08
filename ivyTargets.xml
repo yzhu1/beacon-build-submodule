@@ -63,11 +63,11 @@
                     <arg value="--login"/>
                     <arg value="-i"/>
                     <arg value="-c"/>
-                    <arg value="cd ${basedir.unix}; ./conf/base/scripts/dev/rebuild_eclipse_classpath.sh" />
+                    <arg value="cd ${basedir.unix}; ./conf/base/scripts/dev/rebuild_eclipse_classpath.sh ./conf/eclipse.classpath.header" />
                 </exec>
             </then>
             <else>
-                <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh" />
+                <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh ./conf/eclipse.classpath.header" />
             </else>
         </if>
     </target>
