@@ -67,7 +67,9 @@
                 </exec>
             </then>
             <else>
-                <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh ./conf/eclipse.classpath.header" />
+                <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh">
+                    <arg value="conf/eclipse.classpath.header" />
+                </exec>
             </else>
         </if>
     </target>
