@@ -9,36 +9,22 @@
 
 set -e
 
-echo 'rebuilding eclipse classpath'
+# Second parameter is a file to use for the header (project-specific source
+# directories, etc., starting from "<?xml...")
+header=$1
+
+if [[ -z $header || ! -e $header ]]; then 
+    header=conf/base/scripts/dev/eclipse.classpath.header
+fi
+
+echo "rebuilding eclipse classpath using header $header"
 
 classpathline() {
   echo "$1" >> .classpath
 }
 
 # Write out head of .classpath
-echo "<?xml version='1.0' encoding='UTF-8'?>" > .classpath
-classpathline "<classpath>"
-classpathline "    <classpathentry kind='src' path='src/main/java'/>"
-classpathline "    <classpathentry including='*-context.xml' kind='src' path='src/test/resources'/>"
-classpathline "    <classpathentry kind='src' path='target/web-assets/unzip/wgspringcore-web-assets/web/WEB-INF'/>"
-classpathline "    <classpathentry kind='src' path='target/web-assets/unzip/wgspringcore-web-assets/resources'/>"
-classpathline "    <classpathentry excluding='java/' kind='src' path='src/test/webdriver/util'/>"
-classpathline "    <classpathentry excluding='java/' kind='src' path='src/test/integration/util'/>"
-classpathline "    <classpathentry kind='src' path='src/main/webapp/WEB-INF'/>"
-classpathline "    <classpathentry kind='src' path='src/main/resources'/>"
-classpathline "    <classpathentry kind='src' path='src/test/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/integration/controller/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/integration/service/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/integration/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/integration/util/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/webdriver/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/webdriver/util/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/webservice/util/java'/>"
-classpathline "    <classpathentry kind='src' path='src/test/webservice/java'/>"
-classpathline "    <classpathentry kind='con' path='org.eclipse.jst.j2ee.internal.web.container'/>"
-classpathline "    <classpathentry kind='con' path='org.eclipse.jst.j2ee.internal.module.container'/>"
-classpathline "    <classpathentry kind='con' path='org.eclipse.jdt.launching.JRE_CONTAINER'/>"
-classpathline "    <classpathentry kind='output' path='target/eclipse/classes'/>"
+cat $header > .classpath
 
 # Find all unique jars under ivy_lib/
 jars=`find ivy_lib -name *.jar|xargs -i basename {}|sort|uniq`
