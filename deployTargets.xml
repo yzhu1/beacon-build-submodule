@@ -60,7 +60,7 @@
                 </replacetokens>
             </filterchain>
         </copy>
-        <copy todir="${deploy.root.dir}" overwrite="true" encoding="UTF-8">
+        <copy todir="${deploy.root.dir}" overwrite="false" encoding="UTF-8">
             <fileset dir="${app.web.dir}" includes="**" excludes="static/**"/>
             <filterchain>
                 <replacetokens>
