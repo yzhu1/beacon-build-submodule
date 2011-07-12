@@ -48,7 +48,9 @@
         <mkdir dir="${deploy.root.dir}"/>
         <!-- copy the freemarker templates, spring context, and web.xml into the war -->
         <copy todir="${deploy.root.dir}" encoding="UTF-8">
-            <fileset dir="${common.web.dir}" includes="**" excludes="static/**"/>
+            <fileset dir="${app.web.dir}" includes="**" excludes="static/**">
+                <present targetdir="${deploy.root.dir}" present="srconly" />
+            </fileset>
             <filterchain>
                 <replacetokens>
                 <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
@@ -60,8 +62,10 @@
                 </replacetokens>
             </filterchain>
         </copy>
-        <copy todir="${deploy.root.dir}" overwrite="false" encoding="UTF-8">
-            <fileset dir="${app.web.dir}" includes="**" excludes="static/**"/>
+        <copy todir="${deploy.root.dir}" encoding="UTF-8">
+            <fileset dir="${common.web.dir}" includes="**" excludes="static/**">
+                <present targetdir="${deploy.root.dir}" present="srconly" />            
+            </fileset>
             <filterchain>
                 <replacetokens>
                 <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
