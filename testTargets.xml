@@ -78,7 +78,7 @@
         
     <target name="alltests-run" 
         depends="ivy-clean-deploy-steps,
-        checkstyle, template-lint,
+        checkstyle, template-lint, jslint,
         test-unit,
         clear-schema, load-baseline-database, migrate-schema,
         test-integration, test-webservice,
