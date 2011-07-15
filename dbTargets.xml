@@ -9,6 +9,7 @@
     <propertycopy name="wgspring.db.username" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.username" override="true" silent="true"/>
     <propertycopy name="wgspring.db.password" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.password" override="true" silent="true"/>
     <propertycopy name="wgspring.db.host" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.host" override="true" silent="true"/>
+    <propertycopy name="wgspring.db.port" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.host" override="true" silent="true"/>
     <propertycopy name="wgspring.db.dbname" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.dbname" override="true" silent="true"/>
     <propertycopy name="wgspring.db.schema" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.db.schema" override="true" silent="true"/>
     <propertycopy name="wgspring.hbm2ddl.auto" from="${sys_env.ENV_PROPERTY_PREFIX}.wgspring.hbm2ddl.auto" override="true" silent="true"/>
@@ -31,6 +32,7 @@
               Property "wgspring.db.password"  is ${wgspring.db.password}
               Property "wgspring.db.dbname"    is ${wgspring.db.dbname}
               Property "wgspring.db.host"      is ${wgspring.db.host}
+              Property "wgspring.db.port"      is ${wgspring.db.port}
               Property "wgspring.db.schema"    is ${wgspring.db.schema}
               Property "wgspring.hbm2ddl.auto" is ${wgspring.hbm2ddl.auto}
         </echo>
@@ -51,7 +53,7 @@
         <sequential>
             <echo>Clearing schema @{schema-name} ${wgspring.db.host}
               using PGPASSFILE=${app.config.dir}/.pgpass,
-          dbname ${wgspring.db.dbname},
+          dbname ${wgspring.db.dbname}, dbport ${wgspring.db.port},
           and username ${wgspring.db.username}
             </echo>
             <exec executable="bash" failonerror="true">
@@ -59,6 +61,7 @@
                 <arg value="${imported.basedir}/scripts/db/clear_schema.sh" />
                 <arg value="${wgspring.db.username}" />
                 <arg value="${wgspring.db.host}" />
+                <arg value="${wgspring.db.port}" />
                 <arg value="${wgspring.db.dbname}" />
                 <arg value="@{schema-name}" />
              </exec>
@@ -77,6 +80,8 @@
                 <arg value="postgres" />
                 <arg value="-h" />
                 <arg value="localhost" />
+                <arg value="-p" />
+                <arg value="${wgspring.db.port}" />
                 <arg value="${wgspring.db.dbname}" />
                 <arg value="-c" />
                 <arg value="@{sql}" />
@@ -104,6 +109,7 @@
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_PORT" value="${wgspring.db.port}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
             <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
             <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
@@ -122,6 +128,7 @@
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_PORT" value="${wgspring.db.port}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
             <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
             <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
@@ -140,6 +147,7 @@
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_PORT" value="${wgspring.db.port}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
             <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
             <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
@@ -247,6 +255,8 @@
             <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
             <arg value="-h"/>
             <arg value="${wgspring.db.host}"/>
+	    <arg value="-p"/>
+            <arg value="${wgspring.db.port}"/>
             <arg value="-U"/>
             <arg value="${wgspring.db.username}"/>
             <arg value="${wgspring.db.dbname}"/>
@@ -262,6 +272,7 @@
             <arg value="${wgspring.db.username}"/>
             <arg value="${wgspring.db.dbname}"/>
             <arg value="${wgspring.db.host}"/>
+            <arg value="${wgspring.db.port}"/>
         </exec>
     </target>
 
@@ -282,6 +293,7 @@
             <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
             <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
             <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+            <env key="LIQUIBASE_DB_PORT" value="${wgspring.db.port}"/>
             <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
             <env key="LIQUIBASE_DB_USER" value="${wgspring.db.username}"/>
             <env key="LIQUIBASE_DB_PWORD" value="${wgspring.db.password}"/>
@@ -300,6 +312,7 @@
               <arg value="${wgspring.db.username}"/>
               <arg value="${wgspring.db.dbname}"/>
               <arg value="${wgspring.db.host}"/>
+              <arg value="${wgspring.db.port}"/>
         </exec>
     </target>
 

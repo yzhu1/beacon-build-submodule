@@ -16,6 +16,8 @@
 #
 # LIQUIBASE_DB_HOST: hostname of db to run migrations against
 #
+# LIQUIBASE_DB_PORT: network port of db to run migrations against
+#
 # LIQUIBASE_DB_NAME: database name of db to run migrations against
 #
 # LIQUIBASE_DB_USER: user to run migrations as
@@ -50,7 +52,7 @@ CMD="java -Xmx1024m
     --classpath=${LIQUIBASE_CLASSPATH}:${LIQUIBASE_MIGRATIONS}
     --changeLogFile=${LIQUIBASE_MIGRATIONS}/$CHANGELOG_NAME
     --logLevel=finest
-    --url=jdbc:postgresql://${LIQUIBASE_DB_HOST}/${LIQUIBASE_DB_NAME}
+    --url=jdbc:postgresql://${LIQUIBASE_DB_HOST}:${LIQUIBASE_DB_PORT}/${LIQUIBASE_DB_NAME}
     --username=${LIQUIBASE_DB_USER}
     --password=${LIQUIBASE_DB_PWORD}
     --defaultSchemaName=${LIQUIBASE_DB_SCHEMA}
