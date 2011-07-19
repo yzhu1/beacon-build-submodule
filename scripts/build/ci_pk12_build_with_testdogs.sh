@@ -67,7 +67,7 @@ if [ $isnightlybuild != 'true' ]; then
     ) | grep Test.class \
       | xargs -i basename {} .class \
       | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-        -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
+        -s testdog${env}1,testdog${env}2,testdog${env}3 \
         -v $apphomeenvvar -n $testsperbatch -d
 
     # Build webapp and db rpms
