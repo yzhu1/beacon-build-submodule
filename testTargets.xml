@@ -173,6 +173,10 @@
         <copy todir="${unit.test.classes.dir}">
             <fileset dir="${app.unit.src.dir}" includes="**/*.js" />
         </copy>
+    	
+    	<copy todir="${javascript.unit.test.dir}">
+    		<fileset dir="${javascript.unit.test.src.dir}" />
+    	</copy>
 
         <!-- Compile the app unit tests -->
         <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
@@ -417,12 +421,45 @@
 
     <target name="test-unit" depends="test-clean, test-compile"
         description="Run all unit tests">
-        <junit-standard
+    	<antcall target="test-unit-java"/>
+    	<antcall target="test-unit-javascript"/>
+    </target>
+
+    <target name="test-unit-java" depends="test-clean, test-compile">
+	<junit-standard
             label="Unit tests"
             classpathref="test.classpath.run-base"
             testdir="${unit.test.classes.dir}"
             coverage-file="${coverage.data.file.test-unit}"
         />
+   </target>
+
+    <taskdef classpath="${test.lib.dir}/qunit-test-runner-0.0.1-SNAPSHOT-jar-with-dependencies.jar" resource="tasks.properties"/> 
+    
+    <target name="test-unit-javascript" depends="test-clean" description="run javascript unit test">
+
+    	<copy todir="${javascript.unit.test.dir}">
+    		<fileset dir="${javascript.unit.test.src.dir}" />
+    	</copy>
+    	
+        <qunit 
+        	qunitTestRecipeFilePattern=".*TestRecipe\\.js" 
+        	baseDirectory="${javascript.unit.test.recipe.dir}" 
+        	reportDirectory="${javascript.unit.test.report.dir}" /> 
+
+        <mkdir dir="${javascript.unit.test.report.html}" /> 
+        <junitreport todir="${javascript.unit.test.report.html}">
+                <fileset dir="${javascript.unit.test.report.dir}">
+                        <include name="TEST-qunit-*.xml" /> 
+                </fileset>
+                <report format="frames" todir="${javascript.unit.test.report.html}" /> 
+        </junitreport>
+    	
+		<chmod file="${javascript.unit.test.detector}" perm="+x"/>
+        <exec executable="${javascript.unit.test.detector}" failonerror="true" >
+                <arg value="${javascript.unit.test.report.summary}" />
+        </exec>
+    	
     </target>
 
     <target name="-cobertura-setup" if="build.cobertura">
