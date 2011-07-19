@@ -70,6 +70,9 @@ if [ $isnightlybuild != 'true' ]; then
         -s testdog${env}1,testdog${env}2,testdog${env}3 \
         -v $apphomeenvvar -n $testsperbatch -d
 
+    # re-migrate testdog0 since we didn't run parallelTests.py -d on it
+    /opt/wgen-3p/ant-1.7.0/bin/ant migrate-schema
+
     # Build webapp and db rpms
     rm -rf $workspace/RPM_STAGING
     mkdir -p $workspace/opt/tt/webapps/$app
