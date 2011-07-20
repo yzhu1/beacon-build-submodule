@@ -5,7 +5,7 @@ import os
 import sys
 
 def make_cgit_url(repo_data, file_path, branch=None):
-    pattern = "http://%s/cgit/cgit.cgi/%s/%s"
+    pattern = "http://%s/cgit/cgit.cgi/%s/tree/%s"
     url = pattern % (repo_data.get("server"), repo_data.get("root"), file_path)
     if None != branch:
         url += "?h=" + branch

@@ -11,7 +11,8 @@ def find_repo():
     git_url = config.readline()
     config.close()
     (server,repo) = matcher.search(git_url).groups()
-    return { "server" : server, "root" : repo }
+    (repo_base,repo_ext) = os.path.splitext(repo)
+    return { "server" : server, "root" : repo_base }
 
 def find_branch():
     branches = os.popen("git branch")
