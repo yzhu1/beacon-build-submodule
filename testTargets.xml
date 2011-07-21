@@ -430,10 +430,9 @@
         />
    </target>
 
-    <taskdef classpath="${test.lib.dir}/qunit-test-runner-0.0.1-SNAPSHOT-jar-with-dependencies.jar" resource="tasks.properties"/> 
+    <taskdef classpath="${test.lib.dir}/qunit-test-runner-0.0.1-SNAPSHOT-jar-with-dependencies-0.0.1.jar" resource="tasks.properties"/> 
     
     <target name="test-unit-javascript" depends="test-clean" description="run javascript unit test">
-
     	<copy todir="${javascript.unit.test.dir}">
     		<fileset dir="${javascript.unit.test.src.dir}" />
     	</copy>
