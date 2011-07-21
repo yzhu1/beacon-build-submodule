@@ -174,10 +174,6 @@
             <fileset dir="${app.unit.src.dir}" includes="**/*.js" />
         </copy>
     	
-    	<copy todir="${javascript.unit.test.dir}">
-    		<fileset dir="${javascript.unit.test.src.dir}" />
-    	</copy>
-
         <!-- Compile the app unit tests -->
         <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
 
