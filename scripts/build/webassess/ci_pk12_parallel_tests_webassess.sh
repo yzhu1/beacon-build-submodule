@@ -22,14 +22,14 @@ if [ $runwgspringcoreintegrationtests = "y" ]; then
     ) | grep Test.class \
       | xargs -i basename {} .class \
       | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/webassess/parallelTestsWebassess.py \
-        -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net -u autobuild \
+        -s yad130.tt.wgenhq.net -u autobuild \
         -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $testsperbatch -d
 else
     ( find target/test/integration target/test/webservice \
     ) | grep Test.class \
       | xargs -i basename {} .class \
       | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/webassess/parallelTestsWebassess.py \
-        -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net -u autobuild \
+        -s yad130.tt.wgenhq.net -u autobuild \
         -i /home/jenkins/.ssh/autobuild_key -w /home/autobuild/$JOB_NAME -v $apphomeenvvar -n $testsperbatch -d
 
 fi
