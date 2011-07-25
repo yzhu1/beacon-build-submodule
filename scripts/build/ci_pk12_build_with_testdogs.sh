@@ -22,6 +22,8 @@ buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
 nextrpmrepo=$NEXT_RPM_REPO              # e.g., $REPO_FUTURE_QA
 runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
 isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
+numtestdogs=$NUM_TESTDOGS               # e.g., 3 for oib/outcomes or 1 for webassess
+runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG
@@ -60,14 +62,21 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 
 if [ $isnightlybuild != 'true' ]; then
 
+    testdogs=$(python -c "print ','.join(['testdog{env}%i' %i for i in range(${numtestdogs})])")
+    if [ $runwgspringcoreintegrationtests == 'true' ]; then
+        wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
+    else
+        wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
+    fi
+
     # Run db updates on all the testdog dbs and then run all integration and webservice tests
     echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-    (   find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+    (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
      && find target/test/integration target/test/webservice \
     ) | grep Test.class \
       | xargs -i basename {} .class \
       | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-        -s testdog${env}0,testdog${env}1,testdog${env}2,testdog${env}3 \
+        -s $testdogs \
         -v $apphomeenvvar -n $testsperbatch -d
 
     # Build webapp and db rpms
