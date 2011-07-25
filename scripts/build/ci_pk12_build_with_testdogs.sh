@@ -62,7 +62,7 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 
 if [ $isnightlybuild != 'true' ]; then
 
-    testdogs=$(python -c "print ','.join(['testdog{env}%i' %i for i in range(${numtestdogs})])")
+    testdogs=$(python -c "print ','.join(['testdog${env}%i' %i for i in range(${numtestdogs})])")
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
         wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
     else
