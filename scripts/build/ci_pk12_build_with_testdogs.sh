@@ -93,7 +93,7 @@ if [ $isnightlybuild != 'true' ]; then
 else
 
     # Migrate schema back up so webapp may start
-    /opt/wgen-3p/ant-1.7.0/bin/ant clear-schema migrate-schema
+    /opt/wgen-3p/ant-1.7.0/bin/ant load-fixtures-snapshot # FB 167844
 
 fi
 
