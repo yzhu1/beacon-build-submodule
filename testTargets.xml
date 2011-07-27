@@ -173,7 +173,7 @@
         <copy todir="${unit.test.classes.dir}">
             <fileset dir="${app.unit.src.dir}" includes="**/*.js" />
         </copy>
-    	
+
         <!-- Compile the app unit tests -->
         <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
 
@@ -216,6 +216,7 @@
         <attribute name="label" />
         <attribute name="classpathref" />
         <attribute name="coverage-file" default="${coverage.data.file.ignored}" />
+        <attribute name="disable-cache" default="false" />
         <element name="junit-filesets" implicit="true" optional="false" />
         <sequential>
             <if>
@@ -244,6 +245,8 @@
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
                 <sysproperty key="app.freemarker.source.dir" file="${app.dir}/src/main/webapp/WEB-INF/freemarker" />
                 <sysproperty key="common.freemarker.source.dir" file="${common.web.dir}/WEB-INF/freemarker" />
+                <!--Disable EhCache for batch testing! -->
+                <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
                 <formatter type="brief" />
                 <formatter type="xml" />
 
@@ -407,57 +410,23 @@
             <junit-explicit
                 label="wgspringcore integration tests"
                 classpathref="test.classpath.run-integration"
-                coverage-file="${coverage.data.file.test-integration}" >
+                coverage-file="${coverage.data.file.test-integration}" 
+                disable-cache="true" >                
                 <zipfileset src="${jar-containing-tests}"
                             includes="${tests.include}"
-                            excludes="${tests.exclude}" />
+                            excludes="${tests.exclude}" />                            
             </junit-explicit>
         </sequential>
     </target>
 
     <target name="test-unit" depends="test-clean, test-compile"
         description="Run all unit tests">
-    	<antcall target="test-unit-java"/>
-    	<!--antcall target="test-unit-javascript"/-->
-    </target>
-
-    <target name="test-unit-java" depends="test-clean, test-compile">
-	<junit-standard
+        <junit-standard
             label="Unit tests"
             classpathref="test.classpath.run-base"
             testdir="${unit.test.classes.dir}"
             coverage-file="${coverage.data.file.test-unit}"
         />
-   </target>
-
-    <!-- noam: removing for now: it sets log level to DEBUG which seems to break things
-    <taskdef classpath="${test.lib.dir}/qunit-test-runner-0.0.1-SNAPSHOT-jar-with-dependencies-0.0.1.jar" resource="tasks.properties"/> 
-    -->
-   
-    <target name="test-unit-javascript" depends="test-clean" description="run javascript unit test">
-    <!-- noam: removing for now because it depends on qunit-test-runner see note above 
-    	<copy todir="${javascript.unit.test.dir}">
-    		<fileset dir="${javascript.unit.test.src.dir}" />
-    	</copy>
-    	
-        <qunit 
-        	qunitTestRecipeFilePattern=".*TestRecipe\\.js" 
-        	baseDirectory="${javascript.unit.test.recipe.dir}" 
-        	reportDirectory="${javascript.unit.test.report.dir}" /> 
-
-        <mkdir dir="${javascript.unit.test.report.html}" /> 
-        <junitreport todir="${javascript.unit.test.report.html}">
-                <fileset dir="${javascript.unit.test.report.dir}">
-                        <include name="TEST-qunit-*.xml" /> 
-                </fileset>
-                <report format="frames" todir="${javascript.unit.test.report.html}" /> 
-        </junitreport>
-    	
-		<chmod file="${javascript.unit.test.detector}" perm="+x"/>
-        <exec executable="${javascript.unit.test.detector}" failonerror="true" >
-                <arg value="${javascript.unit.test.report.summary}" />
-        </exec>
-    -->    	
     </target>
 
     <target name="-cobertura-setup" if="build.cobertura">
