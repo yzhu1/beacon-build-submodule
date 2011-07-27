@@ -334,7 +334,7 @@
                 includes="wgspringcore-integration-test-*.jar"
                 excludes="wgspringcore-integration-test-src-*.jar"/>
         </pathconvert>
-        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
+        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration" disable-cache="true">
             <fileset dir="${unit.test.classes.dir}" includes="${tests}" />
             <fileset dir="${integration.test.classes.dir}" includes="${tests}" />
             <fileset dir="${webservice.test.classes.dir}" includes="${tests}" />
