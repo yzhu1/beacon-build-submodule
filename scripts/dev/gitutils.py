@@ -1,11 +1,10 @@
 #!/usr/bin/python
 import os
 import re
-import subprocess
 
 # need to remember how auto-doc works...
 
-def find_repo():
+def find_repo_props():
     matcher = re.compile("git\@([^:]+):(\S+)")
     config = os.popen("git config --get remote.origin.url")
     git_url = config.readline()
@@ -32,10 +31,29 @@ def find_path_to_repo_root():
     cdup_path = os.popen("git rev-parse --show-cdup").readline()
     return cdup_path.rstrip()
 
-def find_with_repo_relative_path(path_to_root, pattern):
-    find = subprocess.Popen(
-        ["find", ".", "-name", pattern], shell=False, stdout=subprocess.PIPE)
-    pathlist = []
-    for line in find.stdout.readlines():
-        pathlist.append(os.path.relpath(line.rstrip(), path_to_root))
-    return pathlist
+
+def get_repo():
+    props = find_repo_props()
+    local_root = find_path_to_repo_root()
+    branch = find_branch()
+    return gitrepo(props['server'], props['root'], local_root, branch)
+
+class gitrepo(object):
+    def __init__(self, server, repo_root, path_to_local_root, current_branch):
+        self._repo_server = server
+        self._repo_root = repo_root
+        self._path_to_local_root = path_to_local_root
+        self._current_branch = current_branch
+
+    def branch(self):
+        return self._current_branch
+    def server(self):
+        return self._repo_server
+    def root(self):
+        return self._repo_root
+
+    def rooted_path(self, local_path):
+        return os.path.relpath(local_path, self._path_to_local_root)
+
+    def rooted_paths(self, pathlist):
+        return map(self.rooted_path,pathlist)
