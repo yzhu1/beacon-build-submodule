@@ -286,7 +286,7 @@
         <attribute name="classpathref" />
         <attribute name="testdir" />
         <attribute name="coverage-file" />
-        <attribute name="disable-cache" />
+        <attribute name="disable-cache" default="false"/>
         <sequential>
             <junit-explicit 
                 label="@{label}" classpathref="@{classpathref}" coverage-file="@{coverage-file}" disable-cache="@{disable-cache}" >
