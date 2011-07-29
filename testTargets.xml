@@ -286,9 +286,10 @@
         <attribute name="classpathref" />
         <attribute name="testdir" />
         <attribute name="coverage-file" />
+        <attribute name="disable-cache" />
         <sequential>
             <junit-explicit 
-                label="@{label}" classpathref="@{classpathref}" coverage-file="@{coverage-file}" >
+                label="@{label}" classpathref="@{classpathref}" coverage-file="@{coverage-file}" disable-cache="@{disable-cache}" >
                 <fileset
                         dir="@{testdir}"
                         includes="${tests.include}"
@@ -394,6 +395,7 @@
             testdir="${integration.test.classes.dir}"
             classpathref="test.classpath.run-integration"
             coverage-file="${coverage.data.file.test-integration}"
+            disable-cache="true"
         />
     </target>
     
