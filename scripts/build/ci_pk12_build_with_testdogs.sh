@@ -74,7 +74,7 @@ if [ $isnightlybuild != 'true' ]; then
     (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
      && find target/test/integration target/test/webservice \
     ) | grep Test.class \
-      | xargs -i basename {} .class \
+      | xargs -I CLASSFILE basename CLASSFILE .class \
       | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
         -s $testdogs \
         -v $apphomeenvvar -n $testsperbatch -d
@@ -108,7 +108,7 @@ else
     runslowtestsflag=
 fi
 find target/test/webdriver -name *Test.class \
-  | xargs -i basename {} .class \
+  | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
     -s testdog${env}0 \
     -v $apphomeenvvar -n 1000 -d $runslowtestsflag

@@ -13,7 +13,7 @@ Spring or Pylons, a db or no db.
 
 Example usage (runs the pk12 outcomes integration tests on three testdogs):
 
-find target/test/integration target/test/webservice -name *Test.class|xargs -i basename {} .class | \
+find target/test/integration target/test/webservice -name *Test.class|xargs -I CLASSFILE basename CLASSFILE .class | \
     python conf/base/scripts/build/parallelTests.py \
     -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net \
     -v OUTCOMES_HOME \

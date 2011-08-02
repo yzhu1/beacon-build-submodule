@@ -27,7 +27,7 @@ classpathline() {
 cat $header > .classpath
 
 # Find all unique jars under ivy_lib/
-jars=`find ivy_lib -name *.jar|xargs -i basename {}|sort|uniq`
+jars=`find ivy_lib -name *.jar | xargs -I JAR basename JAR | sort -u`
 
 # Find all binary jars for which we have a source jar
 bin_jars_with_src_available=
