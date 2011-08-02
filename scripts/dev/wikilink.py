@@ -4,6 +4,7 @@ import gitutils
 import os
 import subprocess
 import sys
+import pdb
 
 def find_by_name(pattern):
     find = subprocess.Popen(
@@ -47,7 +48,7 @@ class wikilinker(object):
 def main():
     argpath = sys.argv[1]
     file_list = find_by_name(argpath)
-    print file_list
+    # print file_list
     r = gitutils.get_repo()
     linker = wikilinker.get_cgit_linker(r)
     for path in file_list:
@@ -57,4 +58,6 @@ def main():
 
 
 if __name__ == "__main__":
+    # to debug:
+    #pdb.runcall(main)
     main()

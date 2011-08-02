@@ -5,7 +5,7 @@ import re
 # need to remember how auto-doc works...
 
 def find_repo_props():
-    matcher = re.compile("git\@([^:]+):(\S+)")
+    matcher = re.compile("git\@([\w.]+)[:/](\S+)")
     config = os.popen("git config --get remote.origin.url")
     git_url = config.readline()
     config.close()
