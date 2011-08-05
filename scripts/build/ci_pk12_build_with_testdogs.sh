@@ -4,7 +4,13 @@
 # Our builds should not have to do anything other than set environment
 # variables (as required by this script) and run this script!
 
+# -e: Exit  immediately  if a simple command (see SHELL GRAMMAR above) exits with a non-zero status
+# -u: Treat unset variables as an error when performing parameter expansion
+# -x: After  expanding each simple command, for command, case command, select command, or arithmetic for command,
+#     display the expanded value of PS4 (NOTE: this seems like pointless boilerplate to me)
 set -eux
+
+ANT="/opt/wgen-3p/ant-1.7.0/bin/ant"
 
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
@@ -57,7 +63,7 @@ echo "rpm.version=$rpmversion" >> conf/build.properties
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\"
 
 # Compile, run static and unit tests, migrate one db up and down
-/opt/wgen-3p/ant-1.7.0/bin/ant clean test-clean deploy checkstyle template-lint jslint test-unit \
+$ANT clean test-clean deploy checkstyle template-lint jslint test-unit \
     clear-schema load-baseline-database migrate-schema rollback-schema
 
 if [ $isnightlybuild != 'true' ]; then
@@ -69,16 +75,21 @@ if [ $isnightlybuild != 'true' ]; then
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
 
-    # Run db updates on all the testdog dbs and then run all integration and webservice tests
-    echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-    (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
-     && find target/test/integration target/test/webservice \
-    ) | grep Test.class \
-      | xargs -I CLASSFILE basename CLASSFILE .class \
-      | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-        -s $testdogs \
-        -v $apphomeenvvar -n $testsperbatch -d
-
+    if [ -z "$testdogs" ]
+    then 
+        # no testdogs: run tests through ant normally
+	$ANT test-integration test-webservice
+    else
+        # Run db updates on all the testdog dbs and then run all integration and webservice tests
+	echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+         && find target/test/integration target/test/webservice \
+	)   | grep Test.class \
+	    | xargs -I CLASSFILE basename CLASSFILE .class \
+	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+              -s $testdogs \
+              -v $apphomeenvvar -n $testsperbatch -d
+    fi
     # Build webapp and db rpms
     rm -rf $workspace/RPM_STAGING
     mkdir -p $workspace/opt/tt/webapps/$app
@@ -93,7 +104,7 @@ if [ $isnightlybuild != 'true' ]; then
 else
 
     # Migrate schema back up so webapp may start
-    /opt/wgen-3p/ant-1.7.0/bin/ant load-fixtures-snapshot # FB 167844
+    $ANT load-fixtures-snapshot # FB 167844
 
 fi
 
@@ -107,12 +118,16 @@ if [ $runonlysmoke = 'false' ]; then
 else
     runslowtestsflag=
 fi
-find target/test/webdriver -name *Test.class \
+
+if [ -z "$testdogs" ]
+    $ANT test-webdriver
+else
+    find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
     -s testdog${env}0 \
     -v $apphomeenvvar -n 1000 -d $runslowtestsflag
-
+fi
 
 if [ $isnightlybuild != 'true' ]; then
 
