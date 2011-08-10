@@ -30,7 +30,7 @@ runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
 isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 #testdogs=$TESTDOGS                      # e.g., testdogfutureci0,testdogfutureci1,testdogfutureci2
-migrationstestdog=$MIGRATIONS_TESTDOG   # e.g., testdogfutureci0
+#migrationstestdog=$MIGRATIONS_TESTDOG   # e.g., testdogfutureci0
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG
@@ -39,7 +39,7 @@ workspace=$WORKSPACE
 
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
-export ENV_PROPERTY_PREFIX=$migrationstestdog # Set to testdog0 that we can test up/down migrations on one testdog
+#export ENV_PROPERTY_PREFIX=$migrationstestdog # Set to testdog0 that we can test up/down migrations on one testdog
 
 # Clean workspace
 rm -rf target
@@ -119,13 +119,13 @@ else
     runslowtestsflag=
 fi
 
-if [ -z "$TESTDOGS" ]
+if [ -z "$MIGRATIONS_TESTDOG" ]
     $ANT test-webdriver
 else
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s $migrationstestdog \
+    -s $MIGRATIONS_TESTDOG \
     -v $apphomeenvvar -n 1000 -d $runslowtestsflag
 fi
 
