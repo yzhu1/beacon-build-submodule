@@ -29,7 +29,7 @@ nextrpmrepo=$NEXT_RPM_REPO              # e.g., $REPO_FUTURE_QA
 runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
 isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
-testdogs=$TESTDOGS                      # e.g., testdogfutureci0,testdogfutureci1,testdogfutureci2
+#testdogs=$TESTDOGS                      # e.g., testdogfutureci0,testdogfutureci1,testdogfutureci2
 migrationstestdog=$MIGRATIONS_TESTDOG   # e.g., testdogfutureci0
 
 # Set automatically by Jenkins
@@ -75,9 +75,9 @@ if [ $isnightlybuild != 'true' ]; then
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
 
-    if [ -z "$testdogs" ]
+    if [ -z "$TESTDOGS" ]
     then 
-        # no testdogs: run tests through ant normally
+        # no TESTDOGS: run tests through ant normally
 	$ANT test-integration test-webservice
     else
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
@@ -87,7 +87,7 @@ if [ $isnightlybuild != 'true' ]; then
 	)   | grep Test.class \
 	    | xargs -I CLASSFILE basename CLASSFILE .class \
 	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $testdogs \
+              -s $TESTDOGS \
               -v $apphomeenvvar -n $testsperbatch -d
     fi
     # Build webapp and db rpms
@@ -119,7 +119,7 @@ else
     runslowtestsflag=
 fi
 
-if [ -z "$testdogs" ]
+if [ -z "$TESTDOGS" ]
     $ANT test-webdriver
 else
     find target/test/webdriver -name *Test.class \
