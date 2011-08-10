@@ -75,7 +75,7 @@ if [ $isnightlybuild != 'true' ]; then
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
 
-    if [ -z "$TESTDOGS" ]
+    if [ ! -n "${TESTDOGS+x}" ]
     then 
         # no TESTDOGS: run tests through ant normally
 	$ANT test-integration test-webservice
@@ -119,7 +119,7 @@ else
     runslowtestsflag=
 fi
 
-if [ -z "$TESTDOGS" ]
+if [ ! -n "${TESTDOGS+x} ]
     $ANT test-webdriver
 else
     find target/test/webdriver -name *Test.class \
