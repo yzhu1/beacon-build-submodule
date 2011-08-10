@@ -28,8 +28,9 @@ buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
 nextrpmrepo=$NEXT_RPM_REPO              # e.g., $REPO_FUTURE_QA
 runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
 isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
-numtestdogs=$NUM_TESTDOGS               # e.g., 3 for oib/outcomes or 1 for webassess
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
+testdogs=$TESTDOGS                      # e.g., testdogfutureci0,testdogfutureci1,testdogfutureci2
+migrationstestdog=$MIGRATIONS_TESTDOG   # e.g., testdogfutureci0
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG
@@ -38,7 +39,7 @@ workspace=$WORKSPACE
 
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
-export ENV_PROPERTY_PREFIX=testdog${env}0 # Set to testdog0 that we can test up/down migrations on one testdog
+export ENV_PROPERTY_PREFIX=$migrationstestdog # Set to testdog0 that we can test up/down migrations on one testdog
 
 # Clean workspace
 rm -rf target
@@ -68,7 +69,6 @@ $ANT clean test-clean deploy checkstyle template-lint jslint test-unit \
 
 if [ $isnightlybuild != 'true' ]; then
 
-    testdogs=$(python -c "print ','.join(['testdog${env}%i' %i for i in range(${numtestdogs})])")
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
         wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
     else
@@ -125,7 +125,7 @@ else
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s testdog${env}0 \
+    -s $migrationstestdog \
     -v $apphomeenvvar -n 1000 -d $runslowtestsflag
 fi
 
