@@ -385,6 +385,7 @@
             testdir="${webservice.test.classes.dir}"
             classpathref="test.classpath.run-integration"
             coverage-file="${coverage.data.file.test-webservice}"
+            disable-cache="true"
         />
     </target>
 

@@ -28,6 +28,7 @@
         <attribute name="context"/>
         <attribute name="bean" />
         <attribute name="method" />
+        <attribute name="disable-cache" default="true" />
         <element name="args-nested" implicit="true" optional="true"/>
         <sequential>
             <java
@@ -42,6 +43,7 @@
                 <args-nested/>
                 <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
                 <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+                <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
                 <classpath>
                     <fileset dir="${test.lib.dir}" includes="**/*.jar" />
                     <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
