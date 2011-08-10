@@ -78,6 +78,7 @@ if [ $isnightlybuild != 'true' ]; then
     if [ ! -n "${TESTDOGS+x}" ]
     then 
         # no TESTDOGS: run tests through ant normally
+        $ANT migrate-schema
 	$ANT test-integration test-webservice
     else
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
