@@ -126,7 +126,7 @@ then
     export ENV_PROPERTY_PREFIX=$migrationstestdog
     export $apphomeenvvar=.
     export RUN_ONLY_SMOKE=true
-    $ANT test-webdriver-precompiled
+    $ANT load-fixtures-snapshot, repair-migration-filenames, tag-schema, migrate-schema test-webdriver-precompiled
 else
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
