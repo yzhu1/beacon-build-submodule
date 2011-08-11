@@ -123,11 +123,12 @@ fi
 
 if [ ! -n "${TESTDOGS+x}" ]
 then
+    # If no testdogs are configured, use the migration testdog as the webdriver server
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
     export ENV_PROPERTY_PREFIX=$migrationstestdog
     export $apphomeenvvar=.
     export RUN_ONLY_SMOKE=true
-    $ANT load-fixtures test-webdriver-precompiled
+    $ANT test-webdriver-precompiled
 else
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
