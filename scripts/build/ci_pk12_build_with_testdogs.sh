@@ -124,7 +124,9 @@ fi
 if [ ! -n "${TESTDOGS+x}" ]
 then
     export ENV_PROPERTY_PREFIX=$migrationstestdog
-    $ANT test-webdriver
+    export $apphomeenvvar=.
+    export RUN_ONLY_SMOKE=true
+    $ANT test-webdriver-precompiled
 else
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
