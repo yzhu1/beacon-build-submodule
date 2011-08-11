@@ -79,6 +79,7 @@ if [ $isnightlybuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
+	export $apphomeenvvar=.
 	$ANT test-integration test-webservice
     else
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
