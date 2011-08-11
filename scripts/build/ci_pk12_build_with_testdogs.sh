@@ -122,6 +122,7 @@ else
 fi
 
 if [ ! -n "${TESTDOGS+x}" ]
+then
     $ANT test-webdriver
 else
     find target/test/webdriver -name *Test.class \
