@@ -121,7 +121,7 @@ else
     runslowtestsflag=
 fi
 
-if [ ! -n "${TESTDOGS+x} ]
+if [ ! -n "${TESTDOGS+x}" ]
     $ANT test-webdriver
 else
     find target/test/webdriver -name *Test.class \
