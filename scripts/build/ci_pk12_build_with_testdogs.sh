@@ -29,8 +29,6 @@ nextrpmrepo=$NEXT_RPM_REPO              # e.g., $REPO_FUTURE_QA
 runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
 isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
-#testdogs=$TESTDOGS                      # e.g., testdogfutureci0,testdogfutureci1,testdogfutureci2
-migrationstestdog=$MIGRATIONS_TESTDOG   # e.g., testdogfutureci0
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG
@@ -39,7 +37,15 @@ workspace=$WORKSPACE
 
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
-export ENV_PROPERTY_PREFIX=$migrationstestdog # Set to testdog0 that we can test up/down migrations on one testdog
+
+# Set the migration testdog if testdogs have been set
+if [ -n "${TESTDOGS+x}" ]
+then
+	migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
+	export ENV_PROPERTY_PREFIX=$migrationstestdog # To test the up/down migrations on one testdog
+else
+	export $apphomeenvvar=.	
+fi
 
 # Clean workspace
 rm -rf target
@@ -79,7 +85,7 @@ if [ $isnightlybuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
-	export $apphomeenvvar=.
+	#export $apphomeenvvar=.
 	$ANT test-integration test-webservice
     else
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
@@ -125,11 +131,12 @@ if [ ! -n "${TESTDOGS+x}" ]
 then
     # If no testdogs are configured, use the migration testdog as the webdriver server
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
-    export ENV_PROPERTY_PREFIX=$migrationstestdog
-    export $apphomeenvvar=.
-    export RUN_ONLY_SMOKE=true
+    #export ENV_PROPERTY_PREFIX=$migrationstestdog
+    #export $apphomeenvvar=.
     $ANT test-webdriver-precompiled
 else
+    # Run the webdriver tests in parallel
+    migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
