@@ -123,6 +123,7 @@ fi
 
 if [ ! -n "${TESTDOGS+x}" ]
 then
+    export ENV_PROPERTY_PREFIX=$migrationstestdog
     $ANT test-webdriver
 else
     find target/test/webdriver -name *Test.class \
