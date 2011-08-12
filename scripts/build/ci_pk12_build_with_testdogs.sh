@@ -44,6 +44,7 @@ then
 	migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
 	export ENV_PROPERTY_PREFIX=$migrationstestdog # To test the up/down migrations on one testdog
 else
+	# Set the webapp home environment variable (needed to run integration, webservice, and webdriver tests)
 	export $apphomeenvvar=.	
 fi
 
