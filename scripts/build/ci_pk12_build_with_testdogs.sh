@@ -85,7 +85,6 @@ if [ $isnightlybuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
-	#export $apphomeenvvar=.
 	$ANT test-integration test-webservice
     else
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
@@ -129,10 +128,8 @@ fi
 
 if [ ! -n "${TESTDOGS+x}" ]
 then
-    # If no testdogs are configured, use the migration testdog as the webdriver server
+    # If no testdogs are configured, run the ant test-webdriver-precompiled locally
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
-    #export ENV_PROPERTY_PREFIX=$migrationstestdog
-    #export $apphomeenvvar=.
     $ANT test-webdriver-precompiled
 else
     # Run the webdriver tests in parallel
