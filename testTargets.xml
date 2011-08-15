@@ -254,6 +254,7 @@
                 <sysproperty key="net.sourceforge.cobertura.datafile" file="@{coverage-file}" />
 
                 <jvmarg value="-Xmx256m" />
+            	<jvmarg value="-Dfile.encoding=utf8" />
                 <!--<jvmarg value="${test.vm.args}" />-->
                 <batchtest todir="${results.dir}">
                     <junit-filesets />
