@@ -43,6 +43,7 @@
                 <args-nested/>
                 <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
                 <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+            	<jvmarg value="-Dfile.encoding=utf8" />
                 <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
                 <classpath>
                     <fileset dir="${test.lib.dir}" includes="**/*.jar" />
