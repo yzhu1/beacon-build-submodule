@@ -94,10 +94,11 @@ if [ $isnightlybuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
-	$ANT test-integration test-webservice
+        $ANT test-integration test-webservice
     else
+        $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
-	echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
         (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
          && find target/test/integration target/test/webservice \
 	)   | grep Test.class \
