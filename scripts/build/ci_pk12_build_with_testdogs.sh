@@ -30,6 +30,14 @@ runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
 isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
+# Optional parameters
+if [ -n "${EXTRA_WGR_ARGS+x}" ]       # e.g., --refspec 'refs/changes/17/2817/1'
+then
+        extrawgrargs=$EXTRA_WGR_ARGS
+else
+        extrawgrargs=""
+fi
+
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG
 buildnumber=$BUILD_NUMBER
@@ -117,7 +125,7 @@ else
 fi
 
 # Deploy webapp, update bcfg, start webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_rm_rpm.sh ${webapphostclass}_bcfg.sh ${webapphostclass}_install.sh ${webapphostclass}_start.sh\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_rm_rpm.sh ${webapphostclass}_bcfg.sh ${webapphostclass}_install.sh ${webapphostclass}_start.sh\" ${extrawgrargs}
 
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
 echo "RUNNING WEBDRIVER TESTS"
