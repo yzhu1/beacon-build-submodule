@@ -102,7 +102,8 @@
     </target>
 
     <target name="migrate-schema" if="wgspring.db.migrate"
-            description="run migrations for current release">
+            description="run migrations for current release"
+            depends="build-app-jars, -copy-spring-contexts">
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
@@ -167,7 +168,7 @@
             depends="load-fixtures-snapshot, repair-migration-filenames, tag-schema, migrate-schema"
             description="Run on testdogs by parallelTests.py to get them prepared for integration testing; overridden in projects that don't use snapshots" />
 
-    <target name="fixture-run-all-datamakers" description="Run all fixture Datamakers">
+    <target name="fixture-run-all-datamakers" description="Run all fixture Datamakers" depends="test-compile">
        <mkdir dir="${fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
             bean="fixtureRunnerLoadDatamakers"
