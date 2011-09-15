@@ -122,7 +122,7 @@
     </target>
 
     <!-- Create test dirs -->
-    <target name="-test-setup" depends="test-clean">
+    <target name="-test-setup">
         <mkdir dir="${test.classes.dir}" />
         <mkdir dir="${unit.test.classes.dir}" />
         <mkdir dir="${integration.test.classes.dir}" />
@@ -150,7 +150,7 @@
     </target>
 
     <!-- Compile junit test classes -->
-    <target name="test-compile" depends="-cobertura-setup, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars, -copy-spring-contexts"
+    <target name="test-compile" depends="-cobertura-setup, build-app-jars, unzip-web-assets, cobertura-instrument-jars, -copy-spring-contexts"
         description="Compile the tests">
 
         
@@ -310,7 +310,7 @@
 
     <target name="test-one" depends="one" description="run one test (see target 'one')"/>
 
-    <target name="one" depends="test-clean, test-compile" 
+    <target name="one" depends="test-compile" 
         description="Run a single test: use with -Dtest=NameOfTest">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
@@ -353,7 +353,7 @@
         </junit-explicit>
     </target>
 
-    <target name="test-webdriver" depends="test-clean, clean, test-compile"
+    <target name="test-webdriver" depends="clean, test-compile"
         description="Run all webdriver tests">
         <!-- PLEASE NOTE THIS COVERAGE FILE DOES NOT FOLLOW THE PATTERN -->
         <junit-standard
@@ -374,7 +374,7 @@
         />
     </target>
 
-    <target name="test-slow" depends="test-clean, test-compile" 
+    <target name="test-slow" depends="test-compile" 
         description="Run all tests with the @Slow annotation">
 
         <!--set slow tests to run in the properties file-->
@@ -387,7 +387,7 @@
 
      </target>
     
-    <target name="test-webservice" depends="test-clean, test-compile" 
+    <target name="test-webservice" depends="test-compile" 
             description="Run all webservice tests">
         <junit-standard
             label="Webservice tests"
@@ -398,7 +398,7 @@
         />
     </target>
 
-    <target name="test-integration" depends="test-clean, test-compile, test-integration-wgspringcore" 
+    <target name="test-integration" depends="test-compile, test-integration-wgspringcore" 
         description="Run all integration tests">
         <junit-standard
             label="Integration tests"
@@ -410,7 +410,7 @@
     </target>
     
     <target name="test-integration-wgspringcore" description="Run tests found in wgspringcore-integration-test-*.jar"
-        depends="test-clean, test-compile" >
+        depends="test-compile" >
         <!-- find the latest version of the wgspringcore-integration-test jar -->
         <pathconvert property="jar-containing-tests" targetos="unix" pathsep="">
             <fileset dir="${ivy.lib.dir}/test"
@@ -431,7 +431,7 @@
         </sequential>
     </target>
 
-    <target name="test-unit" depends="test-clean, test-compile"
+    <target name="test-unit" depends="test-compile"
         description="Run all unit tests">
         <junit-standard
             label="Unit tests"
