@@ -96,16 +96,16 @@ if [ $isnightlybuild != 'true' ]; then
         $ANT migrate-schema
         $ANT test-integration test-webservice
     else
-        $ANT test-compile
-        # Run db updates on all the testdog dbs and then run all integration and webservice tests
-        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
-         && find target/test/integration target/test/webservice \
-	)   | grep Test.class \
-	    | xargs -I CLASSFILE basename CLASSFILE .class \
-	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $TESTDOGS \
-              -v $apphomeenvvar -n $testsperbatch -d
+#        $ANT test-compile
+#        # Run db updates on all the testdog dbs and then run all integration and webservice tests
+#        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+#        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+#         && find target/test/integration target/test/webservice \
+#	)   | grep Test.class \
+#	    | xargs -I CLASSFILE basename CLASSFILE .class \
+#	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+#              -s $TESTDOGS \
+#              -v $apphomeenvvar -n $testsperbatch -d
     fi
     # Build webapp and db rpms
     rm -rf $workspace/RPM_STAGING
@@ -143,12 +143,12 @@ then
     $ANT test-webdriver-precompiled
 else
     # Run the webdriver tests in parallel
-    migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
-    find target/test/webdriver -name *Test.class \
-  | xargs -I CLASSFILE basename CLASSFILE .class \
-  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s $migrationstestdog \
-    -v $apphomeenvvar -n 1000 -d $runslowtestsflag
+#    migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
+#    find target/test/webdriver -name *Test.class \
+#  | xargs -I CLASSFILE basename CLASSFILE .class \
+#  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+#    -s $migrationstestdog \
+#    -v $apphomeenvvar -n 1000 -d $runslowtestsflag
 fi
 
 if [ $isnightlybuild != 'true' ]; then
