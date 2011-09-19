@@ -98,7 +98,7 @@ if [ $isnightlybuild != 'true' ]; then
     else
 #        $ANT test-compile
         echo "SKIPPING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-	 /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 10 -d
+	 /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 1 -d -v $apphomeenvvar
 #        # Run db updates on all the testdog dbs and then run all integration and webservice tests
 #        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
 #        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
