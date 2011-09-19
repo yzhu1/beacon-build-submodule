@@ -142,6 +142,7 @@ then
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
     $ANT test-webdriver-precompiled
 else
+    echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
     # Run the webdriver tests in parallel
 #    migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
 #    find target/test/webdriver -name *Test.class \
