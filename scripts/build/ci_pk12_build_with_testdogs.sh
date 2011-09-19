@@ -97,6 +97,7 @@ if [ $isnightlybuild != 'true' ]; then
         $ANT test-integration test-webservice
     else
 #        $ANT test-compile
+        echo "SKIPPING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
 #        # Run db updates on all the testdog dbs and then run all integration and webservice tests
 #        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
 #        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
