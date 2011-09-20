@@ -108,7 +108,10 @@ class SyncManager(object):
             self._outputlock.release()
 
     def sleepAndCheckStatus(self):
-        time.sleep(.5)
+        try:
+            time.sleep(.5)
+        except KeyboardInterrupt: # if CTRL-C is necessary, use CTRL-Z to suspend then kill the process.
+            pass
         # If it's been 30 seconds since last status update, report what each testdog is doing
         if time.time() - self._lastTimeStatusGiven > 30:
             self._lastTimeStatusGiven = time.time()
