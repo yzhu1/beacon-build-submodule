@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<project name="jsdriver">
+
+    <property file="${imported.basedir}/default.jsdriver.properties" />
+
+    <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
+             resource="checkstyletask.properties"
+    />
+
+    <!-- This target unpackages the javascript test dependencies into the required locations -->
+    <!-- Dependencies provided by the java-junit-jsdriver project -->
+    <target name="js-unittest-unzip">
+
+        <delete dir="${js-test.dir}" includeemptydirs="true" failonerror="false" />
+        <mkdir dir="${js-test.dir}" />
+        <mkdir dir="${js-test.dir}/java" />
+        <unzip dest="${js-test.dir}">
+            <fileset dir="${test.lib.dir}">
+                <include name="${js-test.dependency}-web-assets*.zip"/>
+            </fileset>
+        </unzip>
+        
+        <copy todir="${js-test.dir}">
+            <fileset dir="${js-test.dir}/${js-test.dependency}-web-assets/web">
+                <exclude name="**/dnext" />
+                <exclude name="**/WEB-INF" />
+                <exclude name="**/${js-test.dependency}-web-assets-commit-hash*" />
+            </fileset>
+        </copy>
+        
+        <copy todir="${js-unittests.dir}/..">
+            <fileset dir="${js-test.dir}/${js-test.dependency}-web-assets/web">
+                <exclude name="**/dnext/**" />
+                <exclude name="**/WEB-INF/**" />
+                <exclude name="**/java/**" />
+                <exclude name="**/${js-test.dependency}-web-assets-commit-hash*" />
+            </fileset>
+        </copy>
+        
+        <!-- <copy todir="${js-unittests.dir}/..">
+            <dirset dir="${js-test.dir}/${js-test.dependency}-web-assets/web" includes="qunit util"/>
+        </copy> -->
+        <delete dir="${js-test.dir}/${js-test.dependency}-web-assets" includeemptydirs="true" failonerror="true" />
+    </target>
+    
+    <path id="jstest.classpath.run-base">
+        <path refid="test.classpath.base" />
+        <pathelement location="${js-test.dir}/java" />
+        <pathelement location="${app.resources.dir}" />
+    </path>
+    
+    <!-- This target runs the javascript tests at the targetted location or on the class path -->
+    <target name="js-unittest" depends="js-unittest-unzip, test-compile">
+        
+        <junit printsummary="withOutAndErr" 
+               fork="yes" 
+               timeout="300000" 
+               haltonfailure="false" 
+               dir="." 
+               failureproperty="test.failed" 
+               errorproperty="test.failed" 
+               showoutput="on">
+
+            <jvmarg value="-D${js-test.path.property}=${js-unittests.dir}" />
+            <classpath refid="jstest.classpath.run-base" />
+            <formatter type="xml" />
+            <formatter type="plain" />
+            <batchtest fork="yes" todir="js-test">
+                <fileset dir="${js-test.dir}" 
+                         includes="**/*.java" 
+                         excludes="" />
+            </batchtest>
+        </junit>
+        
+        <!-- <delete dir="${js-test.dir}" includeemptydirs="true" failonerror="true" /> -->
+    </target>
+</project>
