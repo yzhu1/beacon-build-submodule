@@ -37,6 +37,16 @@
             </fileset>
         </copy>
         
+    	<copy todir="${js-test.java.test.dir}">
+            <fileset dir="${js-test.dir}/${js-test.dependency}-web-assets/web">
+                <exclude name="**/dnext/**" />
+                <exclude name="**/WEB-INF/**" />
+            	<exclude name="**/qunit/**" />
+            	<exclude name="**/util/**" />
+                <exclude name="**/${js-test.dependency}-web-assets-commit-hash*" />
+            </fileset>
+        </copy>
+    	
         <!-- <copy todir="${js-unittests.dir}/..">
             <dirset dir="${js-test.dir}/${js-test.dependency}-web-assets/web" includes="qunit util"/>
         </copy> -->
