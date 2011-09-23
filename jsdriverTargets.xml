@@ -97,13 +97,14 @@
     <!-- This target runs the javascript tests at the targetted location or on the class path -->
     <target name="js-unittest" depends="js-unittest-unzip, test-compile">
         
-        <junit printsummary="withOutAndErr" 
+    	<junit printsummary="withOutAndErr" 
                fork="yes" 
                timeout="300000" 
-               haltonfailure="false" 
+               haltonfailure="false"
+               haltonerror="false" 
                dir="." 
-               failureproperty="test.failed" 
-               errorproperty="test.failed" 
+               failureproperty="junit.failed" 
+               errorproperty="junit.failed" 
                showoutput="on">
 
             <jvmarg value="-D${js-test.path.property}=${js-unittests.dir}" />
