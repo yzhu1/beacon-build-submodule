@@ -24,6 +24,9 @@
         visibility="public"
         description="required for ant scripts"
         transitive="false" />
-
+    <conf name='js-test'
+        visibility="public"
+        description="Separate ivy repo for libraries conflicting with other dependencies"
+        transitive="false" />
 </configurations>
 
