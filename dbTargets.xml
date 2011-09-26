@@ -159,7 +159,7 @@
         </exec>
     </target>
     
-    <target name="update-schema" depends="clear-schema, load-snapshot, repair-migration-filenames, migrate-schema" 
+    <target name="update-schema" depends="clear-schema,migrate-schema" 
         description="Clear and update the schema"/>
     
     <target name="load-fixtures" depends="update-schema,fixture-run-all-datamakers" description="Load fixtures"/>
@@ -226,7 +226,6 @@
     </target>
     
     <target name="load-snapshot" description="Load March 2010 snapshot">
-        <echo>${sql.snapshot}</echo>
         <echo>checking for "postgres" in snapshot, should be "tt_manage" instead</echo>
         <exec executable="/bin/bash" failonerror="true">
             <arg value="./conf/base/scripts/build/check_for_postgres_user_in_db_snap.sh" />
