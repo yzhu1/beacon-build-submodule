@@ -121,39 +121,16 @@
 
     </target>
 
-    <!-- Create test dirs -->
-    <target name="-test-setup">
+    <!-- Compile junit test classes -->
+    <target name="test-compile" depends="-cobertura-setup, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
+        description="Compile the tests">
         <mkdir dir="${test.classes.dir}" />
         <mkdir dir="${unit.test.classes.dir}" />
         <mkdir dir="${integration.test.classes.dir}" />
         <mkdir dir="${webservice.test.classes.dir}"/>
         <mkdir dir="${webdriver.test.classes.dir}" />
         <mkdir dir="${results.dir}" />
-    </target>
 
-    <!-- Copy spring contexts -->
-    <target name="-copy-spring-contexts" depends="-test-setup">
-        <!-- Copy spring context to integration test dir -->
-        <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
-            <fileset dir="${common.context.src.dir}" includes="*-context.xml"/>
-            <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml,spring.xml"/>
-            <filterset begintoken="&quot;" endtoken="&quot;">
-                <filter token="ui-context.xml" value="&quot;test-ui-context.xml&quot;"/>
-            </filterset>
-        </copy>
-        <!-- copy test-specific spring context (no filtering games need be played) -->
-        <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
-            <fileset dir="${context.integration.dir}" includes="*-context.xml"/>
-            <fileset dir="${context.common.integration.dir}" includes="*-context.xml"/>
-            <fileset dir="${context.webdriver.dir}" includes="*-context.xml"/>
-        </copy>
-    </target>
-
-    <!-- Compile junit test classes -->
-    <target name="test-compile" depends="-cobertura-setup, build-app-jars, unzip-web-assets, cobertura-instrument-jars, -copy-spring-contexts"
-        description="Compile the tests">
-
-        
         <path id="test.classpath.compile">
             <path refid="test.classpath.base" />
             <pathelement location="${integration.test.classes.dir}" />
@@ -208,6 +185,20 @@
         <!-- Compile the app webdriver tests -->
         <javac-test  srcdir="${app.webdriver.src.dir}" destdir="${webdriver.test.classes.dir}" />
 
+        <!-- Copy spring context to integration test dir -->
+        <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
+            <fileset dir="${common.context.src.dir}" includes="*-context.xml"/>
+            <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml,spring.xml"/>
+            <filterset begintoken="&quot;" endtoken="&quot;">
+                <filter token="ui-context.xml" value="&quot;test-ui-context.xml&quot;"/>
+            </filterset>
+        </copy>
+        <!-- copy test-specific spring context (no filtering games need be played) -->
+        <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
+            <fileset dir="${context.integration.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.common.integration.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.webdriver.dir}" includes="*-context.xml"/>
+        </copy>
         <!-- Copy freemarker templates to integration test dir, for tests that use FreeMarkerMerger -->
         <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
             <fileset dir="${app.freemarker.dir}" includes="**/*.ftl"/>
