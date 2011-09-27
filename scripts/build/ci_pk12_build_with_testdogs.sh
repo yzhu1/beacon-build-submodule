@@ -121,7 +121,7 @@ if [ $isnightlybuild != 'true' ]; then
 else
 
     # Migrate schema back up so webapp may start
-    $ANT load-fixtures-snapshot # FB 167844
+    $ANT clear-schema migrate-schema
 
 fi
 
