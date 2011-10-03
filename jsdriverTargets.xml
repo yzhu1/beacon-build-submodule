@@ -9,7 +9,7 @@
 
     <!-- This target unpackages the javascript test dependencies into the required locations -->
     <!-- Dependencies provided by the java-junit-jsdriver project -->
-    <target name="js-unittest-unzip">
+    <target name="unzip-js-unittest">
 
         <delete dir="${js-test.dir}" includeemptydirs="true" failonerror="false" />
         <mkdir dir="${js-test.dir}" />
@@ -95,7 +95,7 @@
     </path>
 	
     <!-- This target runs the javascript tests at the targetted location or on the class path -->
-    <target name="js-unittest" depends="js-unittest-unzip, test-compile">
+    <target name="unittest-javascript" depends="js-unittest-unzip, test-compile">
         
     	<junit printsummary="withOutAndErr" 
                fork="yes" 
