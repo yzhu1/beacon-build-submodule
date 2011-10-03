@@ -95,7 +95,7 @@
     </path>
 	
     <!-- This target runs the javascript tests at the targetted location or on the class path -->
-    <target name="unittest-javascript" depends="js-unittest-unzip, test-compile">
+    <target name="unittest-javascript" depends="unzip-js-unittest, test-compile">
         
     	<junit printsummary="withOutAndErr" 
                fork="yes" 
