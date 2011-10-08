@@ -94,7 +94,8 @@ if [ $isnightlybuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
-        $ANT test-integration test-webservice
+	echo "NOT TESTING"
+        # $ANT test-integration test-webservice
     else
 #        $ANT test-compile
         echo "SKIPPING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
@@ -141,8 +142,9 @@ fi
 if [ ! -n "${TESTDOGS+x}" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
-    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
-    $ANT test-webdriver-precompiled
+#    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
+#    $ANT test-webdriver-precompiled
+    echo "OR NOT"
 else
     echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
     # Run the webdriver tests in parallel
