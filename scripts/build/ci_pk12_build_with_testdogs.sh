@@ -39,7 +39,7 @@ else
 fi
 
 # Set automatically by Jenkins
-buildtag=$BUILD_TAG
+buildtag=$BUILD_TAG-$BUILD_BRANCH
 buildnumber=$BUILD_NUMBER
 workspace=$WORKSPACE
 
