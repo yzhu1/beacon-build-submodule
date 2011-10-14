@@ -119,9 +119,12 @@ def runSubprocess(cmd, manager, failonerror=False):
     # Run cmd in a new subprocess
     manager.output('  (launching) ' + cmd)
     process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+    manager.output('  (launched)')
     # Wait for it to complete, and collect its output
     returncode = process.wait()
+    manager.output('  (complete)')
     stdout, stderr = process.communicate()
+    manager.output('  (output collected)')
     output = stdout + stderr
     if failonerror:
         assert returncode == 0, output
