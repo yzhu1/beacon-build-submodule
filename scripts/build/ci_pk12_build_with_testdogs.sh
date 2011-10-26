@@ -143,12 +143,13 @@ then
     $ANT test-webdriver-precompiled
 else
     # Run the webdriver tests in parallel
+    echo "--IN PARALLEL--"
     migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s $migrationstestdog \
-    -v $apphomeenvvar -n 1000 -d $runslowtestsflag
+    -s $TESTDOGS \
+    -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
 fi
 
 if [ $isnightlybuild != 'true' ]; then
