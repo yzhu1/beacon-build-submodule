@@ -128,7 +128,7 @@ def runSubprocess(cmd, manager, failonerror=False):
     output = stdout + stderr
     
     returncode = 0
-    if(len(stderr) > 0)
+    if len(stderr) > 0:
         returncode = 1
     
     if failonerror:
