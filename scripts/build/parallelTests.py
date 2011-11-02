@@ -121,13 +121,19 @@ def runSubprocess(cmd, manager, failonerror=False):
     process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     manager.output('  (launched)')
     # Wait for it to complete, and collect its output
-    returncode = process.wait()
+    #returncode = process.wait()
     manager.output('  (complete)')
     stdout, stderr = process.communicate()
     manager.output('  (output collected)')
     output = stdout + stderr
+    
+    returncode = 0
+    if(len(stderr) > 0)
+        returncode = 1
+    
     if failonerror:
         assert returncode == 0, output
+    
     return returncode, output
 
 def setupTestdog(testdog, manager, updatedb):
