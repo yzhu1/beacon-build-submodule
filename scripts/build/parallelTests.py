@@ -122,14 +122,12 @@ def runSubprocess(cmd, manager, failonerror=False):
     manager.output('  (launched)')
     # Wait for it to complete, and collect its output
     #returncode = process.wait()
-    manager.output('  (complete)')
+    #manager.output('  (complete)')
     stdout, stderr = process.communicate()
     manager.output('  (output collected)')
+    returncode = process.returncode
+    manager.output('   (returncode obtained)')
     output = stdout + stderr
-    
-    returncode = 0
-    if len(stderr) > 0:
-        returncode = 1
     
     if failonerror:
         assert returncode == 0, output
