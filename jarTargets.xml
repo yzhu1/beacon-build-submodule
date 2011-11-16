@@ -62,7 +62,14 @@
 
     <target name="build-app-jars" 
                 description="Compile the source into jars" depends="unzip-web-assets">
-        
+
+        <if>
+            <isset property="${cobertura-instrument-app-jars}" />
+        <then>
+            <antcall target="-cobertura-setup" />
+        </then>
+        </if>
+
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
         
@@ -116,6 +123,13 @@
             destfile="${jar.outdir}/${jar.web.name}-src.jar"
             update="false"
         />
+
+        <if>
+            <isset property="${cobertura-instrument-app-jars}" />
+        <then>
+            <antcall target="cobertura-instrument-jars" />
+        </then>
+        </if>
 
      </target>
 </project>

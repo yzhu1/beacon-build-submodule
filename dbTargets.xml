@@ -102,8 +102,7 @@
     </target>
 
     <target name="migrate-schema" if="wgspring.db.migrate"
-            description="run migrations for current release"
-            depends="build-app-jars, -copy-spring-contexts">
+            description="run migrations for current release">
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
             <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
@@ -159,7 +158,7 @@
         </exec>
     </target>
     
-    <target name="update-schema" depends="clear-schema,migrate-schema" 
+    <target name="update-schema" depends="clear-schema, load-snapshot, repair-migration-filenames, migrate-schema" 
         description="Clear and update the schema"/>
     
     <target name="load-fixtures" depends="update-schema,fixture-run-all-datamakers" description="Load fixtures"/>
@@ -168,7 +167,7 @@
             depends="load-fixtures-snapshot, repair-migration-filenames, tag-schema, migrate-schema"
             description="Run on testdogs by parallelTests.py to get them prepared for integration testing; overridden in projects that don't use snapshots" />
 
-    <target name="fixture-run-all-datamakers" description="Run all fixture Datamakers" depends="test-compile">
+    <target name="fixture-run-all-datamakers" description="Run all fixture Datamakers">
        <mkdir dir="${fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
             bean="fixtureRunnerLoadDatamakers"
@@ -226,6 +225,7 @@
     </target>
     
     <target name="load-snapshot" description="Load March 2010 snapshot">
+        <echo>${sql.snapshot}</echo>
         <echo>checking for "postgres" in snapshot, should be "tt_manage" instead</echo>
         <exec executable="/bin/bash" failonerror="true">
             <arg value="./conf/base/scripts/build/check_for_postgres_user_in_db_snap.sh" />

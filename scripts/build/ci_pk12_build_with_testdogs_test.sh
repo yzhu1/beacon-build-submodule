@@ -39,7 +39,7 @@ else
 fi
 
 # Set automatically by Jenkins
-buildtag=$BUILD_TAG-$BUILD_BRANCH
+buildtag=$BUILD_TAG
 buildnumber=$BUILD_NUMBER
 workspace=$WORKSPACE
 
@@ -63,8 +63,8 @@ rm -rf target
 /opt/wgen-3p/ant-1.7.0/bin/ant ivy-resolve
 
 # Tag this build in git.
-git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
-git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo +refs/tags/$buildtag:$buildtag
+# git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
+# git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo +refs/tags/$buildtag:$buildtag
 
 # Set properties that'll get templated into basic.ftl
 gitrevision=`git log -1 --pretty=format:%H`
@@ -94,21 +94,18 @@ if [ $isnightlybuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
-	echo "NOT TESTING"
-        # $ANT test-integration test-webservice
+       # $ANT test-integration test-webservice
     else
-#        $ANT test-compile
-        echo "SKIPPING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-	 /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 1 -d -v $apphomeenvvar
-#        # Run db updates on all the testdog dbs and then run all integration and webservice tests
-#        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-#        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
-#         && find target/test/integration target/test/webservice \
+        $ANT test-compile
+        # Run db updates on all the testdog dbs and then run all integration and webservice tests
+       # echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+       # (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+       #  && find target/test/integration target/test/webservice \
 #	)   | grep Test.class \
 #	    | xargs -I CLASSFILE basename CLASSFILE .class \
 #	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-#              -s $TESTDOGS \
-#              -v $apphomeenvvar -n $testsperbatch -d
+ #             -s $TESTDOGS \
+  #            -v $apphomeenvvar -n $testsperbatch -d
     fi
     # Build webapp and db rpms
     rm -rf $workspace/RPM_STAGING
@@ -124,7 +121,7 @@ if [ $isnightlybuild != 'true' ]; then
 else
 
     # Migrate schema back up so webapp may start
-    $ANT clear-schema migrate-schema
+    $ANT load-fixtures-snapshot # FB 167844
 
 fi
 
@@ -142,29 +139,27 @@ fi
 if [ ! -n "${TESTDOGS+x}" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
-#    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
-#    $ANT test-webdriver-precompiled
-    echo "OR NOT"
+    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
+    $ANT test-webdriver-precompiled
 else
-    echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
     # Run the webdriver tests in parallel
-#    migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
-#    find target/test/webdriver -name *Test.class \
-#  | xargs -I CLASSFILE basename CLASSFILE .class \
-#  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-#    -s $migrationstestdog \
-#    -v $apphomeenvvar -n 1000 -d $runslowtestsflag
+    migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
+    find target/test/webdriver -name *Test.class \
+  | xargs -I CLASSFILE basename CLASSFILE .class \
+  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+    -s $migrationstestdog \
+    -v $apphomeenvvar -n 1000 -d $runslowtestsflag
 fi
 
 if [ $isnightlybuild != 'true' ]; then
 
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
-    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-    /opt/wgen/rpmtools/wg_createrepo $nextrpmrepo
+    #cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    #cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    #/opt/wgen/rpmtools/wg_createrepo $nextrpmrepo
 
     # Move the last-stable tag to the current commit
-    git branch -f last-stable-$buildbranch
-    git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$buildbranch
+    #git branch -f last-stable-$buildbranch
+    #git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$buildbranch
 
 fi
