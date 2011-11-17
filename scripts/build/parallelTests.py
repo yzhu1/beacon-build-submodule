@@ -29,6 +29,7 @@ import thread
 import random
 import string
 import optparse
+import tempfile
 from threading import Lock
 from subprocess import Popen, PIPE
 
