@@ -76,7 +76,7 @@ echo "build.branch=$buildbranch" >> conf/build.properties
 echo "rpm.version=$rpmversion" >> conf/build.properties
 
 # Stop the webapps before messing with their dbs
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\"
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\" ${extrawgrargs}
 
 # Compile, run static and unit tests, migrate one db up and down
 $ANT clean test-clean deploy checkstyle template-lint jslint test-unit \
