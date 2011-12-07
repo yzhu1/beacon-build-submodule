@@ -56,6 +56,14 @@ else
 	export $apphomeenvvar=.	
 fi
 
+# Set the testdogs used to run webdriver tests
+if [ -n "${WEBDRIVER_TESTDOGS+x}" ]
+then
+        webdrivertestdogs=${WEBDRIVER_TESTDOGS}
+else
+        webdrivertestdogs=${TESTDOGS} #default to the same testdogs used for integration tests
+fi
+
 # Clean workspace
 rm -rf target
 
@@ -136,7 +144,7 @@ else
     runslowtestsflag=
 fi
 
-if [ ! -n "${TESTDOGS+x}" ]
+if [ ! -n "${webdrivertestdogs+x}" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
@@ -144,11 +152,10 @@ then
 else
     # Run the webdriver tests in parallel
     echo "--IN PARALLEL--"
-    migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s $TESTDOGS \
+    -s $webdrivertestdogs \
     -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
 fi
 
