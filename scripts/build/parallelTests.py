@@ -29,6 +29,7 @@ import thread
 import random
 import string
 import optparse
+import tempfile
 from threading import Lock
 from subprocess import Popen, PIPE
 
@@ -118,13 +119,34 @@ class SyncManager(object):
 def runSubprocess(cmd, manager, failonerror=False):
     # Run cmd in a new subprocess
     manager.output('  (launching) ' + cmd)
-    process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
-    # Wait for it to complete, and collect its output
-    returncode = process.wait()
-    stdout, stderr = process.communicate()
-    output = stdout + stderr
-    if failonerror:
-        assert returncode == 0, output
+
+    # Avoid using PIPE when we have a large potential output
+    # See http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
+    my_stderr = tempfile.TemporaryFile()
+    my_stdout = tempfile.TemporaryFile()
+    process = Popen(cmd, stdout=my_stdout, stderr=my_stderr, shell=True)
+    manager.output('  (launched)')
+    returncode = 0
+    output = ''
+
+    try:
+        # Wait for it to complete, and collect its output
+        stdout, stderr = process.communicate()
+        my_stderr.seek(0)
+        my_stdout.seek(0)
+
+        manager.output('  (output collected)')
+        returncode = process.returncode
+        manager.output('   (returncode obtained)')
+        output = my_stdout.read() + my_stderr.read()
+    
+        if failonerror:
+            assert returncode == 0, output
+    finally:
+        my_stderr.close()
+        my_stdout.close()
+
+
     return returncode, output
 
 def setupTestdog(testdog, manager, updatedb):
