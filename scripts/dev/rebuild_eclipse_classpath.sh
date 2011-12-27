@@ -15,6 +15,12 @@ header=$1
 
 if [[ -z $header || ! -e $header ]]; then 
     header=conf/base/scripts/dev/eclipse.classpath.header
+
+    # create any missing directories refered to in the header
+    src_dirs=`grep classpathentry conf/base/scripts/dev/eclipse.classpath.header | grep "kind='src'" | sed "s/^.*path='\(.*\)'.*$/\\1/"`
+    for src_dir in $src_dirs; do
+        mkdir -p $src_dir
+    done
 fi
 
 echo "rebuilding eclipse classpath using header $header"
