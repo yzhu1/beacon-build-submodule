@@ -75,7 +75,7 @@
         <attribute name="sql" />
         <sequential>
             <echo>Running SQL [@{sql}]</echo>
-            <exec executable="/usr/bin/psql" failonerror="false">
+            <exec executable="psql" failonerror="false">
                 <arg value="-U" />
                 <arg value="postgres" />
                 <arg value="-h" />
