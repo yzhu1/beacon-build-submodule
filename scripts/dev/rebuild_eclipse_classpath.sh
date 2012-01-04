@@ -15,10 +15,14 @@ header=$1
 
 if [[ -z $header || ! -e $header ]]; then 
     header=conf/base/scripts/dev/eclipse.classpath.header
+fi
 
+if [[ -e $header ]]; then
     # create any missing directories refered to in the header
-    src_dirs=`grep classpathentry conf/base/scripts/dev/eclipse.classpath.header | grep "kind='src'" | sed "s/^.*path='\(.*\)'.*$/\\1/"`
+    #src_dirs=`grep classpathentry $header | grep "kind='src'" | sed "s/^.*path='\(.*\)'.*$/\\1/"`
+    src_dirs=`grep classpathentry $header | sed "s/[\\\\\\"\\\\\\']//g" | grep "kind=src" | sed "s/^.*path=\(.*\).*$/\\\\1/" | sed "s/\\/>$//"`
     for src_dir in $src_dirs; do
+        echo "mkdir -p $src_dir"
         mkdir -p $src_dir
     done
 fi
