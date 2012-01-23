@@ -51,6 +51,7 @@ if [ -n "${TESTDOGS+x}" ]
 then
 	migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
 	export ENV_PROPERTY_PREFIX=$migrationstestdog # To test the up/down migrations on one testdog
+	webdrivertestdogs=${TESTDOGS} #default to the same testdogs used for integration tests
 else
 	# Set the webapp home environment variable (needed to run integration, webservice, and webdriver tests)
 	export $apphomeenvvar=.	
@@ -59,9 +60,7 @@ fi
 # Set the testdogs used to run webdriver tests
 if [ -n "${WEBDRIVER_TESTDOGS+x}" ]
 then
-        webdrivertestdogs=${WEBDRIVER_TESTDOGS}
-else
-        webdrivertestdogs=${TESTDOGS} #default to the same testdogs used for integration tests
+    webdrivertestdogs=${WEBDRIVER_TESTDOGS}
 fi
 
 # Clean workspace
