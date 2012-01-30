@@ -39,7 +39,7 @@ else
 fi
 
 # Set automatically by Jenkins
-buildtag=$BUILD_TAG
+buildtag=$BUILD_TAG-$BUILD_BRANCH
 buildnumber=$BUILD_NUMBER
 workspace=$WORKSPACE
 
@@ -51,9 +51,16 @@ if [ -n "${TESTDOGS+x}" ]
 then
 	migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
 	export ENV_PROPERTY_PREFIX=$migrationstestdog # To test the up/down migrations on one testdog
+        webdrivertestdogs=${TESTDOGS} #default to the same testdogs used for integration tests
 else
 	# Set the webapp home environment variable (needed to run integration, webservice, and webdriver tests)
 	export $apphomeenvvar=.	
+fi
+
+# Set the testdogs used to run webdriver tests
+if [ -n "${WEBDRIVER_TESTDOGS+x}" ]
+then
+    webdrivertestdogs=${WEBDRIVER_TESTDOGS}
 fi
 
 # Clean workspace
@@ -94,18 +101,18 @@ if [ $isnightlybuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
-       # $ANT test-integration test-webservice
+        $ANT test-integration test-webservice
     else
         $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
-       # echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-       # (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
-       #  && find target/test/integration target/test/webservice \
-#	)   | grep Test.class \
-#	    | xargs -I CLASSFILE basename CLASSFILE .class \
-#	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
- #             -s $TESTDOGS \
-  #            -v $apphomeenvvar -n $testsperbatch -d
+         echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+         && find target/test/integration target/test/webservice \
+	)   | grep Test.class \
+	    | xargs -I CLASSFILE basename CLASSFILE .class \
+	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+             -s $TESTDOGS \
+              -v $apphomeenvvar -n $testsperbatch -d
     fi
     # Build webapp and db rpms
     rm -rf $workspace/RPM_STAGING
@@ -121,7 +128,7 @@ if [ $isnightlybuild != 'true' ]; then
 else
 
     # Migrate schema back up so webapp may start
-    $ANT load-fixtures-snapshot # FB 167844
+    $ANT clear-schema migrate-schema 
 
 fi
 
@@ -136,7 +143,7 @@ else
     runslowtestsflag=
 fi
 
-if [ ! -n "${TESTDOGS+x}" ]
+if [ ! -n "${webdrivertestdogs+x}" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
