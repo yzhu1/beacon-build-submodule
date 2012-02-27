@@ -67,7 +67,7 @@
                 </exec>
             </then>
             <else>
-                <exec executable="/usr/bin/python" dir="${root.dir}">
+                <exec executable="/usr/bin/python" dir="${basedir.unix}">
                     <arg value="conf/base/scripts/dev/rebuild_eclipse_classpath.py" />
                     <arg value="conf/eclipse.classpath.header" />
                 </exec>
