@@ -101,15 +101,15 @@ def _find_unique_jars():
                         continue
                 if file not in seen_jars:
                     if DEBUG: print root, file
-                source_file = None
-                if file in seen_source_jars:
-                    source_file = seen_source_jars[file]                    
-                    if DEBUG: print "source: ", source_file
-                seen_jars.append(file)
-                jar = JarFile(path= root + "/" + file)
-                if source_file:
-                    jar.source_path = root + "/" + source_file
-                jars.append(jar)
+                    source_file = None
+                    if file in seen_source_jars:
+                        source_file = seen_source_jars[file]                    
+                        if DEBUG: print "source: ", source_file
+                    seen_jars.append(file)
+                    jar = JarFile(path= root + "/" + file)
+                    if source_file:
+                        jar.source_path = root + "/" + source_file
+                    jars.append(jar)
     return jars
     
 def _write_classpathfile(dom):    
