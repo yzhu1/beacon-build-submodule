@@ -90,6 +90,10 @@ def _find_unique_jars():
                 
     seen_jars = []
     jars = []
+    # this is a weird case: we need org.json for wd tests, but it has
+    # the same basename as net.sf.json
+
+    jars_which_have_multiple_simultaneous_versions = ["json"]
     for root, dirs, files in os.walk(IVY_LIB):
         for file in files:
             if file.endswith(".jar") and file.find("-src-") == -1:
@@ -97,7 +101,7 @@ def _find_unique_jars():
                 if m:
                     basename = m.group(1)
                     version = m.group(2)
-                    if jars_by_version[basename] != version:
+                    if jars_by_version[basename] != version and basename not in jars_which_have_multiple_simultaneous_versions:
                         continue
                 if file not in seen_jars:
                     if DEBUG: print root, file
