@@ -44,7 +44,7 @@ buildnumber=$BUILD_NUMBER
 workspace=$WORKSPACE
 
 # Set more environment variables
-export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=320m -XX:-UseGCOverheadLimit"
+export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=384m -XX:-UseGCOverheadLimit"
 
 # Set the migration testdog if testdogs have been set
 if [ -n "${TESTDOGS+x}" ]
