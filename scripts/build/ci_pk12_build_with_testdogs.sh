@@ -153,14 +153,14 @@ then
 #    $ANT test-webdriver-precompiled
     echo "OR NOT"
 else
-    echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
+    #echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
     # Run the webdriver tests in parallel
-#    echo "--IN PARALLEL--"
-#    find target/test/webdriver -name *Test.class \
-#  | xargs -I CLASSFILE basename CLASSFILE .class \
-#  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-#    -s $webdrivertestdogs \
-#    -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
+    echo "--IN PARALLEL--"
+    find target/test/webdriver -name *Test.class \
+  | xargs -I CLASSFILE basename CLASSFILE .class \
+  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+    -s $webdrivertestdogs \
+    -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
 fi
 
 if [ $isnightlybuild != 'true' ]; then
