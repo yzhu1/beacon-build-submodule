@@ -51,6 +51,7 @@ if [ -n "${TESTDOGS+x}" ]
 then
 	migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
 	export ENV_PROPERTY_PREFIX=$migrationstestdog # To test the up/down migrations on one testdog
+	webdrivertestdogs=${TESTDOGS} #default to the same testdogs used for integration tests
 else
 	# Set the webapp home environment variable (needed to run integration, webservice, and webdriver tests)
 	export $apphomeenvvar=.	
@@ -59,9 +60,7 @@ fi
 # Set the testdogs used to run webdriver tests
 if [ -n "${WEBDRIVER_TESTDOGS+x}" ]
 then
-        webdrivertestdogs=${WEBDRIVER_TESTDOGS}
-else
-        webdrivertestdogs=${TESTDOGS} #default to the same testdogs used for integration tests
+    webdrivertestdogs=${WEBDRIVER_TESTDOGS}
 fi
 
 # Clean workspace
@@ -137,7 +136,7 @@ else
 fi
 
 # Deploy webapp, update bcfg, start webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_rm_rpm.sh ${webapphostclass}_bcfg.sh ${webapphostclass}_install.sh ${webapphostclass}_start.sh\" ${extrawgrargs}
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"mhcttwebapp_rebuild_search_indexes.sh mhcttwebapp_rebuild_tile_cache.sh\" ${extrawgrargs}
 
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
 echo "RUNNING WEBDRIVER TESTS"
@@ -169,7 +168,7 @@ if [ $isnightlybuild != 'true' ]; then
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
     cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
     cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-    /opt/wgen/rpmtools/wg_createrepo $nextrpmrepo
+    # call the create repo job downstream to avoid repo locking issues
 
     # Move the last-stable tag to the current commit
     git branch -f last-stable-$buildbranch

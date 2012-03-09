@@ -63,11 +63,12 @@
                     <arg value="--login"/>
                     <arg value="-i"/>
                     <arg value="-c"/>
-                    <arg value="cd ${basedir.unix}; ./conf/base/scripts/dev/rebuild_eclipse_classpath.sh ./conf/eclipse.classpath.header" />
+                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/rebuild_eclipse_classpath.py ./conf/eclipse.classpath.header" />
                 </exec>
             </then>
             <else>
-                <exec executable="conf/base/scripts/dev/rebuild_eclipse_classpath.sh">
+                <exec executable="/usr/bin/python" dir="${basedir}">
+                    <arg value="conf/base/scripts/dev/rebuild_eclipse_classpath.py" />
                     <arg value="conf/eclipse.classpath.header" />
                 </exec>
             </else>
