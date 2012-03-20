@@ -18,6 +18,13 @@ def find_by_name(pattern):
 def getargs():
     parser = optparse.OptionParser()
     parser.add_option("-b", "--branch-files", dest="branchfiles",action="store_true",help="link files that are changed on this branch")
+    parser.set_description(
+        "Generate links to files on the appropriate repository browsing application.  By default, "
+        + "takes a list of patterns on the command line and generates a link for every file below "
+        + "the current directory that matches one of those patterns."
+        + "\n\nIf no patterns are given, reads a list of files to generate links for from STDIN."
+        )
+    parser.set_usage("%prog [options] [pattern ... ]")
     return parser.parse_args()
 
 class wikilinker(object):

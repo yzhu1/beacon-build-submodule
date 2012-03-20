@@ -79,6 +79,9 @@ class gitrepo(object):
 
     def branch_files(self):
         basecmd = "git diff --name-only `git merge-base origin/master {commit}`..{commit}"
-        cmd = basecmd.format(commit=self.branch())
+        branch = self.branch()
+        if (None == branch):
+            branch = "HEAD"
+        cmd = basecmd.format(commit=branch)
         pathlist = [path.rstrip() for path in os.popen(cmd).readlines()]
         return self.rooted_paths(pathlist)
