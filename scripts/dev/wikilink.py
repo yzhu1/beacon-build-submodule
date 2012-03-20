@@ -21,19 +21,22 @@ def getargs():
     return parser.parse_args()
 
 class wikilinker(object):
-    def __init__(self, linkformat, branch_handler, repo):
+    def __init__(self, linkformat, branch_format, repo):
         self._link_format = linkformat
-        self._branch_handler = branch_handler
+        if branch_format.startswith("http"):
+            self._branch_format = branch_format
+        else:
+            self._branch_format = linkformat + branch_format
         self._repository = repo
 
     @staticmethod
     def get_cgit_linker(repo):
-        def handler(base_url, branchname):
-            url = base_url
-            if None != branchname:
-                url += "?h=" + branchname
-            return url
-        return wikilinker("http://%s/cgit/cgit.cgi/%s/tree/%s", handler, repo)
+        return wikilinker("http://{server}/cgit/cgit.cgi/{project_root}/tree/{path}", "?h={branch}", repo)
+
+    @staticmethod
+    def get_gitweb_linker(repo):
+        return wikilinker("https://{server}/gerrit/gitweb?p={project_root}.git;a=blob;f={path}",
+                          ";hb=refs/heads/{branch}", repo)
 
     def get_link_url(self, path):
         repo = self._repository
@@ -41,9 +44,10 @@ class wikilinker(object):
         server = repo.server()
         root = repo.root()
         branch = repo.branch()
-        url = self._link_format % (server, root, rooted_path)
         if None != branch:
-            url = self._branch_handler(url, branch)
+            url = self._branch_format.format(server=server,project_root=root, path=rooted_path, branch=branch)
+        else:
+            url = self._link_format.format(server=server,project_root=root, path=rooted_path)
         return url
 
     def make_wiki_link(self, path):
@@ -63,7 +67,10 @@ def main():
     else:
         file_list = [filepath.strip() for filepath in sys.stdin.readlines()]
     # print file_list
-    linker = wikilinker.get_cgit_linker(r)
+    if r.port() == 2222:
+        linker = wikilinker.get_gitweb_linker(r)
+    else:
+        linker = wikilinker.get_cgit_linker(r)
     for path in file_list:
         link = linker.make_wiki_link(path)
         print link

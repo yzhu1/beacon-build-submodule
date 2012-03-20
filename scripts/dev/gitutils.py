@@ -4,14 +4,27 @@ import re
 
 # need to remember how auto-doc works...
 
+_pattern_strict = "^ssh://(?:\w+)@([\w.]+)(?::(\d+))/(\S+)$"
+_pattern_loose = "(?:\w+)\@([\w.]+)[:/](\S+)"
+
 def find_repo_props():
-    matcher = re.compile("git\@([\w.]+)[:/](\S+)")
+    matcher = re.compile(_pattern_strict)
     config = os.popen("git config --get remote.origin.url")
     git_url = config.readline()
     config.close()
-    (server,repo) = matcher.search(git_url).groups()
+    match = matcher.search(git_url)
+    if (None != match):
+        (server, port, repo) = match.groups()
+    else:
+        matcher = re.compile(_pattern_loose)
+        match = matcher.search(git_url)
+        if None == match:
+            print "Unable to match git repo URL '%s'" % git_url
+            throw
+        (server, repo) = match.groups()
+        port = None
     (repo_base,repo_ext) = os.path.splitext(repo)
-    return { "server" : server, "root" : repo_base }
+    return { "server" : server, "root" : repo_base, "port" : port }
 
 def find_branch():
     branches = os.popen("git branch")
@@ -36,12 +49,13 @@ def get_repo():
     props = find_repo_props()
     local_root = find_path_to_repo_root()
     branch = find_branch()
-    return gitrepo(props['server'], props['root'], local_root, branch)
+    return gitrepo(props['server'], props['root'], props['port'], local_root, branch)
 
 class gitrepo(object):
-    def __init__(self, server, repo_root, path_to_local_root, current_branch):
+    def __init__(self, server, repo_root, repo_port, path_to_local_root, current_branch):
         self._repo_server = server
         self._repo_root = repo_root
+        self._repo_port = repo_port
         self._path_to_local_root = path_to_local_root
         self._current_branch = current_branch
 
@@ -51,6 +65,11 @@ class gitrepo(object):
         return self._repo_server
     def root(self):
         return self._repo_root
+    def port(self):
+        if None == self._repo_port:
+            return 22
+        else:
+            return int(self._repo_port)
 
     def rooted_path(self, local_path):
         return os.path.relpath(local_path, self._path_to_local_root)
