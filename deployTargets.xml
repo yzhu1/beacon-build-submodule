@@ -62,10 +62,14 @@
                 </replacetokens>
             </filterchain>
         </copy>
+    	
+    	<!-- Copy imported web content directory contents -->
         <copy todir="${deploy.root.dir}" encoding="UTF-8">
-            <fileset dir="${common.web.dir}" includes="**" excludes="static/**">
+        	<fileset dir="${build.web.assets.unzip.dir}">
+            	<include name="**/web/**/*"/>
                 <present targetdir="${deploy.root.dir}" present="srconly" />            
             </fileset>
+        	<mapper type="regexp" from="^[-_a-zA-Z0-9]*[\\/]web(.*)" to="\1"/>
             <filterchain>
                 <replacetokens>
                 <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
