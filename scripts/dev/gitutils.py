@@ -57,3 +57,9 @@ class gitrepo(object):
 
     def rooted_paths(self, pathlist):
         return map(self.rooted_path,pathlist)
+
+    def branch_files(self):
+        basecmd = "git diff --name-only `git merge-base origin/master {commit}`..{commit}"
+        cmd = basecmd.format(commit=self.branch())
+        pathlist = [path.rstrip() for path in os.popen(cmd).readlines()]
+        return self.rooted_paths(pathlist)

@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import pdb
+import optparse
 
 def find_by_name(pattern):
     find = subprocess.Popen(
@@ -13,6 +14,11 @@ def find_by_name(pattern):
     for line in find.stdout.readlines():
         pathlist.append(line.rstrip())
     return pathlist
+
+def getargs():
+    parser = optparse.OptionParser()
+    parser.add_option("-b", "--branch-files", dest="branchfiles",action="store_true",help="link files that are changed on this branch")
+    return parser.parse_args()
 
 class wikilinker(object):
     def __init__(self, linkformat, branch_handler, repo):
@@ -46,10 +52,17 @@ class wikilinker(object):
         return "* [%s %s]" % (url, basename)
 
 def main():
-    argpath = sys.argv[1]
-    file_list = find_by_name(argpath)
-    # print file_list
+    (opts, arglist) = getargs()
     r = gitutils.get_repo()
+    if opts.branchfiles:
+        file_list = r.branch_files()
+    elif (0 < len(arglist)):
+        file_list = []
+        for argpath in arglist:
+            file_list.extend(find_by_name(argpath))
+    else:
+        file_list = [filepath.strip() for filepath in sys.stdin.readlines()]
+    # print file_list
     linker = wikilinker.get_cgit_linker(r)
     for path in file_list:
         link = linker.make_wiki_link(path)
