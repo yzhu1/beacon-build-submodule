@@ -67,7 +67,7 @@ fi
 rm -rf target
 
 # ivy-resolve first so we can get wgspringcoreversion accurately
-/opt/wgen-3p/ant-1.7.0/bin/ant ivy-resolve
+$ANT ivy-resolve
 
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
