@@ -21,6 +21,27 @@
              </exec>
          </sequential>
     </target>
+    
+    <target name="check-unzipped-content" description="Check unzipped web-assets for conflicts">
+        <if>
+            <isset property="cygwin.bash" />
+            <then>
+                <path id="basedir.path"><pathelement path="${basedir}"/></path>
+                <pathconvert targetos="unix" property="basedir.unix" refid="basedir.path"/>
+                <exec executable="${cygwin.bash}" failonerror="true">
+                    <arg value="--login"/>
+                    <arg value="-i"/>
+                    <arg value="-c"/>
+                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/duplicate-file-check.py /target/web-assets/unzip"/>
+                </exec>
+            </then>
+            <else>
+                <exec executable="/usr/bin/python" dir="${basedir}" failonerror="true">
+                    <arg value="conf/base/scripts/dev/duplicate-file-check.py /target/web-assets/unzip" />
+                </exec>
+            </else>
+        </if>
+   	</target>
 	
     <target name="clean" description="Clean the build directory" depends="tomcat-clean">
     	<delete includeemptydirs="true" failonerror="false">
@@ -64,6 +85,7 @@
         </copy>
     	
     	<!-- Copy imported web content directory contents -->
+    	<antcall target="check-unzipped-content" />
         <copy todir="${deploy.root.dir}" encoding="UTF-8">
         	<fileset dir="${build.web.assets.unzip.dir}">
             	<include name="**/web/**/*"/>

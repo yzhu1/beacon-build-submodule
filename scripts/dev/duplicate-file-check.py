@@ -6,6 +6,8 @@ import sys
 filePrefix = os.getcwd() + sys.argv[1]
 fileset = sets.Set()
 duplicateDetected = False;
+
+print "Checking for duplicate static content on path: " + filePrefix
 for path, dirs, files in os.walk(filePrefix):
 
     # Append to the file to the path minus the root directory
@@ -19,6 +21,8 @@ for path, dirs, files in os.walk(filePrefix):
     intersection = fileset.intersection(files) 
     if ((intersection is not None) and len(intersection) > 0):
         duplicateDetected = True
+        print "Duplicate files found in path: " + path 
+        print intersection
         break
     else:
         fileset.update(files)
