@@ -25,18 +25,14 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
-nextrpmrepo=$NEXT_RPM_REPO              # e.g., $REPO_FUTURE_QA
-runonlysmoke=$RUN_ONLY_SMOKE            # e.g., true
-isnightlybuild=$IS_NIGHTLY_BUILD        # e.g., true
+nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
 # Optional parameters
-if [ -n "${EXTRA_WGR_ARGS+x}" ]       # e.g., --refspec 'refs/changes/17/2817/1'
-then
-        extrawgrargs=$EXTRA_WGR_ARGS
-else
-        extrawgrargs=""
-fi
+runonlysmoke=${RUN_ONLY_SMOKE:-true}
+isnightlybuild=${IS_NIGHTLY_BUILD:-false}
+extrawgrargs=${EXTRA_WGR_ARGS:-""}
+webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -51,16 +47,9 @@ if [ -n "${TESTDOGS+x}" ]
 then
 	migrationstestdog=$(echo $TESTDOGS | cut -f1 -d ',') # Take the first testdog
 	export ENV_PROPERTY_PREFIX=$migrationstestdog # To test the up/down migrations on one testdog
-	webdrivertestdogs=${TESTDOGS} #default to the same testdogs used for integration tests
 else
 	# Set the webapp home environment variable (needed to run integration, webservice, and webdriver tests)
 	export $apphomeenvvar=.	
-fi
-
-# Set the testdogs used to run webdriver tests
-if [ -n "${WEBDRIVER_TESTDOGS+x}" ]
-then
-    webdrivertestdogs=${WEBDRIVER_TESTDOGS}
 fi
 
 # Clean workspace
@@ -114,6 +103,10 @@ if [ $isnightlybuild != 'true' ]; then
               -s $TESTDOGS \
               -v $apphomeenvvar -n $testsperbatch -d
     fi
+    # Remove existing RPMs in the repo to ensure the one we build gets deployed
+    rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
+    rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
+    
     # Build webapp and db rpms
     rm -rf $workspace/RPM_STAGING
     mkdir -p $workspace/opt/tt/webapps/$app
@@ -143,9 +136,10 @@ else
     runslowtestsflag=
 fi
 
-if [ ! -n "${webdrivertestdogs+x}" ]
+if [ "$webdrivertestdogs" == "" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
+    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
     $ANT test-webdriver-precompiled
 else
@@ -158,7 +152,7 @@ else
     -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
 fi
 
-if [ $isnightlybuild != 'true' ]; then
+if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
 
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
     cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
