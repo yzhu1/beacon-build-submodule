@@ -72,7 +72,7 @@
 
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
-        
+
         <path id="build.app.classpath">
             <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
             <fileset dir="${jar.outdir}">
@@ -112,6 +112,11 @@
                 <classpath refid="build.web.classpath"/>
                 <include name="**/ui/**/*.java"/>
          </javac-conditional>
+        <!-- Copy context and freemarker resources into the web build path -->
+        <copy todir="${jar.classes.dir.main}/web">
+            <fileset dir="${app.src.dir}" includes="${app.src.build.resources.pattern}" />
+        </copy>
+        
         <jar
             basedir="${jar.classes.dir.main}/web"
             destfile="${jar.outdir}/${jar.web.name}.jar"
