@@ -616,6 +616,8 @@
            <arg value="$j.ajax" />
            <arg value="--exclude" />
            <arg value="global_ready.js" />
+           <arg value="--exclude" />
+           <arg value="math-utilities.js" />
         </exec>
         <condition property="build.js.errors">
             <and>
