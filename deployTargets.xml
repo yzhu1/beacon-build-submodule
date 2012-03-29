@@ -32,7 +32,7 @@
                     <arg value="--login"/>
                     <arg value="-i"/>
                     <arg value="-c"/>
-                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/duplicate-file-check.py /target/web-assets/unzip"/>
+                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/duplicate-file-check.py ${build.web.assets.unzip.dir}"/>
                 </exec>
             </then>
             <else>
