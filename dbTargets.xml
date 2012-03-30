@@ -89,6 +89,25 @@
         </sequential>
     </macrodef>
 
+    <macrodef name="pg-run-script">
+        <attribute name="script" />
+        <sequential>
+            <echo>executing script @{script}</echo>
+            <exec executable="psql" failonerror="true" >
+                <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
+                <arg value="-h"/>
+                <arg value="${wgspring.db.host}"/>
+                <arg value="-p"/>
+                <arg value="${wgspring.db.port}"/>
+                <arg value="-U"/>
+                <arg value="${wgspring.migrations.db.username}"/>
+                <arg value="${wgspring.db.dbname}"/>
+                <arg value="-f" />
+                <arg value="@{script}" />
+            </exec>
+        </sequential>
+    </macrodef>
+
     <target name="clear-schema" if="wgspring.db.migrate" depends="prepare-pgpass">
         <clear-named-schema schema-name="${wgspring.db.schema}" />
     </target>
@@ -271,17 +290,7 @@
     
     <target name="create-truncate-tables-function" depends="prepare-pgpass"
         description="create a pg function that truncates most tables - used by integration tests">
-        <exec executable="psql" failonerror="true" 
-                input="${app.dir}/scripts/db/create_truncate_tables_function.sql">
-            <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
-            <arg value="-h"/>
-            <arg value="${wgspring.db.host}"/>
-            <arg value="-p"/>
-            <arg value="${wgspring.db.port}"/>
-            <arg value="-U"/>
-            <arg value="${wgspring.migrations.db.username}"/>
-            <arg value="${wgspring.db.dbname}"/>
-        </exec>
+        <pg-run-script script="${app.dir}/scripts/db/create_truncate_tables_function.sql" />
     </target>
     
     <target name="repair-migration-filenames" depends="prepare-pgpass">
