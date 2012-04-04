@@ -42,6 +42,7 @@
     </path>
     <path id="test.classpath.run-base">
         <path refid="test.classpath.base" />
+        <pathelement location="${test.resources.dir}" />
         <pathelement location="${app.resources.dir}" />
         <pathelement location="${common.resources.dir}" />
         <pathelement location="${common.test.resources.dir}" />
