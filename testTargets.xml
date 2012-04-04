@@ -195,13 +195,13 @@
         </copy>
         <!-- copy test-specific spring context (no filtering games need be played) -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
-            <fileset dir="${context.integration.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.integration.dir}" includes="*-context.xml,*.properties"/>
             <fileset dir="${context.common.integration.dir}" includes="*-context.xml"/>
-            <fileset dir="${context.webdriver.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.webdriver.dir}" includes="*-context.xml,*.properties"/>
         </copy>
         <!-- Copy freemarker templates to integration test dir, for tests that use FreeMarkerMerger -->
         <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
-            <fileset dir="${app.freemarker.dir}" includes="**/*.ftl"/>
+            <fileset erroronmissingdir="false" dir="${app.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
         <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
             <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
