@@ -121,9 +121,10 @@
 
     </target>
 
-    <!-- Compile junit test classes -->
-    <target name="test-compile" depends="-cobertura-setup, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
-        description="Compile the tests">
+    <!-- set up test directories and compile test classes,  but don't copy
+         resources into them.
+    -->
+    <target name="test-javac" depends="test-clean">
         <mkdir dir="${test.classes.dir}" />
         <mkdir dir="${unit.test.classes.dir}" />
         <mkdir dir="${integration.test.classes.dir}" />
@@ -168,11 +169,6 @@
             </sequential>
         </macrodef>
 
-        <!-- copy some static files from the class path in the test directory; skylight runs some tests that need to do this -->
-        <copy todir="${unit.test.classes.dir}">
-            <fileset dir="${app.unit.src.dir}" includes="**/*.js,**/*.json,**/*.properties,**/*.xml" />
-        </copy>
-
         <!-- Compile the app unit tests -->
         <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
 
@@ -184,6 +180,19 @@
 
         <!-- Compile the app webdriver tests -->
         <javac-test  srcdir="${app.webdriver.src.dir}" destdir="${webdriver.test.classes.dir}" />
+
+    </target>
+
+    <!-- Compile junit test classes -->
+    <target name="test-compile" depends="-cobertura-setup, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars, test-javac"
+        description="Compile the tests">
+
+
+        <!-- copy some static files from the class path in the test directory; skylight runs some tests that need to do this -->
+        <copy todir="${unit.test.classes.dir}">
+            <fileset dir="${app.unit.src.dir}" includes="**/*.js,**/*.json,**/*.properties,**/*.xml" />
+        </copy>
+
 
         <!-- Copy spring context to integration test dir -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
