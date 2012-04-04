@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# /etc/rc.d/init.d/xvfbd
+#
+# chkconfig: 345 95 28
+# description: Starts/Stops X Virtual Framebuffer server
+# processname: Xvfb
+#
+# lightly adapted from http://eldapo.lembobrothers.com/2009/05/27/an-xvfb-init-script/
+
+. /etc/init.d/functions
+
+[ "${NETWORKING}" = "no" ] && exit 0
+
+PROG="/usr/bin/Xvfb"
+PROG_OPTIONS="-screen 0 1024x768x24 -dpi 96 -nolisten tcp :7"
+PROG_OUTPUT="/tmp/Xvfb.out"
+PROG_USER=tomcat
+
+case "$1" in
+    start)
+        echo -n "Starting : X Virtual Frame Buffer "
+        runuser -c "$PROG $PROG_OPTIONS" $PROG_USER >>$PROG_OUTPUT 2>&1 &
+        disown -ar
+        /bin/usleep 500000
+        status Xvfb & >/dev/null && echo_success || echo_failure
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+            /bin/touch /var/lock/subsys/Xvfb
+            /sbin/pidof -o  %PPID -x Xvfb > /var/run/Xvfb.pid
+        fi
+        echo
+   		;;
+    stop)
+        echo -n "Shutting down : X Virtual Frame Buffer"
+        killproc $PROG
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && /bin/rm -f /var/lock/subsys/Xvfb
+ /var/run/Xvfb.pid
+        echo
+        ;;
+    restart|reload)
+    	$0 stop
+    	$0 start
+        RETVAL=$?
+      	;;
+    status)
+    	status Xvfb
+    	RETVAL=$?
+    	;;
+    *)
+     echo $"Usage: $0 (start|stop|restart|reload|status)"
+     exit 1
+esac
+
+exit $RETVAL
