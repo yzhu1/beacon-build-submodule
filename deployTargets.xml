@@ -37,7 +37,7 @@
             </then>
             <else>
                 <exec executable="/usr/bin/python" dir="${basedir}" failonerror="true">
-                    <arg value="conf/base/scripts/dev/duplicate-file-check.py /target/web-assets/unzip" />
+                    <arg value="conf/base/scripts/dev/duplicate-file-check.py ${build.web.assets.unzip.dir}" />
                 </exec>
             </else>
         </if>
