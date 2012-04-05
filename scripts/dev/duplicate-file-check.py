@@ -1,4 +1,4 @@
-ifmport os
+import os
 import sets
 import sys
 
