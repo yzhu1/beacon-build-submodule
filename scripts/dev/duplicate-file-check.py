@@ -1,4 +1,4 @@
-import os
+ifmport os
 import sets
 import sys
 
@@ -28,4 +28,7 @@ for path, dirs, files in os.walk(filePrefix):
         fileset.update(files)
 
 # If a duplicate was found, return 1, else 0
-sys.exit(1 if duplicateDetected else 0)
+if duplicateDetected:
+    sys.exit(1)
+else:
+    sys.exit(0)
