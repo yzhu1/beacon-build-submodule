@@ -103,11 +103,11 @@
         <echo>checking for tests junit won't find because they don't follow the *Test.java naming convention</echo>
         <exec executable="sh">
             <arg line="-c" />
-            <arg value="grep @Test * -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|uniq" />
+            <arg value="grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|uniq" />
         </exec>
         <exec executable="sh" failonerror="true">
             <arg line="-c" />
-            <arg value="exit `grep @Test * -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|wc -l`" />
+            <arg value="exit `grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|wc -l`" />
         </exec>
 
         <echo>checking for tests junit won't run because their names are not unique</echo>
@@ -122,9 +122,10 @@
 
     </target>
 
-    <!-- Compile junit test classes -->
-    <target name="test-compile" depends="-cobertura-setup, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars"
-        description="Compile the tests">
+    <!-- set up test directories and compile test classes,  but don't copy
+         resources into them.
+    -->
+    <target name="test-javac" depends="test-clean">
         <mkdir dir="${test.classes.dir}" />
         <mkdir dir="${unit.test.classes.dir}" />
         <mkdir dir="${integration.test.classes.dir}" />
@@ -169,11 +170,6 @@
             </sequential>
         </macrodef>
 
-        <!-- copy some static files from the class path in the test directory; skylight runs some tests that need to do this -->
-        <copy todir="${unit.test.classes.dir}">
-            <fileset dir="${app.unit.src.dir}" includes="**/*.js,**/*.json,**/*.properties,**/*.xml" />
-        </copy>
-
         <!-- Compile the app unit tests -->
         <javac-test srcdir="${app.unit.src.dir}" destdir="${unit.test.classes.dir}" />
 
@@ -186,6 +182,19 @@
         <!-- Compile the app webdriver tests -->
         <javac-test  srcdir="${app.webdriver.src.dir}" destdir="${webdriver.test.classes.dir}" />
 
+    </target>
+
+    <!-- Compile junit test classes -->
+    <target name="test-compile" depends="-cobertura-setup, test-clean, build-app-jars, unzip-web-assets, cobertura-instrument-jars, test-javac"
+        description="Compile the tests">
+
+
+        <!-- copy some static files from the class path in the test directory; skylight runs some tests that need to do this -->
+        <copy todir="${unit.test.classes.dir}">
+            <fileset dir="${app.unit.src.dir}" includes="**/*.js,**/*.json,**/*.properties,**/*.xml" />
+        </copy>
+
+
         <!-- Copy spring context to integration test dir -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
             <fileset dir="${common.context.src.dir}" includes="*-context.xml"/>
@@ -196,13 +205,13 @@
         </copy>
         <!-- copy test-specific spring context (no filtering games need be played) -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
-            <fileset dir="${context.integration.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.integration.dir}" includes="*-context.xml,*.properties"/>
             <fileset dir="${context.common.integration.dir}" includes="*-context.xml"/>
-            <fileset dir="${context.webdriver.dir}" includes="*-context.xml"/>
+            <fileset dir="${context.webdriver.dir}" includes="*-context.xml,*.properties"/>
         </copy>
         <!-- Copy freemarker templates to integration test dir, for tests that use FreeMarkerMerger -->
         <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
-            <fileset dir="${app.freemarker.dir}" includes="**/*.ftl"/>
+            <fileset erroronmissingdir="false" dir="${app.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
         <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
             <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>

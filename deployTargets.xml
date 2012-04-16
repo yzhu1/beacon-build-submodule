@@ -21,6 +21,28 @@
              </exec>
          </sequential>
     </target>
+    
+    <target name="check-unzipped-content" description="Check unzipped web-assets for conflicts">
+        <if>
+            <isset property="cygwin.bash" />
+            <then>
+                <path id="basedir.path"><pathelement path="${basedir}"/></path>
+                <pathconvert targetos="unix" property="basedir.unix" refid="basedir.path"/>
+                <exec executable="${cygwin.bash}" failonerror="true">
+                    <arg value="--login"/>
+                    <arg value="-i"/>
+                    <arg value="-c"/>
+                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/duplicate-file-check.py ${build.web.assets.unzip.dir}"/>
+                </exec>
+            </then>
+            <else>
+                <exec executable="/usr/bin/python" dir="${basedir}" failonerror="true">
+                    <arg value="conf/base/scripts/dev/duplicate-file-check.py" />
+                    <arg value="${build.web.assets.unzip.dir}" />
+                </exec>
+            </else>
+        </if>
+   	</target>
 	
     <target name="clean" description="Clean the build directory" depends="tomcat-clean">
     	<delete includeemptydirs="true" failonerror="false">
@@ -62,20 +84,15 @@
                 </replacetokens>
             </filterchain>
         </copy>
+    	
+    	<!-- Copy imported web content directory contents -->
+    	<antcall target="check-unzipped-content" />
         <copy todir="${deploy.root.dir}" encoding="UTF-8">
-            <fileset dir="${common.web.dir}" includes="**" excludes="static/**">
+        	<fileset dir="${build.web.assets.unzip.dir}">
+            	<include name="**/web/**/*"/>
                 <present targetdir="${deploy.root.dir}" present="srconly" />            
             </fileset>
-            <filterchain>
-                <replacetokens>
-                <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
-                    <token key="git.revision" value="${git.revision}"/>
-                    <token key="git.common.revision" value="${git.common.revision}"/>
-                    <token key="build.number" value="${build.number}"/>
-                    <token key="build.branch" value="${build.branch}"/>
-                    <token key="rpm.version" value="${rpm.version}"/>
-                </replacetokens>
-            </filterchain>
+        	<mapper type="regexp" from="^[-_a-zA-Z0-9]*[\\/]web(.*)" to="\1"/>
         </copy>
     </target>
         
