@@ -58,6 +58,14 @@
         </sequential>
     </macrodef>
 
+    <path id="build.app.classpath">
+        <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
+        <fileset dir="${jar.outdir}">
+            <include name="${jar.common.app.name}.jar"/>
+            <include name="${jar.common.web.name}.jar"/>
+        </fileset>
+    </path>
+        
     <target name="build-test-jars" description="implemented only by wgspringcore" />
 
     <target name="build-app-jars" 
@@ -73,13 +81,6 @@
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
 
-        <path id="build.app.classpath">
-            <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
-            <fileset dir="${jar.outdir}">
-                <include name="${jar.common.app.name}.jar"/>
-                <include name="${jar.common.web.name}.jar"/>
-            </fileset>
-        </path>
         <javac-conditional
                     srcdir="${app.src.dir}"
                     destdir="${jar.classes.dir.main}/app"
@@ -136,5 +137,14 @@
         </then>
         </if>
 
+     </target>
+     
+     <target name="build-javadoc" description="Generate JavaDoc for the source">
+        <javadoc
+            sourcepath="${app.src.dir}"
+            destdir="${output.dir}/javadoc"
+            classpathref="build.app.classpath"
+        >
+        </javadoc>
      </target>
 </project>

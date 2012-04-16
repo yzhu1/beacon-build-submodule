@@ -75,7 +75,7 @@ echo "rpm.version=$rpmversion" >> conf/build.properties
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\" ${extrawgrargs}
 
 # Compile, run static and unit tests, migrate one db up and down
-$ANT clean test-clean deploy checkstyle template-lint jslint test-unit \
+$ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-javadoc \
     clear-schema load-baseline-database migrate-schema rollback-schema
 
 if [ $isnightlybuild != 'true' ]; then
