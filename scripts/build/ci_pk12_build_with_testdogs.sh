@@ -31,7 +31,8 @@ runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
 isnightlybuild=${IS_NIGHTLY_BUILD:-false}
-extrawgrargs=${EXTRA_WGR_ARGS:-""}
+extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
+releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
 
 # Set automatically by Jenkins
@@ -126,7 +127,7 @@ else
 fi
 
 # Deploy webapp, update bcfg, start webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"mhcttwebapp_rebuild_search_indexes.sh mhcttwebapp_rebuild_tile_cache.sh\" ${extrawgrargs}
+ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
 
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
 echo "RUNNING WEBDRIVER TESTS"
