@@ -10,7 +10,7 @@
 #     display the expanded value of PS4 (NOTE: this seems like pointless boilerplate to me)
 set -eux
 
-ANT="/opt/wgen-3p/ant-1.7.0/bin/ant"
+ANT="/opt/wgen-3p/ant-1.8.1/bin/ant"
 
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
