@@ -262,9 +262,9 @@
                 <classpath refid="@{classpathref}" />
                 <sysproperty key="net.sourceforge.cobertura.datafile" file="@{coverage-file}" />
 
-                <jvmarg value="-Xmx256m" />
+                <jvmarg value="-Xmx512m" />
             	<jvmarg value="-Dfile.encoding=utf8" />
-            	<jvmarg value="-XX:MaxPermSize=384m" />
+            	<jvmarg value="-XX:MaxPermSize=256m" />
             	<jvmarg value="-XX:+CMSClassUnloadingEnabled" />
                 <jvmarg value="-XX:+CMSPermGenSweepingEnabled" />
                 <!--<jvmarg value="${test.vm.args}" />-->
