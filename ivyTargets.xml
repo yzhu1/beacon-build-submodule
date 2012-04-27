@@ -4,6 +4,13 @@
     <taskdef resource="net/sf/antcontrib/antlib.xml">
         <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
     </taskdef>
+
+    <property environment="sys_env" />
+    <property file="conf/version.properties" />
+    <!-- pick up DPP/13 compliant version numbers from version.properties, and append BUILD_NUMBER (set by Jenkins) -->
+    <property name="module.revision.published" value="${module.revision.major}.${module.revision.minor}.${module.revision.revision}-${sys_env.BUILD_NUMBER}" />
+    <property name="module.revision.dev" value="dev" />
+
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
     <import file="dbTargets.xml"/>
@@ -93,6 +100,13 @@
         <delete dir="${ivy.resolution.cache.dir}" />
     </target>
 
+    <!-- target to set the publication version.  This needs to be at the front of the dependency chain
+	 so that the ivy-resolve before ivy-publish has the same revision as the ivy-publish does.
+    -->
+    <target name="-set-module-publish-version-dev">
+        <propertycopy name="module.revision.published" from="module.revision.dev" override="true" silent="true" />
+    </target>
+
     <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
             update="true" overwrite="true" forcedeliver="true">
@@ -101,7 +115,7 @@
         </ivy:publish>
     </target>
 
-    <target name="ivy-publish-dev" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish-dev" depends="-set-module-publish-version-dev, clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
             update="true" overwrite="true" forcedeliver="true">
             <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
