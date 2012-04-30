@@ -166,6 +166,12 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
     cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
     cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+
+    if [ "$othermigrationsappname" != "" ]
+    then
+        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    fi
+
     # call the create repo job downstream to avoid repo locking issues
 
     # Move the last-stable tag to the current commit
