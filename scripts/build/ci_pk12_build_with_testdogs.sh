@@ -31,7 +31,7 @@ runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
 isnightlybuild=${IS_NIGHTLY_BUILD:-false}
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}} # e.g., a hack so that we can pretend outcomes and teacher portal are separate
+othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
