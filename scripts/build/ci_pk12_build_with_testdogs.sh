@@ -31,6 +31,7 @@ runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
 isnightlybuild=${IS_NIGHTLY_BUILD:-false}
+othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
@@ -116,14 +117,21 @@ if [ $isnightlybuild != 'true' ]; then
     python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
             -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
 
+    if [ "$othermigrationsappname" != "" ]
+    then
+        # Remove and rebuild the other migration RPM
+        # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
+        rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
+        python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
+            -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
+    fi
+    
     # Promote them to CI rpm repo
     /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
 
 else
-
     # Migrate schema back up so webapp may start
     $ANT clear-schema migrate-schema
-
 fi
 
 # Deploy webapp, update bcfg, start webapp
@@ -158,6 +166,12 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
     cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
     cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+
+    if [ "$othermigrationsappname" != "" ]
+    then
+        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    fi
+
     # call the create repo job downstream to avoid repo locking issues
 
     # Move the last-stable tag to the current commit
