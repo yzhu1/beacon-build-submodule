@@ -674,7 +674,7 @@
            <arg value="/${servlet.name}" />
            <!-- check for manual imports of auto-imported utility macros -->
            <arg value="-e" />
-           <arg value="util.ftl" />
+           <arg value="/util.ftl" />
            <!-- customization file is the only place those strings are allowed to appear -->
            <arg value="--exclude" />
            <arg value="util_constants.ftl" />
