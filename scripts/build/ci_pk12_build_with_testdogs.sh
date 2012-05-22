@@ -106,7 +106,7 @@ if [ $isnightlybuild != 'true' ]; then
               -v $apphomeenvvar -n $testsperbatch -d
     fi
     # Remove existing RPMs in the repo to ensure the one we build gets deployed
-    #rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
+    rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
     rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
     
     # Build webapp and db rpms
