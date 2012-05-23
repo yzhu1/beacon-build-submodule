@@ -95,6 +95,8 @@
             <property name="ignoreComments" value="true" />
             <property name="message" value="Ignored tests must have a FogBugz comment" />
         </module>
+        
+        <module name="NeedBraces"/>
 
     </module>
 
