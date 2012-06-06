@@ -661,6 +661,8 @@
            <arg value="global_ready.js" />
            <arg value="--exclude" />
            <arg value="math-utilities.js" />
+           <arg value="--exclude" />
+           <arg value="OATimeoutDetect.js" />
         </exec>
         <condition property="build.js.errors">
             <and>
