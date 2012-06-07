@@ -84,6 +84,7 @@
 
     <target name="tomcat-clean" description="Delete exploded war directory">
         <delete dir="${war.exploded.dir}"/>
+        <delete dir="${tomcat.dir}/work" />
     </target>
 
     <target name="tomcat-start" depends="tomcat-clean" description="Start tomcat">
