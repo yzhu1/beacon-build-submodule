@@ -104,7 +104,7 @@
             />
         </exec>
         <echo>Waiting for tomcat to start...</echo>
-        <parallel threadCount="2" timeout="100000">
+        <parallel threadCount="2" timeout="200000">
             <daemons>
                 <exec executable="tail" failonerror="false" timeout="100000">
                     <arg value="-f"/>
