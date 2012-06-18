@@ -63,7 +63,7 @@ $ANT ivy-resolve
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
 
-if[ '$gitrepo' == 'outcomes' ]
+if [ "$gitrepo" == "outcomes" ]
 then
     git push -f git@github.wgenhq.net:Beacon/$gitrepo +refs/tags/$buildtag:$buildtag
 else
