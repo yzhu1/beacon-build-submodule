@@ -46,9 +46,9 @@ export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit
 
 if [ "$gitrepo" == "outcomes" ]
 then
-  gitrepobaseurl="git@github.wgenhq.net:Beacon/"
+  gitrepobaseurl="git@github.wgenhq.net:Beacon"
 else
-  gitrepobaseurl="git@mcgit.mc.wgenhq.net:312/"
+  gitrepobaseurl="git@mcgit.mc.wgenhq.net:312"
 fi
 
 # Set the migration testdog if testdogs have been set
