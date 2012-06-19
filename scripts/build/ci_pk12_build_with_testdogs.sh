@@ -44,6 +44,13 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
+if [ "$gitrepo" == "outcomes" ]
+then
+  gitrepobaseurl="git@github.wgenhq.net:Beacon"
+else
+  gitrepobaseurl="git@mcgit.mc.wgenhq.net:312"
+fi
+
 # Set the migration testdog if testdogs have been set
 if [ -n "${TESTDOGS+x}" ]
 then
@@ -62,13 +69,7 @@ $ANT ivy-resolve
 
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
-
-if [ "$gitrepo" == "outcomes" ]
-then
-    git push -f git@github.wgenhq.net:Beacon/$gitrepo +refs/tags/$buildtag:$buildtag
-else
-    git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo +refs/tags/$buildtag:$buildtag
-fi
+git push -f $gitrepobaseurl/$gitrepo +refs/tags/$buildtag:$buildtag
 
 # Set properties that'll get templated into basic.ftl
 gitrevision=`git log -1 --pretty=format:%H`
@@ -182,6 +183,6 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
 
     # Move the last-stable tag to the current commit
     git branch -f last-stable-$buildbranch
-    git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$buildbranch
+    git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
 
 fi
