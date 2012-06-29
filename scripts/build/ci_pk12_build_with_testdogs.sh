@@ -44,7 +44,7 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
-if [ "$gitrepo" == "outcomes" ]
+if [ "$gitrepo" == "outcomes" || "$gitrepo" == "assess"]
 then
   gitrepobaseurl="git@github.wgenhq.net:Beacon"
 else
