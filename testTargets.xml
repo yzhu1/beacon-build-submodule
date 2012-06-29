@@ -2,6 +2,10 @@
 <project name="test">
     <property file="${imported.basedir}/default.test.properties" />
 
+    <!-- if the "method" property is not set, initialize to empty -->
+    <!-- (if we don't, junit-explicit will see the value '${method} for that parameter, breaking util tests) -->
+    <property name="method" value="" />
+
     <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
              resource="checkstyletask.properties"
     />
