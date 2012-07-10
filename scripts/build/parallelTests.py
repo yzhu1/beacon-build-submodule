@@ -18,6 +18,7 @@ find target/test/integration target/test/webservice -name *Test.class|xargs -I C
     -s yad127.tt.wgenhq.net,yad128.tt.wgenhq.net,yad129.tt.wgenhq.net \
     -v OUTCOMES_HOME \
     -n 8
+    -d -t prepare-db-for-parallel-tests
 
 Instructions for setting up new pk12-style testdogs: https://wgencontractorwiki.mc.wgenhq.net/index.php/3-12_Platform/Development/Create_a_new_Testdog.
 '''
@@ -32,9 +33,6 @@ import optparse
 import tempfile
 from threading import Lock
 from subprocess import Popen, PIPE
-
-# Constant for now, can be parameterized if we want to use this script for non-ant or db-less projects
-TESTDOG_DB_UPDATE_TASK = 'prepare-db-for-parallel-tests'
 
 # Implemented here for ant
 def getTaskToRunBatchOfTests(tests):
@@ -149,10 +147,10 @@ def runSubprocess(cmd, manager, failonerror=False):
 
     return returncode, output
 
-def setupTestdog(testdog, manager, updatedb):
+def setupTestdog(testdog, manager, updatedb, updatedbtask):
     try:
         if updatedb:
-            runSubprocess('export ENV_PROPERTY_PREFIX=%s && /opt/wgen-3p/ant-1.7.0/bin/ant %s' % (testdog, TESTDOG_DB_UPDATE_TASK), manager, failonerror=True)
+            runSubprocess('export ENV_PROPERTY_PREFIX=%s && /opt/wgen-3p/ant-1.7.0/bin/ant %s' % (testdog, updatedbtask), manager, failonerror=True)
         manager.output('  (ready) finished setting up %s' % testdog)
         manager.makeTestdogAvailable(testdog)
     except Exception, e:
@@ -178,11 +176,11 @@ def runBatchOfTests(tests, testdog, manager, apphomeenvvar, runonlysmoketests):
     except Exception, e:
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
 
-def runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, runonlysmoketests):
+def runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, updatedbtask, runonlysmoketests):
     # Do setup on each testdog
     manager = SyncManager(testdogs)
     for testdog in testdogs:
-        thread.start_new_thread(setupTestdog, (testdog, manager, updatedb))
+        thread.start_new_thread(setupTestdog, (testdog, manager, updatedb, updatedbtask))
     manager.waitForAllTestdogsToBeAvailable()
     # Farm out the tests in batches until they're all gone
     while tests:
@@ -205,6 +203,7 @@ if __name__ == '__main__':
     parser.add_option('-v', dest='apphomeenvvar', help='e.g., THREETWELVE_HOME')
     parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each testdog at a time')
     parser.add_option('-d', dest='updatedb', action='store_true', help='do your testdogs\' dbs need to be updated?')
+    parser.add_option('-t', dest='updatedbtask', default='', help='the ant task to run on each testdog to update the db')
     parser.add_option('-l', dest='runonlysmoketests', default=True, action='store_false', help='run slow tests')
 
     (options, args) = parser.parse_args()
@@ -216,8 +215,12 @@ if __name__ == '__main__':
     testdogs = options.testdogs.strip().split(',')
     apphomeenvvar = options.apphomeenvvar.strip()
     testsperbatch = int(options.testsperbatch.strip())
-    updatedb = bool(options.updatedb)
     runonlysmoketests = bool(options.runonlysmoketests)
+    
+    updatedb = bool(options.updatedb)
+    if updatedb:
+        assert options.updatedbtask, 'please provide the ant task for updating the testdog database'
+    updatedbtask = options.updatedbtask.strip()
 
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
@@ -227,7 +230,9 @@ if __name__ == '__main__':
     print 'RUNNING PARALLEL TESTS'
     print 'test classes to run: %i' % numtestclasses
     print 'available testdogs: %r' % testdogs
+    if updatedb:
+        print 'db update task: %s' % updatedbtask
 
-    exitstatus = runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, runonlysmoketests)
+    exitstatus = runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, updatedbtask, runonlysmoketests)
     print 'ran %i test classes\n' % numtestclasses
     sys.exit(exitstatus)

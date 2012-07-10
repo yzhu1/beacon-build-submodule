@@ -104,8 +104,8 @@ if [ $isnightlybuild != 'true' ]; then
 	)   | grep Test.class \
 	    | xargs -I CLASSFILE basename CLASSFILE .class \
 	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $TESTDOGS \
-              -v $apphomeenvvar -n $testsperbatch -d
+              -s $TESTDOGS -v $apphomeenvvar -n $testsperbatch \
+              -d -t update-schema
     fi
     # Remove existing RPMs in the repo to ensure the one we build gets deployed
     rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
@@ -160,7 +160,8 @@ else
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
     -s $webdrivertestdogs \
-    -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
+    -v $apphomeenvvar -n $testsperbatch -l $runslowtestsflag \
+    -d -t prepare-db-for-parallel-tests
 fi
 
 if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
