@@ -222,13 +222,16 @@ if __name__ == '__main__':
         assert options.updatedbtask, 'please provide the ant task for updating the testdog database'
     updatedbtask = options.updatedbtask.strip()
 
+    print 'RUNNING PARALLEL TESTS'
+    
     # Get names of tests to run from stdin
     tests = map(str.strip, sys.stdin.readlines())
+    numtestclasses = len(tests)
+    print 'test classes to run: %i' % numtestclasses
+    
     # Shuffle tests to give testdogs an even burden
     random.shuffle(tests)
-    numtestclasses = len(tests)
-    print 'RUNNING PARALLEL TESTS'
-    print 'test classes to run: %i' % numtestclasses
+    
     print 'available testdogs: %r' % testdogs
     if updatedb:
         print 'db update task: %s' % updatedbtask
