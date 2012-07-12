@@ -160,7 +160,7 @@ else
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
     -s $webdrivertestdogs \
-    -v $apphomeenvvar -n $testsperbatch -l $runslowtestsflag \
+    -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
     -d -t prepare-db-for-parallel-tests
 fi
 
