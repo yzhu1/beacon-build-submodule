@@ -200,11 +200,15 @@
        </spring-runner>
     </target>
     
-    <target name="run-dm" depends="test-compile" description="Run one fixture datamaker, use with -Ddm=DataMakerClassName">
+    <target name="run-dm" depends="test-compile"
+        description="Run one fixture datamaker, use with -Ddm=DataMakerClassName.  Use -DtruncateTables=false for incremental load.">
+       <!-- default this argument to "true" if not supplied on the command line -->
+       <property name="truncateTables" value="true" />
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
            bean="fixtureRunnerLoadDatamakers"
            method="runSomeDatamakers">
          <arg value="${dm}" />
+         <arg value="${truncateTables}" />
        </spring-runner>
     </target>
 
