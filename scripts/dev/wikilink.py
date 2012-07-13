@@ -62,6 +62,13 @@ class wikilinker(object):
     def get_gitweb_linker(repo):
         return wikilinker("https://{server}/gerrit/gitweb?p={project_root}.git;a=blob;f={path}",
                           ";hb=refs/heads/{branch}", repo)
+    @staticmethod
+    def get_github_linker(repo):
+        return wikilinker("https://{server}/{project_root}/tree/master/{path}",
+                          "https://{server}/{project_root}/tree/{branch}/{path}", repo)
+    @staticmethod
+    def get_github_commit_linker(repo):
+        return wikilinker("https://{server}/{project_root}/commit/{path}","",repo)
 
     @staticmethod
     def get_cgit_commit_linker(repo):
@@ -114,6 +121,9 @@ def main():
     if r.port() == 2222:
         linker = wikilinker.get_gitweb_linker(r)
         commit_linker = wikilinker.get_gitweb_commit_linker(r)
+    elif "github" in r.server() :
+        linker = wikilinker.get_github_linker(r)
+        commit_linker = wikilinker.get_github_commit_linker(r)
     else:
         linker = wikilinker.get_cgit_linker(r)
         commit_linker = wikilinker.get_cgit_commit_linker(r)
