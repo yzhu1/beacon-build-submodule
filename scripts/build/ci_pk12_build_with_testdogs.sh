@@ -44,6 +44,8 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
+gitrepobaseurl="git@github.wgenhq.net:Beacon"
+
 # Set the migration testdog if testdogs have been set
 if [ -n "${TESTDOGS+x}" ]
 then
@@ -62,7 +64,7 @@ $ANT ivy-resolve
 
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
-git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo +refs/tags/$buildtag:$buildtag
+git push -f $gitrepobaseurl/$gitrepo +refs/tags/$buildtag:$buildtag
 
 # Set properties that'll get templated into basic.ftl
 gitrevision=`git log -1 --pretty=format:%H`
@@ -102,8 +104,8 @@ if [ $isnightlybuild != 'true' ]; then
 	)   | grep Test.class \
 	    | xargs -I CLASSFILE basename CLASSFILE .class \
 	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $TESTDOGS \
-              -v $apphomeenvvar -n $testsperbatch -d
+              -s $TESTDOGS -v $apphomeenvvar -n $testsperbatch \
+              -d -t update-schema
     fi
     # Remove existing RPMs in the repo to ensure the one we build gets deployed
     rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
@@ -158,7 +160,8 @@ else
   | xargs -I CLASSFILE basename CLASSFILE .class \
   | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
     -s $webdrivertestdogs \
-    -v $apphomeenvvar -n $testsperbatch -d $runslowtestsflag
+    -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
+    -d -t prepare-db-for-parallel-tests
 fi
 
 if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
@@ -176,6 +179,6 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
 
     # Move the last-stable tag to the current commit
     git branch -f last-stable-$buildbranch
-    git push -f git@mcgit.mc.wgenhq.net:312/$gitrepo.git last-stable-$buildbranch
+    git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
 
 fi

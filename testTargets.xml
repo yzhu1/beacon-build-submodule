@@ -2,6 +2,10 @@
 <project name="test">
     <property file="${imported.basedir}/default.test.properties" />
 
+    <!-- if the "method" property is not set, initialize to empty -->
+    <!-- (if we don't, junit-explicit will see the value '${method} for that parameter, breaking util tests) -->
+    <property name="method" value="" />
+
     <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
              resource="checkstyletask.properties"
     />
@@ -26,7 +30,6 @@
             <path id="cobertura.classpath" />
         </else>
     </if>
-
 
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
@@ -226,6 +229,8 @@
         <attribute name="classpathref" />
         <attribute name="coverage-file" default="${coverage.data.file.ignored}" />
         <attribute name="disable-cache" default="false" />
+        <attribute name="method" default="" />
+        <attribute name="run-only-util-param" default="false" />
         <element name="junit-filesets" implicit="true" optional="false" />
         <sequential>
             <if>
@@ -240,6 +245,22 @@
                     />
                 </then>
             </if>
+
+            <property environment="env" />
+            <!-- first, use the parameter value if true -->
+            <condition property="run-only-util" value="true">
+                <istrue value="@{run-only-util-param}" />
+            </condition>
+            <!-- second, try the value from the environment -->
+            <condition property="run-only-util" value="${env.RUN_ONLY_UTIL}">
+                <isset property="env.RUN_ONLY_UTIL" />
+            </condition>
+            <!-- default to nothing -->
+            <property name="run-only-util" value="" />
+            <!--<echo>run-only-util-param  @{run-only-util-param}</echo>
+            <echo>env.RUN_ONLY_UTIL ${env.RUN_ONLY_UTIL}</echo>
+            <echo>run-only-util  ${run-only-util}</echo>-->
+
             <junit
                 fork="yes"
                 forkmode="perBatch"
@@ -254,8 +275,12 @@
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
                 <sysproperty key="app.freemarker.source.dir" file="${app.dir}/src/main/webapp/WEB-INF/freemarker" />
                 <sysproperty key="common.freemarker.source.dir" file="${common.web.dir}/WEB-INF/freemarker" />
+                <!-- The specific test method to run -->
+                <sysproperty key="net.wgen.spring.common.test.method" value="${method}" />
+                <sysproperty key="RUN_ONLY_UTIL" value="${run-only-util}" /> <!-- reset the env variable -->
                 <!--Disable EhCache for batch testing! -->
                 <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
+
                 <formatter type="brief" />
                 <formatter type="xml" />
 
@@ -319,6 +344,17 @@
         description="Run a single test: use with -Dtest=NameOfTest">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
 		disable-cache="true">
+            <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
+            <fileset dir="${webdriver.test.classes.dir}" includes="**/${test}.class" />
+        </junit-explicit>
+    </target>
+
+    <target name="test-util"  depends="test-compile"
+        description="run a single utility: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun">
+        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
+            disable-cache="true" method="${method}" run-only-util-param="true">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
@@ -629,6 +665,8 @@
            <arg value="global_ready.js" />
            <arg value="--exclude" />
            <arg value="math-utilities.js" />
+           <arg value="--exclude" />
+           <arg value="OATimeoutDetect.js" />
         </exec>
         <condition property="build.js.errors">
             <and>
