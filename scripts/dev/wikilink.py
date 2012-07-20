@@ -6,7 +6,7 @@ import subprocess
 import sys
 import pdb
 import optparse
-
+from collections import defaultdict
 
 topReviewTemplate = ("=Overview=\n"
     +"*Hot Seat: \n"
@@ -93,6 +93,29 @@ class wikilinker(object):
         url = self.get_link_url(commit)
         return "* [%s %s]" % (url, msg)
 
+    def getFileMap (self, linkList):
+        filesMap=defaultdict(list)
+        for fileName in linkList:
+            if "Test" in fileName:
+                filesMap["4Tests"].append(fileName)
+            elif "Controller" in fileName:
+                filesMap["1Controllers"].append(fileName)
+            elif "Service" in fileName:
+                filesMap["2Services"].append(fileName)
+            elif "Repository" in fileName:
+                filesMap["3Repositories"].append(fileName)
+            elif "DM" in fileName:
+                filesMap["5Datamakers"].append(fileName)
+            elif "ftl" in fileName:
+                filesMap["6Freemarker"].append(fileName)
+            elif "css" in fileName:
+                filesMap["7css"].append(fileName)
+            elif "js" in fileName and "java" not in fileName:
+                filesMap["8JavaScript"].append(fileName)
+            else:
+                filesMap["9Others"].append(fileName)
+        return filesMap
+
 def main():
     (opts, arglist) = getargs()
     r = gitutils.get_repo()
@@ -119,9 +142,17 @@ def main():
         commit_linker = wikilinker.get_cgit_commit_linker(r)
     if opts.template:
         print topReviewTemplate
+    linkList=list()
     for path in file_list:
         link = linker.make_wiki_link(path)
-        print link
+        linkList.append(link)
+    fileMap = linker.getFileMap(linkList)
+    fileKeys = fileMap.keys()
+    fileKeys.sort();
+    for fileKey in fileKeys:
+        print "=="+fileKey[1:]+"=="
+        for link in fileMap[fileKey]:
+            print link
     if opts.template:
         if opts.branchfiles:
             commits = r.branch_commits()
