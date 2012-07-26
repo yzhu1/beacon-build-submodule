@@ -89,8 +89,18 @@
         <apachectl command="stop" />
     </target>
 
-    <target name="tomcat-clean" description="Delete exploded war directory">
-        <delete dir="${war.exploded.dir}"/>
+    <target name="tomcat-clean" description="Delete all outdated war directories">
+        <outofdate outputtargets="outdated.webapps" separator="${line.separator}">
+            <sourcefiles>
+                <fileset dir="${tomcat.webapp.dir}" >
+                    <include name="*.war"/>
+                </fileset>
+            </sourcefiles>
+            <mapper type="regexp" from="^(.*)\.war$$" to="\1"/>
+            <deletetargets quiet="true" failonerror="true" />
+        </outofdate>
+        <echo>Deleted (or missing) webapp directories (if any):${line.separator}${outdated.webapps}</echo>
+        <!-- tomcat working directory (can cause startup errors/warnings if stale) -->
         <delete dir="${tomcat.dir}/work" />
     </target>
 
