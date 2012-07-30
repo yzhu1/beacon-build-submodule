@@ -37,6 +37,9 @@
     <import file="serverTargets.xml"/>
     <import file="ivyTargets.xml"/>
 
+    <property name="jar-test.include" value="wgspring*integration*-test-*.jar" />
+    <property name="jar-test.exclude" value="*-src-*.jar"/>
+
     <path id="test.classpath.base">
         <path refid="cobertura.classpath" />
         <fileset dir="${test.lib.dir}" includes="*.jar" />
@@ -453,24 +456,21 @@
     
     <target name="test-integration-wgspringcore" description="Run tests found in wgspringcore-integration-test-*.jar"
         depends="test-compile" >
-        <!-- find the latest version of the wgspringcore-integration-test jar -->
-        <pathconvert property="jar-containing-tests" targetos="unix" pathsep="">
-            <fileset dir="${ivy.lib.dir}/test"
-                includes="wgspringcore-integration-test-*.jar"
-                excludes="wgspringcore-integration-test-src-*.jar"/>
-        </pathconvert>
-        <echo>running tests in ${jar-containing-tests}</echo>
-        <sequential>
-            <junit-explicit
-                label="wgspringcore integration tests"
-                classpathref="test.classpath.run-integration"
-                coverage-file="${coverage.data.file.test-integration}" 
-                disable-cache="true" >                
-                <zipfileset src="${jar-containing-tests}"
-                            includes="${tests.include}"
-                            excludes="${tests.exclude}" />                            
-            </junit-explicit>
-        </sequential>
+        <for param="this-jar" keepgoing="true">
+            <fileset dir="${ivy.lib.dir}/test" includes="${jar-test.include}" excludes="${jar-test.exclude}"/>
+            <sequential>
+                <echo>running tests in @{this-jar}</echo>
+                <junit-explicit
+                    label="wgspringcore integration tests"
+                    classpathref="test.classpath.run-integration"
+                    coverage-file="${coverage.data.file.test-integration}"
+                    disable-cache="true" >
+                    <zipfileset src="@{this-jar}"
+                                includes="${tests.include}"
+                                excludes="${tests.exclude}" />
+                </junit-explicit>
+            </sequential>
+        </for>
     </target>
 
     <target name="test-unit" depends="test-compile"
