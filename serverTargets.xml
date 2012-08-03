@@ -26,6 +26,9 @@
                 </then>
             </elseif>
             <else>
+                <echo>NOTE: the APACHE_LOG_DIR variable is not respected by Ubuntu!</echo>
+                <echo>Apache error log and PID file will be in /opt/tt/log/outcomes,</echo>
+                <echo>regardless of property or environment variable settings.</echo>
                 <property name="apachectl" value="/usr/sbin/apache2ctl"/>
                 <property name="conf" location="${apache.config.dir}/dev-local-httpd-ubuntu.conf"/>
             </else>
@@ -43,6 +46,9 @@
                 <property name="conf" location="${apache.config.dir}/dev-local-lb-httpd.conf"/>
             </then>
             <else>
+                <echo>NOTE: the APACHE_LOG_DIR variable is not respected by Ubuntu!</echo>
+                <echo>Apache error log and PID file will be in /opt/tt/log/outcomes,</echo>
+                <echo>regardless of property or environment variable settings.</echo>
                 <property name="apachectl" value="/usr/sbin/apache2ctl"/>
                 <property name="conf" location="${apache.config.dir}/dev-local-lb-httpd-ubuntu.conf"/>
             </else>
