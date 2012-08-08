@@ -705,6 +705,7 @@
               outputproperty="build.template.grep.output"
               resultproperty="build.template.grep.return"
               failonerror="false">
+           <arg value="-n" />
            <arg value="-r" />
            <arg value="${app.web.dir}/WEB-INF/freemarker" />
            <!-- check for hard-coding of the context name -->
