@@ -294,6 +294,15 @@
     
     <target name="create-truncate-tables-function" depends="prepare-pgpass"
         description="create a pg function that truncates most tables - used by integration tests">
+        <if>
+          <or>
+            <equals arg1="${sys_env.ENV_PROPERTY_PREFIX}" arg2="futureqa"/>
+            <equals arg1="${sys_env.ENV_PROPERTY_PREFIX}" arg2="currentqa"/>
+          </or>
+          <then>
+            <fail>Cannot create truncate tables function in ${sys_env.ENV_PROPERTY_PREFIX}</fail>
+          </then>
+        </if>
         <pg-run-script script="${app.dir}/scripts/db/create_truncate_tables_function.sql" />
     </target>
     
