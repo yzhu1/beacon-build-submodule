@@ -19,7 +19,7 @@ class hostprefix(object):
         return cls.datacenter_format % appname
     @classmethod
     def preprod(cls, appname):
-        cls.production(appname)
+        return cls.production(appname)
     @classmethod
     def fqa(cls, appname):
         return "yet" if  "webassess" != appname else "yad"
