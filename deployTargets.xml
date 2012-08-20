@@ -215,6 +215,12 @@
             <fileset dir="${app.dir}/src/main/resources"/>
         </copy>
 
+        <!-- get the lastest commit hash -->
+        <exec executable="git" outputproperty="git.current.hash">
+          <arg value="rev-parse"/>
+          <arg value="HEAD"/>
+        </exec>
+
         <echo file="${web.assets.commit.hash.file}">${git.current.hash}</echo>
     </target>
 
