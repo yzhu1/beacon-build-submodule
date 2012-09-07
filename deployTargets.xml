@@ -7,6 +7,8 @@
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="jarTargets.xml"/>
     <import file="serverTargets.xml"/>
+    <!-- this one is totally necessary, though -->
+    <include file="gitMacros.xml" />
 
     <target name="switchBranchAndRefresh"
     	description="Use with -DbranchName=[NameOfBranchToSwitchTo]">
@@ -216,10 +218,7 @@
         </copy>
 
         <!-- get the lastest commit hash -->
-        <exec executable="git" outputproperty="git.current.hash">
-          <arg value="rev-parse"/>
-          <arg value="HEAD"/>
-        </exec>
+        <git-retrieve-current-commit outputproperty="git.current.hash" />
 
         <echo file="${web.assets.commit.hash.file}">${git.current.hash}</echo>
     </target>

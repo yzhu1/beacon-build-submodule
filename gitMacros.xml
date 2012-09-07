@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<project name="gitMacros" xmlns:ivy="antlib:org.apache.ivy.ant" basedir=".">
+
+    <macrodef name="git">
+        <attribute name="command"/>
+        <attribute name="outputproperty" default="git.command.output"/>
+        <element description="arguments to the git command" name="git-args" implicit="true" optional="true"/>
+        <sequential>
+             <exec executable="git" outputproperty="@{outputproperty}" logError="true">
+                    <arg value="@{command}"/>
+                    <git-args/>
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="git-retrieve-branch-name">
+        <attribute name="outputproperty" default="git.current.branch" />
+        <sequential>
+            <git command="rev-parse" outputproperty="@{outputproperty}">
+                <arg value="--abbrev-ref" />
+                <arg value="HEAD" />
+            </git>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="git-retrieve-commit-id">
+        <attribute name="outputproperty" default="git.current.commit" />
+        <sequential>
+            <git command="rev-parse" outputproperty="@{outputproperty}">
+                <arg value="HEAD" />
+            </git>
+        </sequential>
+    </macrodef>
+</project>

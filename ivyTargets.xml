@@ -14,6 +14,10 @@
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
     <import file="dbTargets.xml"/>
+    <!-- this one is totally necessary, though -->
+    <include file="gitMacros.xml" />
+
+
 
     <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
         <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
@@ -124,5 +128,22 @@
     </target>
 
     <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
- 
+
+    <target name="update-commit-log">
+        <!-- set job ID to a placeholder if not actually running in Jenkins (for debugging) -->
+        <condition
+                property="jenkins.job-id"
+                else="FAKE_JENKINS_JOB"
+                value="${sys_env.JOB_NAME}-${sys_env.BUILD_NUMBER}">
+            <isset property="sys_env.JOB_NAME" />
+        </condition>
+        <git-retrieve-branch-name />
+        <git-retrieve-commit-id />
+        <property name='log-message'
+          value="build ${jenkins.job-id} built ${git.current.commit} as ${module.revision.published}${line.separator}"
+        />
+        <git command="pull"><arg value="origin" /> <arg value="${git.current.branch}" /></git>
+        <echo message="${git.command.output}"/>
+        <echo append="true" file=".commitlog" message="${log-message}" />
+    </target>
 </project>
