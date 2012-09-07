@@ -218,7 +218,7 @@
         </copy>
 
         <!-- get the lastest commit hash -->
-        <git-retrieve-current-commit outputproperty="git.current.hash" />
+        <git-retrieve-commit-id outputproperty="git.current.hash" />
 
         <echo file="${web.assets.commit.hash.file}">${git.current.hash}</echo>
     </target>
