@@ -139,12 +139,14 @@
 
      </target>
      
-     <target name="build-javadoc" description="Generate JavaDoc for the source">
-        <javadoc
-            sourcepath="${app.src.dir}"
-            destdir="${output.dir}/javadoc"
-            classpathref="build.app.classpath"
-        >
+    <target name="build-javadoc" description="Generate JavaDoc for the source">
+        <javadoc destdir="${output.dir}/javadoc" classpathref="build.app.classpath">
+            <sourcefiles>
+                <fileset dir="${app.src.dir}" />
+                <fileset dir="${app.integration.src.dir}/util/java">
+                    <include name="**/*DM.java" />
+                </fileset>
+            </sourcefiles>
         </javadoc>
-     </target>
+    </target>
 </project>
