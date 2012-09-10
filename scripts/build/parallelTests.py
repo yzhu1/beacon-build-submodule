@@ -36,7 +36,7 @@ from subprocess import Popen, PIPE
 
 # Implemented here for ant
 def getTaskToRunBatchOfTests(tests):
-    return '/opt/wgen-3p/ant-1.7.0/bin/ant test-several-precompiled -Dtests=' + ','.join(['**/%s.class' % test for test in tests])
+    return '/opt/wgen-3p/ant-1.8.1/bin/ant test-several-precompiled -Dtests=' + ','.join(['**/%s.class' % test for test in tests])
 
 class SyncManager(object):
 
@@ -150,7 +150,7 @@ def runSubprocess(cmd, manager, failonerror=False):
 def setupTestdog(testdog, manager, updatedb, updatedbtask):
     try:
         if updatedb:
-            runSubprocess('export ENV_PROPERTY_PREFIX=%s && /opt/wgen-3p/ant-1.7.0/bin/ant %s' % (testdog, updatedbtask), manager, failonerror=True)
+            runSubprocess('export ENV_PROPERTY_PREFIX=%s && /opt/wgen-3p/ant-1.8.1/bin/ant %s' % (testdog, updatedbtask), manager, failonerror=True)
         manager.output('  (ready) finished setting up %s' % testdog)
         manager.makeTestdogAvailable(testdog)
     except Exception, e:
