@@ -130,6 +130,6 @@ fi
 /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
 
 # Move the last-stable tag to the current commit
-git branch -f last-stable-integation-tests-$buildbranch
-git push -f $gitrepobaseurl/$gitrepo.git last-stable-integation-tests-$buildbranch
+git branch -f last-stable-integration-$buildbranch
+git push -f $gitrepobaseurl/$gitrepo.git last-stable-integration-$buildbranch
 
