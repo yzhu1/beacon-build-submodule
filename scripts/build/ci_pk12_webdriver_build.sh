@@ -112,12 +112,12 @@ fi
 if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
 
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
-    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-*_integration.noarch.rpm $nextrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm
-    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*_integration.noarch.rpm $nextrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm
+    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm
+    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm
 
     if [ "$othermigrationsappname" != "" ]
     then
-        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*_integration.noarch.rpm $nextrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm
+        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm
     fi
 
     # call the create repo job downstream to avoid repo locking issues
