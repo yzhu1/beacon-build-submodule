@@ -110,9 +110,7 @@ rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
 rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
 
 # Build webapp and db rpms
-
-#intbuildnumber=$buildnumber"_integration"
-intbuildnumber=$buildnumber
+intbuildnumber=$buildnumber"_integration"
 
 rm -rf $workspace/RPM_STAGING
 mkdir -p $workspace/opt/tt/webapps/$app
