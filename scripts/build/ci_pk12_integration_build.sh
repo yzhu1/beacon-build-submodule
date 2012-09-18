@@ -110,14 +110,13 @@ rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
 rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
 
 # Build webapp and db rpms
-intbuildnumber=$buildnumber"_integration"
 
 rm -rf $workspace/RPM_STAGING
 mkdir -p $workspace/opt/tt/webapps/$app
 python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$intbuildnumber $workspace/rpm/tt-$app.spec
+        -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
 python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$intbuildnumber $workspace/rpm/tt-migrations-$app.spec
+        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
 
 if [ "$othermigrationsappname" != "" ]
 then
@@ -125,7 +124,7 @@ then
     # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
     rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
     python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$intbuildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
+        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
 fi
 
 # Promote them to CI rpm repo

@@ -112,18 +112,13 @@ fi
 if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
 
-    # Rename RPMs created by the integration build so that the build numbers match
-    mv $buildrpmrepo/mclass-tt-$app-$rpmversion-*_integration.noarch.rpm $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm
-    mv $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*_integration.noarch.rpm $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm
-
     # Copy the RPMs to the future-qa repo
-    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm $nextrpmrepo
+    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm $nextrpmrepo
 
     if [ "$othermigrationsappname" != "" ]
     then
-        mv $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*_integration.noarch.rpm $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm
-        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm $nextrpmrepo
     fi
 
     # call the create repo job downstream to avoid repo locking issues
