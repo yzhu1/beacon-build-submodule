@@ -123,7 +123,11 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
 
     # call the create repo job downstream to avoid repo locking issues
 
-    # Move the last-stable tag to the current commit
+    # Add last-stable-webdriver tag to the current commit
+    git branch -f last-stable-webdriver-$buildbranch
+    git push -f $gitrepobaseurl/$gitrepo.git last-stable-webdriver-$buildbranch
+
+    # Move the last-stable tag to the last-stable-integration tag
     git checkout last-stable-integration-$buildbranch
     git branch -f last-stable-$buildbranch
     git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch

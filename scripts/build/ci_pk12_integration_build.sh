@@ -130,7 +130,7 @@ fi
 # Promote them to CI rpm repo
 /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
 
-# Move the last-stable tag to the current commit
+# Add the last-stable-integration tag to the current commit
 git branch -f last-stable-integration-$buildbranch
 git push -f $gitrepobaseurl/$gitrepo.git last-stable-integration-$buildbranch
 
