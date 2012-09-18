@@ -124,6 +124,7 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # call the create repo job downstream to avoid repo locking issues
 
     # Move the last-stable tag to the current commit
+    git checkout last-stable-integration-$buildbranch
     git branch -f last-stable-$buildbranch
     git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
 
