@@ -129,6 +129,7 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
 
     # Move the last-stable tag to the last-stable-integration tag
     git checkout last-stable-integration-$buildbranch
+    git pull
     git branch -f last-stable-$buildbranch
     git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
 
