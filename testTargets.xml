@@ -272,7 +272,7 @@
                 printsummary="yes"
                 showoutput="yes"
                 failureproperty="junit.failed"
-                maxmemory="512m"
+                maxmemory="768m"
                 >
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
@@ -290,7 +290,7 @@
                 <classpath refid="@{classpathref}" />
                 <sysproperty key="net.sourceforge.cobertura.datafile" file="@{coverage-file}" />
 
-                <jvmarg value="-Xmx512m" />
+                <jvmarg value="-Xmx768m" />
             	<jvmarg value="-Dfile.encoding=utf8" />
             	<jvmarg value="-XX:MaxPermSize=256m" />
             	<jvmarg value="-XX:-UseGCOverheadLimit" />
