@@ -70,18 +70,33 @@ class gitrepo(object):
             return 22
         else:
             return int(self._repo_port)
-
+    def branch_checked(self):
+        branch = self._current_branch
+        if (None == branch):
+            branch = "HEAD"
+        return branch
     def rooted_path(self, local_path):
         return os.path.relpath(local_path, self._path_to_local_root)
 
     def rooted_paths(self, pathlist):
         return map(self.rooted_path,pathlist)
 
-    def branch_files(self):
-        basecmd = "git diff --name-only `git merge-base origin/master {commit}`..{commit}"
-        branch = self.branch()
-        if (None == branch):
-            branch = "HEAD"
+    def branch_files(self, basecmd = "git diff --name-only `git merge-base origin/master {commit}`..{commit}"):
+        if not "--name-only" in basecmd:
+            basecmd += " --name-only"
+        branch = self.branch_checked()
         cmd = basecmd.format(commit=branch)
         pathlist = [path.rstrip() for path in os.popen(cmd).readlines()]
         return self.rooted_paths(pathlist)
+
+    def branch_commits(self):
+        branch = self.branch_checked()
+        cmd = "git log `git merge-base origin/master {commit}`.. --oneline"
+        cmd = cmd.format(commit=branch)
+        commitList = [commit_log[:7] for commit_log in os.popen(cmd).readlines()]
+        return commitList
+
+    def commit_message(self, commit):
+        branch = self.branch_checked()
+        cmd = "git log --pretty=oneline --abbrev-commit " + commit + "^!"
+        return os.popen(cmd).readline().rstrip()[8:]

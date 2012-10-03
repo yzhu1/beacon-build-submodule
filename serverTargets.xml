@@ -1,6 +1,13 @@
 <?xml version="1.0"?>
 <project name="server">
 
+    <!-- set APACHE_LOG_DIR environment variable for apache config files -->
+    <property environment="env" />
+    <condition property="apache.log.dir" value="${env.APACHE_LOG_DIR}">
+        <isset property="env.APACHE_LOG_DIR"/>
+    </condition>
+    <property name="apache.log.dir" value="/opt/tt/log/outcomes" />
+
     <target name="set-apache-props">
         <exec executable="ls" failonerror="false" resultproperty="vm">
             <arg value="/etc/redhat-release"/>
@@ -19,6 +26,9 @@
                 </then>
             </elseif>
             <else>
+                <echo>NOTE: the APACHE_LOG_DIR variable is not respected by Ubuntu!</echo>
+                <echo>Apache error log and PID file will be in /opt/tt/log/outcomes,</echo>
+                <echo>regardless of property or environment variable settings.</echo>
                 <property name="apachectl" value="/usr/sbin/apache2ctl"/>
                 <property name="conf" location="${apache.config.dir}/dev-local-httpd-ubuntu.conf"/>
             </else>
@@ -36,54 +46,62 @@
                 <property name="conf" location="${apache.config.dir}/dev-local-lb-httpd.conf"/>
             </then>
             <else>
+                <echo>NOTE: the APACHE_LOG_DIR variable is not respected by Ubuntu!</echo>
+                <echo>Apache error log and PID file will be in /opt/tt/log/outcomes,</echo>
+                <echo>regardless of property or environment variable settings.</echo>
                 <property name="apachectl" value="/usr/sbin/apache2ctl"/>
                 <property name="conf" location="${apache.config.dir}/dev-local-lb-httpd-ubuntu.conf"/>
             </else>
         </if>
     </target>
-    
+
+    <!--
+       run apachectl with the given command, assuming that "apachectl" and "conf" properties
+       were already set appropriately
+    -->
+    <macrodef name="apachectl" description="run apachectl with the appropriate config">
+        <attribute name="command"/>
+        <sequential>
+            <exec executable="bash" failonerror="true">
+                <env key="APACHE_LOG_DIR" file="${apache.log.dir}" />
+                <arg value="${apachectl}"/>
+                <arg value="-f"/>
+                <arg value="${conf}"/>
+                <arg value="-k"/>
+                <arg value="@{command}"/>
+            </exec>
+        </sequential>
+    </macrodef>
+
     <target name="apache-start" depends="set-apache-props" description="Start apache">
-        <exec executable="bash" failonerror="true">
-            <arg value="${apachectl}"/>
-            <arg value="-f"/>
-            <arg value="${conf}"/>
-            <arg value="-k"/>
-            <arg value="start"/>
-        </exec>
+        <apachectl command="start" />
     </target>
 
     <target name="apache-start-lb" depends="set-apache-props-lb" description="Start apache for the local load balancer">
-        <exec executable="bash" failonerror="true">
-            <arg value="${apachectl}"/>
-            <arg value="-f"/>
-            <arg value="${conf}"/>
-            <arg value="-k"/>
-            <arg value="start"/>
-        </exec>
+        <apachectl command="start"/>
     </target>
     
     <target name="apache-stop" depends="set-apache-props" description="Stop apache">
-        <exec executable="bash" failonerror="true">
-            <arg value="${apachectl}"/>
-            <arg value="-f"/>
-            <arg value="${conf}"/>
-            <arg value="-k"/>
-            <arg value="stop"/>
-        </exec>
+        <apachectl command="stop" />
     </target>
 
     <target name="apache-stop-lb" depends="set-apache-props-lb" description="Stop apache">
-        <exec executable="bash" failonerror="true">
-            <arg value="${apachectl}"/>
-            <arg value="-f"/>
-            <arg value="${conf}"/>
-            <arg value="-k"/>
-            <arg value="stop"/>
-        </exec>
+        <apachectl command="stop" />
     </target>
 
-    <target name="tomcat-clean" description="Delete exploded war directory">
-        <delete dir="${war.exploded.dir}"/>
+    <target name="tomcat-clean" description="Delete all outdated war directories">
+        <outofdate outputtargets="outdated.webapps" separator="${line.separator}">
+            <sourcefiles>
+                <fileset dir="${tomcat.webapp.dir}" >
+                    <include name="*.war"/>
+                </fileset>
+            </sourcefiles>
+            <mapper type="regexp" from="^(.*)\.war$$" to="\1"/>
+            <deletetargets quiet="true" failonerror="true" />
+        </outofdate>
+        <echo>Deleted (or missing) webapp directories (if any):${line.separator}${outdated.webapps}</echo>
+        <!-- tomcat working directory (can cause startup errors/warnings if stale) -->
+        <delete dir="${tomcat.dir}/work" />
     </target>
 
     <target name="tomcat-start" depends="tomcat-clean" description="Start tomcat">
@@ -103,7 +121,7 @@
             />
         </exec>
         <echo>Waiting for tomcat to start...</echo>
-        <parallel threadCount="2" timeout="100000">
+        <parallel threadCount="2" timeout="200000">
             <daemons>
                 <exec executable="tail" failonerror="false" timeout="100000">
                     <arg value="-f"/>

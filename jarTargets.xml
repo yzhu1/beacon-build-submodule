@@ -58,6 +58,14 @@
         </sequential>
     </macrodef>
 
+    <path id="build.app.classpath">
+        <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
+        <fileset dir="${jar.outdir}">
+            <include name="${jar.common.app.name}.jar"/>
+            <include name="${jar.common.web.name}.jar"/>
+        </fileset>
+    </path>
+        
     <target name="build-test-jars" description="implemented only by wgspringcore" />
 
     <target name="build-app-jars" 
@@ -72,14 +80,7 @@
 
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
-        
-        <path id="build.app.classpath">
-            <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
-            <fileset dir="${jar.outdir}">
-                <include name="${jar.common.app.name}.jar"/>
-                <include name="${jar.common.web.name}.jar"/>
-            </fileset>
-        </path>
+
         <javac-conditional
                     srcdir="${app.src.dir}"
                     destdir="${jar.classes.dir.main}/app"
@@ -112,6 +113,11 @@
                 <classpath refid="build.web.classpath"/>
                 <include name="**/ui/**/*.java"/>
          </javac-conditional>
+        <!-- Copy context and freemarker resources into the web build path -->
+        <copy todir="${jar.classes.dir.main}/web">
+            <fileset dir="${app.src.dir}" includes="${app.src.build.resources.pattern}" />
+        </copy>
+        
         <jar
             basedir="${jar.classes.dir.main}/web"
             destfile="${jar.outdir}/${jar.web.name}.jar"
@@ -132,4 +138,15 @@
         </if>
 
      </target>
+     
+    <target name="build-javadoc" description="Generate JavaDoc for the source">
+        <javadoc destdir="${output.dir}/javadoc" classpathref="build.app.classpath">
+            <sourcefiles>
+                <fileset dir="${app.src.dir}" />
+                <fileset dir="${app.integration.src.dir}/util/java">
+                    <include name="**/*DM.java" />
+                </fileset>
+            </sourcefiles>
+        </javadoc>
+    </target>
 </project>

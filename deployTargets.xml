@@ -7,6 +7,8 @@
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="jarTargets.xml"/>
     <import file="serverTargets.xml"/>
+    <!-- this one is totally necessary, though -->
+    <include file="gitMacros.xml" />
 
     <target name="switchBranchAndRefresh"
     	description="Use with -DbranchName=[NameOfBranchToSwitchTo]">
@@ -21,8 +23,30 @@
              </exec>
          </sequential>
     </target>
+    
+    <target name="check-unzipped-content" description="Check unzipped web-assets for conflicts">
+        <if>
+            <isset property="cygwin.bash" />
+            <then>
+                <path id="basedir.path"><pathelement path="${basedir}"/></path>
+                <pathconvert targetos="unix" property="basedir.unix" refid="basedir.path"/>
+                <exec executable="${cygwin.bash}" failonerror="true">
+                    <arg value="--login"/>
+                    <arg value="-i"/>
+                    <arg value="-c"/>
+                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/duplicate-file-check.py ${build.web.assets.unzip.dir}"/>
+                </exec>
+            </then>
+            <else>
+                <exec executable="/usr/bin/python" dir="${basedir}" failonerror="true">
+                    <arg value="conf/base/scripts/dev/duplicate-file-check.py" />
+                    <arg value="${build.web.assets.unzip.dir}" />
+                </exec>
+            </else>
+        </if>
+   	</target>
 	
-    <target name="clean" description="Clean the build directory" depends="tomcat-clean">
+    <target name="clean" description="Clean the build directory" >
     	<delete includeemptydirs="true" failonerror="false">
     	    <fileset dir="${output.dir}" includes="**/*" excludes="eclipse"/>
     	</delete>
@@ -36,11 +60,11 @@
     </target>
 	
     <target name="clean-deploy" description="Clean and deploy the web app for developers"
-            depends="tomcat-clean, clean, deploy"
+            depends="clean, deploy"
         >
     </target>
     
-    <target name="deploy" depends="tomcat-clean, war" description="Build and deploy the web application">
+    <target name="deploy" depends="war" description="Build and deploy the web application">
         <copy file="${war.outdir}/${war.name}" tofile="${tomcat.webapp.dir}/${war.servlet.name}"/>	            
     </target>	
 	
@@ -62,20 +86,15 @@
                 </replacetokens>
             </filterchain>
         </copy>
+    	
+    	<!-- Copy imported web content directory contents -->
+    	<antcall target="check-unzipped-content" />
         <copy todir="${deploy.root.dir}" encoding="UTF-8">
-            <fileset dir="${common.web.dir}" includes="**" excludes="static/**">
+        	<fileset dir="${build.web.assets.unzip.dir}">
+            	<include name="**/web/**/*"/>
                 <present targetdir="${deploy.root.dir}" present="srconly" />            
             </fileset>
-            <filterchain>
-                <replacetokens>
-                <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
-                    <token key="git.revision" value="${git.revision}"/>
-                    <token key="git.common.revision" value="${git.common.revision}"/>
-                    <token key="build.number" value="${build.number}"/>
-                    <token key="build.branch" value="${build.branch}"/>
-                    <token key="rpm.version" value="${rpm.version}"/>
-                </replacetokens>
-            </filterchain>
+        	<mapper type="regexp" from="^[-_a-zA-Z0-9]*[\\/]web(.*)" to="\1"/>
         </copy>
     </target>
         
@@ -197,6 +216,9 @@
         <copy todir="${build.web.assets.content.dir}/resources" encoding="UTF-8">
             <fileset dir="${app.dir}/src/main/resources"/>
         </copy>
+
+        <!-- get the lastest commit hash -->
+        <git-retrieve-commit-id outputproperty="git.current.hash" />
 
         <echo file="${web.assets.commit.hash.file}">${git.current.hash}</echo>
     </target>

@@ -4,9 +4,20 @@
     <taskdef resource="net/sf/antcontrib/antlib.xml">
         <classpath><pathelement path="${build.lib.dir}/ant-contrib.jar"/></classpath>
     </taskdef>
+
+    <property environment="sys_env" />
+    <property file="conf/version.properties" />
+    <!-- pick up DPP/13 compliant version numbers from version.properties, and append BUILD_NUMBER (set by Jenkins) -->
+    <property name="module.revision.published" value="${module.revision.major}.${module.revision.minor}.${module.revision.revision}-${sys_env.BUILD_NUMBER}" />
+    <property name="module.revision.dev" value="dev" />
+
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
     <import file="dbTargets.xml"/>
+    <!-- this one is totally necessary, though -->
+    <include file="gitMacros.xml" />
+
+
 
     <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
         <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
@@ -93,6 +104,13 @@
         <delete dir="${ivy.resolution.cache.dir}" />
     </target>
 
+    <!-- target to set the publication version.  This needs to be at the front of the dependency chain
+	 so that the ivy-resolve before ivy-publish has the same revision as the ivy-publish does.
+    -->
+    <target name="-set-module-publish-version-dev">
+        <propertycopy name="module.revision.published" from="module.revision.dev" override="true" silent="true" />
+    </target>
+
     <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
             update="true" overwrite="true" forcedeliver="true">
@@ -101,7 +119,7 @@
         </ivy:publish>
     </target>
 
-    <target name="ivy-publish-dev" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish-dev" depends="-set-module-publish-version-dev, clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
             update="true" overwrite="true" forcedeliver="true">
             <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
@@ -110,5 +128,22 @@
     </target>
 
     <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
- 
+
+    <target name="update-commit-log">
+        <!-- set job ID to a placeholder if not actually running in Jenkins (for debugging) -->
+        <condition
+                property="jenkins.job-id"
+                else="FAKE_JENKINS_JOB"
+                value="${sys_env.JOB_NAME}-${sys_env.BUILD_NUMBER}">
+            <isset property="sys_env.JOB_NAME" />
+        </condition>
+        <git-retrieve-branch-name />
+        <git-retrieve-commit-id />
+        <property name='log-message'
+          value="build ${jenkins.job-id} built ${git.current.commit} as ${module.revision.published}${line.separator}"
+        />
+        <git command="pull"><arg value="origin" /> <arg value="${git.current.branch}" /></git>
+        <echo message="${git.command.output}"/>
+        <echo append="true" file=".commitlog" message="${log-message}" />
+    </target>
 </project>

@@ -196,11 +196,11 @@ headers39= \
 
 headers40= \
   [ NVPair('Accept', 'image/png,image/*;q=0.8,*/*;q=0.5'),
-    NVPair('Referer', 'https://mclasshome-loadtest.wgenhq.net/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui.css'), ]
+    NVPair('Referer', 'https://mclasshome-loadtest.wgenhq.net/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui.css'), ]
 
 headers41= \
   [ NVPair('Accept', 'image/png,image/*;q=0.8,*/*;q=0.5'),
-    NVPair('Referer', 'https://mclasshome-loadtest.wgenhq.net/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui_threetwelve.css'), ]
+    NVPair('Referer', 'https://mclasshome-loadtest.wgenhq.net/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui_threetwelve.css'), ]
 
 headers42= \
   [ NVPair('Accept', 'image/png,image/*;q=0.8,*/*;q=0.5'),
@@ -1473,11 +1473,11 @@ class TestRunner:
     request148.GET('/oib/static/images/top_bar_divider.gif', None,
       ( NVPair('If-Modified-Since', 'Wed, 12 Jan 2011 03:29:06 GMT'), ))
 
-    request149.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/latexmath/js/LaTeXMathML.js', None,
+    request149.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/latexmath/js/LaTeXMathML.js', None,
       ( NVPair('If-Modified-Since', 'Wed, 12 Jan 2011 03:29:07 GMT'), ))
 
     grinder.sleep(14)
-    request150.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/latexmath/js/math-utilities.js', None,
+    request150.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/latexmath/js/math-utilities.js', None,
       ( NVPair('If-Modified-Since', 'Wed, 12 Jan 2011 03:29:07 GMT'), ))
 
     request151.GET('/oib/static/js/standardsBrowser/standardsUi.js', None,
@@ -2737,69 +2737,69 @@ class TestRunner:
     request5306.GET('/oib/static/images/multipleChoice/mc_box_inner_bottom.gif')
 
     grinder.sleep(1982)
-    request5307.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/langs/en.js')
+    request5307.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/langs/en.js')
 
-    request5308.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/editor_template.js')
+    request5308.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/editor_template.js')
 
-    request5309.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/table/editor_plugin.js')
+    request5309.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/table/editor_plugin.js')
 
     grinder.sleep(20)
-    request5310.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvefontsize/editor_plugin.js')
+    request5310.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvefontsize/editor_plugin.js')
 
-    request5311.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelveimage/editor_plugin.js')
+    request5311.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelveimage/editor_plugin.js')
 
-    request5312.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/latexmath/editor_plugin.js')
+    request5312.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/latexmath/editor_plugin.js')
 
-    request5313.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/advimagescale/editor_plugin.js')
+    request5313.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/advimagescale/editor_plugin.js')
 
-    request5314.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvespace/editor_plugin.js')
+    request5314.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvespace/editor_plugin.js')
 
-    request5315.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/atomic/editor_plugin.js')
+    request5315.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/atomic/editor_plugin.js')
 
     grinder.sleep(45)
-    request5316.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/langs/en.js')
+    request5316.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/langs/en.js')
 
     grinder.sleep(81)
-    request5317.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/paste/editor_plugin.js')
+    request5317.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/paste/editor_plugin.js')
 
-    request5318.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/inlinepopups/editor_plugin.js')
+    request5318.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/inlinepopups/editor_plugin.js')
 
-    request5319.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/autoresize/editor_plugin.js')
+    request5319.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/autoresize/editor_plugin.js')
 
     grinder.sleep(110)
-    request5320.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui.css')
+    request5320.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui.css')
 
-    request5321.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui_threetwelve.css')
+    request5321.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/skins/o2k7/ui_threetwelve.css')
 
-    request5322.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/inlinepopups/skins/clearlooks2/window.css')
+    request5322.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/inlinepopups/skins/clearlooks2/window.css')
 
     grinder.sleep(114)
-    request5323.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/skins/o2k7/content.css')
+    request5323.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/skins/o2k7/content.css')
 
     grinder.sleep(21)
-    request5324.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/img/icons.gif')
+    request5324.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/img/icons.gif')
 
-    request5325.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/themes/advanced/skins/o2k7/img/button_bg.png')
+    request5325.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/themes/advanced/skins/o2k7/img/button_bg.png')
 
     grinder.sleep(14)
-    request5326.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvefontsize/img/small.png')
+    request5326.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvefontsize/img/small.png')
 
-    request5327.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvefontsize/img/medium.png')
+    request5327.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvefontsize/img/medium.png')
 
     grinder.sleep(15)
-    request5328.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_add_space_unruled.png')
+    request5328.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_add_space_unruled.png')
 
-    request5329.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvefontsize/img/large.png')
+    request5329.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvefontsize/img/large.png')
 
-    request5330.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/latexmath/img/ed_mathformula.gif')
+    request5330.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/latexmath/img/ed_mathformula.gif')
 
-    request5331.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_space_title_1.gif')
+    request5331.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_space_title_1.gif')
 
-    request5332.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_space_title_2.gif')
+    request5332.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_space_title_2.gif')
 
-    request5333.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_space_title_3.gif')
+    request5333.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_space_title_3.gif')
 
-    request5334.GET('/oib/static/js/3p/tinymce_jquery/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_add_space_ruled.png')
+    request5334.GET('/oib/static/tinymce-jquery/js/3p/jscripts/tiny_mce/plugins/threetwelvespace/img/btn_wysiwyg_add_space_ruled.png')
 
     return result
 
