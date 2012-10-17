@@ -245,5 +245,10 @@
         </unzip>
     </target>
 
-	
+    <target name="tinymce-hot-deploy">
+        <delete dir="${build.web.assets.unzip.dir}/tinymce-jquery-web-assets/web/static/tinymce-jquery" />
+        <copy todir="${build.web.assets.unzip.dir}/tinymce-jquery-web-assets/web/static/tinymce-jquery">
+            <fileset dir="../tinymce-jquery/src/main/webapp/static/tinymce-jquery" />
+        </copy>
+    </target>
 </project>
