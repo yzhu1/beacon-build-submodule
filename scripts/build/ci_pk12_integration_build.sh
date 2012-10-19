@@ -79,14 +79,14 @@ echo "rpm.version=$rpmversion" >> conf/build.properties
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\" ${extrawgrargs}
 
 # Compile, run static and unit tests
-$ANT clean test-clean deploy checkstyle template-lint jslint test-unit
+$ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-javadoc
 
 integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
 if [ $integration_changes -gt 0 ]; then
 
     # build javadoc, migrate one db up and down
-    $ANT build-javadoc clear-schema load-baseline-database migrate-schema rollback-schema
+    $ANT clear-schema load-baseline-database migrate-schema rollback-schema
 
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
         wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
