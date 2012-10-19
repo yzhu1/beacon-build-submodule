@@ -62,6 +62,8 @@ rm -rf target
 # ivy-resolve first so we can get wgspringcoreversion accurately
 $ANT ivy-resolve
 
+ivy_changes=$(grep -r --regexp="downloaded=\"true\"" --include="*.xml" $WORKSPACE/.ivy2/cache/resolution | wc -l)
+
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
 git push -f $gitrepobaseurl/$gitrepo +refs/tags/$buildtag:$buildtag
@@ -83,7 +85,7 @@ $ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-jav
 
 integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
-if [ $integration_changes -gt 0 ]; then
+if [ $integration_changes -gt 0 ] || [$ivy_changes -gt 0]; then
 
     # build javadoc, migrate one db up and down
     $ANT clear-schema load-baseline-database migrate-schema rollback-schema
