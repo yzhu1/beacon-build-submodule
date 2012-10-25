@@ -309,6 +309,11 @@
         </if>
         <pg-run-script script="${app.dir}/scripts/db/create_truncate_tables_function.sql" />
     </target>
+       	
+    <target name="drop-truncate-tables-function" depends="prepare-pgpass"
+        description="delete the truncate_tables() function from the schema">
+        <pg-run-script script="${app.dir}/scripts/db/drop_truncate_tables_function.sql" />
+    </target>
     
     <target name="repair-migration-filenames" depends="prepare-pgpass">
         <property name="migration.dir" location="${app.resources.dir}/migration/liquibase"/>
