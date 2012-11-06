@@ -81,6 +81,7 @@
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
 
+        <!-- compile source into the output directory -->
         <javac-conditional
                     srcdir="${app.src.dir}"
                     destdir="${jar.classes.dir.main}/app"
@@ -88,6 +89,14 @@
         >
                 <classpath refid="build.app.classpath"/>
         </javac-conditional>
+        
+        <!-- copy .properties files into the output directory -->
+        <copy todir="${jar.classes.dir.main}/app">
+            <fileset dir="${app.src.dir}">
+                <include name="**/*.properties" />
+            </fileset>
+        </copy>
+        
         <jar
             basedir="${jar.classes.dir.main}/app"
             destfile="${jar.outdir}/${jar.app.name}.jar"
