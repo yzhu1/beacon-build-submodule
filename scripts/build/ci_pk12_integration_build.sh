@@ -85,7 +85,7 @@ $ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-jav
 
 integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
-if [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
+#if [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
 
     # build javadoc, migrate one db up and down
     $ANT clear-schema load-baseline-database migrate-schema rollback-schema
@@ -113,9 +113,9 @@ if [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
               -s $TESTDOGS -v $apphomeenvvar -n $testsperbatch \
               -d -t update-schema
     fi
-else
-    echo "NO CHANGES FOUND OUTSIDE OF WEBDRIVER TESTS AND STATIC FILES.  SKIPPING INTEGRATION TESTS."
-fi
+#else
+#    echo "NO CHANGES FOUND OUTSIDE OF WEBDRIVER TESTS AND STATIC FILES.  SKIPPING INTEGRATION TESTS."
+#fi
 
 # Remove existing RPMs in the repo to ensure the one we build gets deployed
 rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
