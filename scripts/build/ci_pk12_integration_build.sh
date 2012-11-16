@@ -35,6 +35,7 @@ othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that 
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
+allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -85,7 +86,7 @@ $ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-jav
 
 integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
-#if [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
+if [ ! $allow_tests_bypass ] || [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
 
     # build javadoc, migrate one db up and down
     $ANT clear-schema load-baseline-database migrate-schema rollback-schema
@@ -113,9 +114,9 @@ integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitre
               -s $TESTDOGS -v $apphomeenvvar -n $testsperbatch \
               -d -t update-schema
     fi
-#else
-#    echo "NO CHANGES FOUND OUTSIDE OF WEBDRIVER TESTS AND STATIC FILES.  SKIPPING INTEGRATION TESTS."
-#fi
+else
+    echo "NO CHANGES FOUND OUTSIDE OF WEBDRIVER TESTS AND STATIC FILES.  SKIPPING INTEGRATION TESTS."
+fi
 
 # Remove existing RPMs in the repo to ensure the one we build gets deployed
 rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
