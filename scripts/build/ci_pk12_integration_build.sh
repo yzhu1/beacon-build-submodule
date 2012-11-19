@@ -25,16 +25,11 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
-nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
 # Optional parameters
-runonlysmoke=${RUN_ONLY_SMOKE:-true}
-isnightlybuild=${IS_NIGHTLY_BUILD:-false}
 othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
-releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
-webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
 
 # Set automatically by Jenkins
@@ -86,7 +81,7 @@ $ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-jav
 
 integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
-if [ ! $allow_tests_bypass ] || [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
+if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
 
     # build javadoc, migrate one db up and down
     $ANT clear-schema load-baseline-database migrate-schema rollback-schema

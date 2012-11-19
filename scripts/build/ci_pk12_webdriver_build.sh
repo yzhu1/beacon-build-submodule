@@ -26,7 +26,6 @@ releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
-runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
