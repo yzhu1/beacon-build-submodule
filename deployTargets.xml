@@ -68,7 +68,7 @@
         <copy file="${war.outdir}/${war.name}" tofile="${tomcat.webapp.dir}/${war.servlet.name}"/>	            
     </target>	
 	
-    <target name="do-deploy" depends="build-app-jars">
+    <target name="do-deploy" depends="sass-compile, build-app-jars">
         <mkdir dir="${deploy.root.dir}"/>
         <!-- copy the freemarker templates, spring context, and web.xml into the war -->
         <copy todir="${deploy.root.dir}" encoding="UTF-8">
@@ -251,4 +251,20 @@
             <fileset dir="../tinymce-jquery/src/main/webapp/static/tinymce-jquery" />
         </copy>
     </target>
+
+    <target name="sass-compile">
+        <if>
+            <available file="${app.static.dir}/sass"/>
+            <then>
+                <exec executable="/usr/bin/sass" dir="${basedir}" failonerror="true">
+                    <arg value="--update" />
+                    <arg value="${app.static.dir}/sass:${build.web.assets.dir}/compile/css" />
+                </exec>
+                <copy todir="${build.web.assets.dir}/compile/css" encoding="UTF-8">
+                    <fileset dir="${app.static.dir}/sass" includes="**/*" excludes="**/*.scss" />
+                </copy>
+            </then>
+        </if>
+    </target>
+
 </project>
