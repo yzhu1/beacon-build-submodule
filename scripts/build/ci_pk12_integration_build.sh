@@ -40,6 +40,9 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
+# Adds the .rbenv/bin directory to the path, which is hackily configured to include sass
+source ~/.bash_profile
+
 gitrepobaseurl="git@github.wgenhq.net:Beacon"
 
 # Set the migration testdog if testdogs have been set
