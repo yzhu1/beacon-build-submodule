@@ -256,7 +256,7 @@
         <if>
             <available file="${app.static.dir}/sass"/>
             <then>
-                <exec executable="/usr/bin/sass" dir="${basedir}" failonerror="true">
+                <exec executable="sass" dir="${basedir}" failonerror="true">
                     <arg value="--update" />
                     <arg value="${app.static.dir}/sass:${build.web.assets.dir}/compile/css" />
                 </exec>
