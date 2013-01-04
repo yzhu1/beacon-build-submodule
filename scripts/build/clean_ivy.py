@@ -6,15 +6,18 @@ import os.path
 import optparse
 import pdb
 import sys
+import datetime
 
 MAJOR = 'major'
 MINOR = 'minor'
 PATCHLEVEL = 'patch'
 BUILD_NUMBER = 'build'
 
+root_dir = "/opt/wgen/ivy/wgen"
 dpp13numbers = "(?P<%s>\d+)\.(?P<%s>\d+)\.(?P<%s>\d+)-(?P<%s>\d+)" % (
     MAJOR, MINOR, PATCHLEVEL, BUILD_NUMBER
 )
+now = datetime.datetime.now()
 
 def get_build_list(h, keydict):
 	current_level = h
@@ -32,18 +35,22 @@ def get_build_list(h, keydict):
 	return current_level[keydict[PATCHLEVEL]]
 
 def main(module_name):
-	allfiles = os.listdir("/opt/wgen/ivy/wgen/" + module_name)
+	allfiles = os.listdir(os.path.join(root_dir, module_name))
 	ivyfiles = [f for f in allfiles if f.startswith("ivy-")]
 
 	ivymatcher = re.compile("^ivy-%s.xml$" % dpp13numbers)
 	badfiles = []
 	revision_map = {}
+	file_age = {}
 
 	for ivyfile in ivyfiles:
 		match = re.match(ivymatcher,ivyfile)
 		if match:
 			build_list = get_build_list(revision_map, match.groupdict())
 			build_list.append(int(match.group(BUILD_NUMBER)))
+			mtime = os.path.getmtime(os.path.join(root_dir, module_name, ivyfile))
+			filestamp = datetime.datetime.fromtimestamp(mtime)
+			file_age[ivyfile] = now - filestamp
 		else:
 			badfiles.append(ivyfile)
 
@@ -55,8 +62,12 @@ def main(module_name):
 				(patchlevel, builds) = patchlevel_tuple
 				latest_build = max(builds)
 				build_count = len(builds)
-				print "Revision %s.%s.%s has %s builds (%s is latest)" % (
-				    major_revision, minor_revision, patchlevel, build_count, latest_build
+				latest_age = file_age["ivy-%s.%s.%s-%s.xml" % (
+				    major_revision, minor_revision, patchlevel, latest_build
+				)]
+				print "Revision %s.%s.%s has %s builds (%s is latest, at %s days old)" % (
+				    major_revision, minor_revision, patchlevel,
+				    build_count, latest_build, latest_age.days
 				)
 
 	print "Non-matching files: "
