@@ -34,15 +34,6 @@
 
     <target name="init-ivy" depends="ivy-get-settings, ivy-resolve"/>
 
-<!-- TODO get rid of
-    <target name="create-ivy-dirs">
-        <mkdir dir="${ivy.lib.compile.dir}" />
-        <mkdir dir="${ivy.lib.test.dir}" />
-        <mkdir dir="${ivy.lib.run.dir}" />
-    </target>
--->
-
-   
     <target name="ivy-get-settings" description="--> retrieve ivysettings.xml from server">
         <ivy:settings id="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-settings.xml" />
         <ivy:resolve settingsRef="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-module.xml" />
@@ -55,6 +46,7 @@
         <ivy:resolve settingsRef="ivy.settings" file="conf/ivy.xml" />
         <!-- copy artifacts from cache to destination dir -->
         <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
+        <mkdir dir="{$ivy.report.dir}" />
         <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
         <if>
             <isfalse value="${use.eclipse.ivyde.plugin}" />
