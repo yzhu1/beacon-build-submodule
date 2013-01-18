@@ -120,22 +120,39 @@
         <pg-run sql="alter user ${wgspring.migrations.db.username} set search_path to ${wgspring.db.schema}" />
     </target>
 
+    <macrodef name="liquibase">
+        <attribute name="command" />
+	<element name="liquibase-args" implicit="true" optional="true" />
+	<sequential>
+	    <exec executable="bash" failonerror="true">
+                <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
+                <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
+                <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
+                <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
+                <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
+                <env key="LIQUIBASE_DB_PORT" value="${wgspring.db.port}"/>
+                <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
+                <env key="LIQUIBASE_DB_USER" value="${wgspring.migrations.db.username}"/>
+                <env key="LIQUIBASE_DB_PWORD" value="${wgspring.migrations.db.password}"/>
+                <env key="LIQUIBASE_DB_SCHEMA" value="${wgspring.db.schema}"/>
+                <arg value="${wgspring.db.migration}"/>
+                <arg value="@{command}"/>
+		<liquibase-args />
+            </exec>
+	</sequential>
+    </macrodef>
+
+    <target name="rollback-one">
+         <liquibase command="rollbackCount"><arg value="1" /></liquibase>
+    </target>
+
+    <target name="rollback-date">
+          <liquibase command="rollbackToDate"><arg value="2013-01-16"/>
+	  </liquibase>
+    </target>
     <target name="migrate-schema" if="wgspring.db.migrate"
             description="run migrations for current release">
-        <exec executable="bash" failonerror="true">
-            <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
-            <env key="LIQUIBASE_JAR" file="${runtime.lib.dir}/liquibase-core-*.jar"/>
-            <env key="LIQUIBASE_CLASSPATH" file="${runtime.lib.dir}/${migration.runtime.jar}"/>
-            <env key="LIQUIBASE_MIGRATIONS" file="${app.resources.dir}/migration/liquibase"/>
-            <env key="LIQUIBASE_DB_HOST" value="${wgspring.db.host}"/>
-            <env key="LIQUIBASE_DB_PORT" value="${wgspring.db.port}"/>
-            <env key="LIQUIBASE_DB_NAME" value="${wgspring.db.dbname}"/>
-            <env key="LIQUIBASE_DB_USER" value="${wgspring.migrations.db.username}"/>
-            <env key="LIQUIBASE_DB_PWORD" value="${wgspring.migrations.db.password}"/>
-            <env key="LIQUIBASE_DB_SCHEMA" value="${wgspring.db.schema}"/>
-            <arg value="${wgspring.db.migration}"/>
-            <arg value="update"/>
-        </exec>
+        <liquibase command="update" />
         <load-context context="${integration.test.classes.dir}/${servlet.name}-servlet.xml"/>
         
         <!-- make sure this truncate tables function is created, needed for running tests 
