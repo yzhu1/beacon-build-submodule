@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+    <module name="FileTabCharacter">
+        <!-- report on each line containing tabs, not just first occurrence -->
+        <property name="eachLine" value="true" />
+    </module>
+    <module name="PreferNamedParameter">
+        <property name="minParameterCount" value="2"/>
+    </module>
+    <module name="DumbLineLength">
+        <property name="maxColumns" value="120"/>
+    </module>
+    <module name="ManualImportOfUtil" />
+    <module name="HardCodedTemplatePath" />
+</module>
