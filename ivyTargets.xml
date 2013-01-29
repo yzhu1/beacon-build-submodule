@@ -46,7 +46,7 @@
         <ivy:resolve settingsRef="ivy.settings" file="conf/ivy.xml" />
         <!-- copy artifacts from cache to destination dir -->
         <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
-        <mkdir dir="{$ivy.report.dir}" />
+        <mkdir dir="${ivy.report.dir}" />
         <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
         <if>
             <isfalse value="${use.eclipse.ivyde.plugin}" />
