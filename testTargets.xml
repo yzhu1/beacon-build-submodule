@@ -373,8 +373,8 @@
         description="Run a single test that's already compiled: use with -Dtest=NameOfTest">
         <pathconvert property="jar-containing-tests" targetos="unix" pathsep="">
             <fileset dir="${ivy.lib.dir}/test"
-                includes="wgspringcore-integration-test-*.jar"
-                excludes="wgspringcore-integration-test-src-*.jar"/>
+                includes="${jar-test.include}"
+                excludes="${jar-test.exclude}"/>
         </pathconvert>
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
@@ -390,8 +390,8 @@
         description="Run several tests that are already compiled: use with -Dtests=[comma-separated list of patterns to match]">
         <pathconvert property="jar-containing-tests" targetos="unix" pathsep="">
             <fileset dir="${ivy.lib.dir}/test"
-                includes="wgspringcore-integration-test-*.jar"
-                excludes="wgspringcore-integration-test-src-*.jar"/>
+                includes="${jar-test.include}"
+                excludes="${jar-test.exclude}"/>
         </pathconvert>
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration" disable-cache="true">
             <fileset dir="${unit.test.classes.dir}" includes="${tests}" />
