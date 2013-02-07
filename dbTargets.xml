@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 <project name="wgspring-dbTargets">
 
-    <var file="${app.dir}/conf/${servlet.name}.properties"/>
-    <var file="${app.dir}/conf/${servlet.name}.password.properties"/>
+    <property file="${app.dir}/conf/${servlet.name}.properties"/>
+    <property file="${app.dir}/conf/${servlet.name}.password.properties"/>
+    <!-- set a plausible default for the superuser name -->
+    <property name="wgspring.db.username.superuser" value="postgres" />
+    <property name="wgspring.db.username.readonly" value="${wgspring.db.username}_ro" />
+
     
     <!-- Override properties with environment-specific ones, if they exist -->
     <property environment="sys_env" />
@@ -77,7 +81,7 @@
             <echo>Running SQL [@{sql}]</echo>
             <exec executable="psql" failonerror="false">
                 <arg value="-U" />
-                <arg value="postgres" />
+                <arg value="${wgspring.db.username.superuser}" />
                 <arg value="-h" />
                 <arg value="localhost" />
                 <arg value="-p" />
@@ -108,9 +112,66 @@
         </sequential>
     </macrodef>
 
+    <macrodef name="pg-exec-command">
+        <attribute name="command" />
+        <attribute name="failonerror" default="true" />
+        <attribute name="username" default="${wgspring.db.username.superuser}" />
+        <element name="args-nested" implicit="true" optional="true"/>
+        <sequential>
+            <echo>Executing @{command} as @{username}</echo>
+            <exec executable="@{command}" failonerror="@{failonerror}">
+                <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
+                <arg value="-h"/>
+                <arg value="${wgspring.db.host}"/>
+                <arg value="-p"/>
+                <arg value="${wgspring.db.port}"/>
+                <arg value="-U"/>
+                <arg value="@{username}"/>
+                <args-nested />
+            </exec>
+        </sequential>
+    </macrodef>
+
     <target name="clear-schema" if="wgspring.db.migrate" depends="prepare-pgpass">
         <clear-named-schema schema-name="${wgspring.db.schema}" />
     </target>
+
+    <target name="create-db-users" depends="prepare-pgpass" description="create standard db users">
+        <pg-exec-command command="createuser" failonerror="false">
+            <arg value="-DRS" />
+            <arg value="${wgspring.migrations.db.username}" />
+        </pg-exec-command>
+        <pg-exec-command command="createuser" failonerror="false">
+            <arg value="-DRS" />
+            <arg value="${wgspring.db.username}" />
+        </pg-exec-command>
+        <pg-exec-command command="createuser" failonerror="false">
+            <arg value="-DRS" />
+            <arg value="${wgspring.db.username.readonly}" />
+        </pg-exec-command>
+    </target>
+
+    <target name="create-db" depends="prepare-pgpass" description="create the database for this application">
+        <pg-exec-command username="${wgspring.db.username.superuser}" command="createdb">
+            <arg value="--owner=${wgspring.migrations.db.username}" />
+            <arg value="${wgspring.db.dbname}" />
+        </pg-exec-command>
+    </target>
+
+    <target name="create-schema" depends="prepare-pgpass" description="create the schema for this application">
+        <pg-run sql="create schema ${wgspring.db.schema} AUTHORIZATION ${wgspring.migrations.db.username}" />
+    </target>
+
+    <target name="set-db-search-paths" description="set the search path for standard db users to the current schema">
+        <pg-run sql="alter user ${wgspring.migrations.db.username} set search_path to ${wgspring.db.schema}" />
+        <pg-run sql="alter user ${wgspring.db.username} set search_path to ${wgspring.db.schema}" />
+        <pg-run sql="alter user ${wgspring.db.username.readonly} set search_path to ${wgspring.db.schema}" />
+    </target>
+
+    <target name="bootstrap-db"
+            description="initialize the database for this application"
+            depends="create-db-users,create-db,create-schema,set-db-search-paths"
+    />
 
     <target name="change-default-schema"
             description="clear old schema and create the new one"
