@@ -31,6 +31,7 @@ runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
+runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -85,7 +86,11 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
 
     # build javadoc, migrate one db up and down
     $ANT clear-schema load-baseline-database migrate-schema rollback-schema
-
+    if [ $runonlynonslow = 'false' ]; then
+        runslowtestsflag='-f'
+    else
+        runslowtestsflag=
+    fi
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
         wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
     else
@@ -106,7 +111,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
     )   | grep Test.class \
         | xargs -I CLASSFILE basename CLASSFILE .class \
         | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $TESTDOGS -v $apphomeenvvar -n $testsperbatch \
+              -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
               -d -t update-schema
     fi
 else

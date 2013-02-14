@@ -113,7 +113,7 @@ if [ $isnightlywdbuild != 'true' ]; then
               -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag  -n $testsperbatch \
               -d -t update-schema
     fi
-    if [ !$isnightlyintegrationbuild != 'true' ]; then
+    if [ $isnightlyintegrationbuild != 'true' ]; then
         # Remove existing RPMs in the repo to ensure the one we build gets deployed
         rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
         rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
@@ -142,7 +142,7 @@ else
     # Migrate schema back up so webapp may start
     $ANT clear-schema migrate-schema
 fi
-if [ !$isnightlyintegrationbuild != 'true' ]; then
+if [ $isnightlyintegrationbuild != 'true' ]; then
     # Deploy webapp, update bcfg, start webapp
     ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
     
