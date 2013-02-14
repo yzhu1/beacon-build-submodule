@@ -110,7 +110,7 @@ if [ $isnightlywdbuild != 'true' ]; then
 	)   | grep Test.class \
 	    | xargs -I CLASSFILE basename CLASSFILE .class \
 	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $TESTDOGS -v $apphomeenvvar -n $runslowtestsflag $testsperbatch \
+              -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag  -n $testsperbatch \
               -d -t update-schema
     fi
     if [ !$isnightlyintegrationbuild != 'true' ]; then
