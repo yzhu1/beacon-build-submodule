@@ -157,13 +157,14 @@ def setupTestdog(testdog, manager, updatedb, updatedbtask):
         print e
         thread.interrupt_main()
 
-def runBatchOfTests(tests, testdog, manager, apphomeenvvar, runonlysmoketests):
+def runBatchOfTests(tests, testdog, manager, apphomeenvvar, runonlysmoketests, runonlynonslow):
     try:
         testlogfile = 'test.log' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
         open(testlogfile, 'w') # create the file
         cmd = 'Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0 && ' \
             + 'export ENV_PROPERTY_PREFIX=%s && ' % testdog \
             + 'export RUN_ONLY_SMOKE=%s && ' % ('true' if runonlysmoketests else 'false') \
+            + 'export RUN_ONLY_NONSLOW=%s && ' % ('true' if runonlynonslow else 'false') \
             + 'export %s=. && %s ' % (apphomeenvvar, getTaskToRunBatchOfTests(tests)) \
             + '&> %s; exitstatus=$? && tail -n 100 %s && exit $exitstatus' % (testlogfile, testlogfile)
         returncode, output = runSubprocess(cmd, manager)
@@ -176,7 +177,7 @@ def runBatchOfTests(tests, testdog, manager, apphomeenvvar, runonlysmoketests):
     except Exception, e:
         manager.registerBatchOfTestsCompleted(testdog, tests, succeeded=False, output=repr(e))
 
-def runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, updatedbtask, runonlysmoketests):
+def runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, updatedbtask, runonlysmoketests, runonlynonslow):
     # Do setup on each testdog
     manager = SyncManager(testdogs)
     for testdog in testdogs:
@@ -188,7 +189,7 @@ def runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, updated
         while tests and len(batch) < testsperbatch:
             batch.append(tests.pop())
         testdog = manager.getNextAvailableTestdog(batch)
-        thread.start_new_thread(runBatchOfTests, (batch, testdog, manager, apphomeenvvar, runonlysmoketests))
+        thread.start_new_thread(runBatchOfTests, (batch, testdog, manager, apphomeenvvar, runonlysmoketests, runonlynonslow))
     # Report the overall exit status
     somefailures = manager.letTestsFinishAndGetWhetherAnyFailed()
     if somefailures:
@@ -204,7 +205,8 @@ if __name__ == '__main__':
     parser.add_option('-n', dest='testsperbatch', help='number of tests to delegate to each testdog at a time')
     parser.add_option('-d', dest='updatedb', action='store_true', help='do your testdogs\' dbs need to be updated?')
     parser.add_option('-t', dest='updatedbtask', default='', help='the ant task to run on each testdog to update the db')
-    parser.add_option('-l', dest='runonlysmoketests', default=True, action='store_false', help='run slow tests')
+    parser.add_option('-l', dest='runonlysmoketests', default=True, action='store_false', help='run slow webdriver tests')
+    parser.add_option('-f', dest='runonlynonslow', default=True, action='store_false', help='run slow integration tests')
 
     (options, args) = parser.parse_args()
     assert not args, 'got unexpected command-line arguments: %r' % args
@@ -216,7 +218,8 @@ if __name__ == '__main__':
     apphomeenvvar = options.apphomeenvvar.strip()
     testsperbatch = int(options.testsperbatch.strip())
     runonlysmoketests = bool(options.runonlysmoketests)
-    
+    runonlynonslow = bool(options.runonlynonslow)
+
     updatedb = bool(options.updatedb)
     if updatedb:
         assert options.updatedbtask, 'please provide the ant task for updating the testdog database'
@@ -236,6 +239,6 @@ if __name__ == '__main__':
     if updatedb:
         print 'db update task: %s' % updatedbtask
 
-    exitstatus = runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, updatedbtask, runonlysmoketests)
+    exitstatus = runAllTests(testdogs, tests, apphomeenvvar, testsperbatch, updatedb, updatedbtask, runonlysmoketests, runonlynonslow)
     print 'ran %i test classes\n' % numtestclasses
     sys.exit(exitstatus)
