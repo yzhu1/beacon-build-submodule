@@ -449,6 +449,7 @@
 
     <target name="test-integration" depends="test-compile, test-integration-wgspringcore" 
         description="Run all integration tests">
+        <property name="run.nonslow.tests" value="false" file="${app.config.dir}/${servlet.name}.properties" />
         <junit-standard
             label="Integration tests"
             testdir="${integration.test.classes.dir}"
