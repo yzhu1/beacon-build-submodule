@@ -254,14 +254,14 @@
 
     <target name="sass-compile">
         <if>
-            <available file="${app.static.dir}/sass"/>
+            <available file="${app.static.dir}/css"/>
             <then>
                 <exec executable="sass" dir="${basedir}" failonerror="true">
                     <arg value="--update" />
-                    <arg value="${app.static.dir}/sass:${build.web.assets.dir}/compile/css" />
+                    <arg value="${app.static.dir}/css:${build.web.assets.dir}/compile/css" />
                 </exec>
                 <copy todir="${build.web.assets.dir}/compile/css" encoding="UTF-8">
-                    <fileset dir="${app.static.dir}/sass" includes="**/*" excludes="**/*.scss" />
+                    <fileset dir="${app.static.dir}/css" includes="**/*" excludes="**/*.scss" />
                 </copy>
             </then>
         </if>
