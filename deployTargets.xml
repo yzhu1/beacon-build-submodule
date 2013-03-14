@@ -68,7 +68,7 @@
         <copy file="${war.outdir}/${war.name}" tofile="${tomcat.webapp.dir}/${war.servlet.name}"/>	            
     </target>	
 	
-    <target name="do-deploy" depends="sass-compile, build-app-jars">
+    <target name="do-deploy" depends="build-app-jars">
         <mkdir dir="${deploy.root.dir}"/>
         <!-- copy the freemarker templates, spring context, and web.xml into the war -->
         <copy todir="${deploy.root.dir}" encoding="UTF-8">

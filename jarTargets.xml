@@ -69,7 +69,7 @@
     <target name="build-test-jars" description="implemented only by wgspringcore" />
 
     <target name="build-app-jars" 
-                description="Compile the source into jars" depends="unzip-web-assets">
+                description="Compile the source into jars" depends="unzip-web-assets, sass-compile">
 
         <if>
             <isset property="${cobertura-instrument-app-jars}" />
