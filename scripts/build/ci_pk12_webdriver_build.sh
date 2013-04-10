@@ -80,6 +80,9 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 # Compile
 $ANT clean test-clean deploy test-compile
 
+echo "RESTARTING APACHE"
+$ANT tomcat-stop tomcat-start
+
 # Deploy webapp, update bcfg, start webapp
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
 
