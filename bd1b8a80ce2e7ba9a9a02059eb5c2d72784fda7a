@@ -1,0 +1,7 @@
+Verified+1: Jenkins
+Code-Review+2: Yan Zhu <yzhu@wgen.net>
+Submitted-by: Yan Zhu <yzhu@wgen.net>
+Submitted-at: Mon, 22 Apr 2013 15:40:50 -0400
+Reviewed-on: https://mcgit.mc.wgenhq.net/gerrit/4443
+Project: beacon-build-submodule
+Branch: refs/heads/master
