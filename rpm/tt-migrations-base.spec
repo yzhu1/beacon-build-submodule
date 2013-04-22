@@ -21,7 +21,7 @@ Group: TT
 BuildArch: noarch
 BuildRoot: %{_topdir}/ROOT/%{name}-%{version}
 
-Requires: jdk >= 2000:1.6.0_16-fcs
+Requires: jdk = 2000:1.6.0_24-fcs
 
 %description
 The framework for running database migrations using LiquiBase and Postgres.
