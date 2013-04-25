@@ -9,7 +9,6 @@
 # -x: After  expanding each simple command, for command, case command, select command, or arithmetic for command,
 #     display the expanded value of PS4 (NOTE: this seems like pointless boilerplate to me)
 set -eux
-
 ANT="/opt/wgen-3p/ant-1.8.1/bin/ant"
 
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
@@ -44,6 +43,18 @@ workspace=$WORKSPACE
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
 gitrepobaseurl="git@github.wgenhq.net:Beacon"
+
+# RPM-management variables
+app_rpm_stem=mclass-tt-$app-$rpmversion
+migration_rpm_stem=tt-migrations-$migrationsappname-$rpmversion
+
+# check for story-build issues
+bad_rpms=`find $REPO_FUTURE_QA -maxdepth 1 -name "$migration_rpm_stem-*-1????.noarch.rpm'" -o -name "$app_rpm_stem-*-1????.noarch.rpm"`
+if [ -n "$bad_rpms" ]
+then
+    echo "DANGER found story-build RPMs in repo: $bad_rpms"
+    exit 1
+fi
 
 # Set the migration testdog if testdogs have been set
 if [ -n "${TESTDOGS+x}" ]
@@ -112,8 +123,8 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
 
     # Copy the RPMs to the future-qa repo
-    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm $nextrpmrepo
-    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm $nextrpmrepo
+    cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $nextrpmrepo
+    cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $nextrpmrepo
 
     if [ "$othermigrationsappname" != "" ]
     then
