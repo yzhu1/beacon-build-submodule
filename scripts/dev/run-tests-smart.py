@@ -12,7 +12,7 @@ for argument in sys.argv[1::]:
     if argument == "status":
         command = os.popen("git status --porcelain")
     else:
-        command = os.popen("git log -n 1 --summary " + argument)
+        command = os.popen("git whatchanged -n 1 " + argument)
     test_candidates.extend(command.readlines())
     command.close()
 
@@ -21,7 +21,7 @@ test_full_names = [x.strip() for x in test_candidates if regex.search(x.strip())
 
 test_names = []
 for test_full_name in test_full_names:
-    test_name = re.sub("^.* src/test/.*/", "**/", test_full_name)
+    test_name = re.sub("^.*(\t| )src/test/.*/", "**/", test_full_name)
     test_name = re.sub("java$", "class", test_name)
     test_names.append(test_name)
 
