@@ -394,7 +394,11 @@
             depends="update-schema">
         <mkdir dir="${fixture.export.dir}"/>
         <exec executable="bash" failonerror="true">
+            <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
             <arg value="${app.dir}/scripts/test/load_fixtures_and_take_snapshot.sh"/>
+            <arg value="${wgspring.db.host}"/>
+            <arg value="${wgspring.db.port}"/>
+            <arg value="${wgspring.migrations.db.username}"/>
         </exec>
     </target>
 
