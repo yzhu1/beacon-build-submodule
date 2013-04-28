@@ -399,6 +399,7 @@
             <arg value="${wgspring.db.host}"/>
             <arg value="${wgspring.db.port}"/>
             <arg value="${wgspring.migrations.db.username}"/>
+            <arg value="${wgspring.db.dbname}"/>
         </exec>
     </target>
 
