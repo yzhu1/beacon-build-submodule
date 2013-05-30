@@ -105,12 +105,13 @@ fi
 if [ "$webdrivertestdogs" == "" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
-#    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
+     $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
 #    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
 #    $ANT test-webdriver-precompiled
 else
     # Run the webdriver tests in parallel
     echo "--IN PARALLEL--"
+    /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $webdrivertestdogs -n 1 -d -t prepare-db-for-parallel-tests -v $apphomeenvvar
 #    find target/test/webdriver -name *Test.class \
 #  | xargs -I CLASSFILE basename CLASSFILE .class \
 #  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \

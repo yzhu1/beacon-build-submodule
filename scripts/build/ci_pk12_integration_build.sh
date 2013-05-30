@@ -106,7 +106,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
 	echo "PREPPING DB THEN SKIPPING WEBSERVICE AND INTEGRATION TESTS"
-        /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 1 -d -v $apphomeenvvar
+        /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 1 -d -t update-schema -v $apphomeenvvar
 #        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
 #        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
 #         && find target/test/integration target/test/webservice \
