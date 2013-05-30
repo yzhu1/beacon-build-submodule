@@ -105,14 +105,16 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
     else
         $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
-        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
-         && find target/test/integration target/test/webservice \
-    )   | grep Test.class \
-        | xargs -I CLASSFILE basename CLASSFILE .class \
-        | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
-              -d -t update-schema
+	echo "PREPPING DB THEN SKIPPING WEBSERVICE AND INTEGRATION TESTS"
+        /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 1 -d -v $apphomeenvvar
+#        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+#        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+#         && find target/test/integration target/test/webservice \
+#    )   | grep Test.class \
+#        | xargs -I CLASSFILE basename CLASSFILE .class \
+#        | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+#              -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
+#              -d -t update-schema
     fi
 else
     echo "NO CHANGES FOUND OUTSIDE OF WEBDRIVER TESTS AND STATIC FILES.  SKIPPING INTEGRATION TESTS."

@@ -95,7 +95,7 @@ $ANT clean test-clean deploy test-compile
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
 
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
-echo "RUNNING WEBDRIVER TESTS"
+echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
 if [ $runonlysmoke = 'false' ]; then
     runslowtestsflag='-l'
 else
@@ -105,18 +105,18 @@ fi
 if [ "$webdrivertestdogs" == "" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
-    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
-    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
-    $ANT test-webdriver-precompiled
+#    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
+#    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
+#    $ANT test-webdriver-precompiled
 else
     # Run the webdriver tests in parallel
     echo "--IN PARALLEL--"
-    find target/test/webdriver -name *Test.class \
-  | xargs -I CLASSFILE basename CLASSFILE .class \
-  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-    -s $webdrivertestdogs \
-    -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
-    -d -t prepare-db-for-parallel-tests
+#    find target/test/webdriver -name *Test.class \
+#  | xargs -I CLASSFILE basename CLASSFILE .class \
+#  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+#    -s $webdrivertestdogs \
+#    -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
+#    -d -t prepare-db-for-parallel-tests
 fi
 
 if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
