@@ -6,9 +6,12 @@
     <!-- (if we don't, junit-explicit will see the value '${method} for that parameter, breaking util tests) -->
     <property name="method" value="" />
 
-    <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
-             resource="checkstyletask.properties"
-    />
+    <taskdef resource="checkstyletask.properties">
+        <classpath>
+            <pathelement location="${build.lib.dir}/freelinter-1.0.0.jar" />
+            <pathelement location="${build.lib.dir}/checkstyle-all-5.6.jar" />
+        </classpath>
+    </taskdef>
 
     <!-- COBERTURA-RELATED DEFINITIONS -->
     <if>
@@ -292,6 +295,7 @@
 
                 <jvmarg value="-Xmx768m" />
             	<jvmarg value="-Dfile.encoding=utf8" />
+                <jvmarg value="-Dorg.owasp.esapi.resources=${common.resources.dir}/.esapi" />
             	<jvmarg value="-XX:MaxPermSize=256m" />
             	<jvmarg value="-XX:-UseGCOverheadLimit" />
             	<jvmarg value="-XX:+CMSClassUnloadingEnabled" />
@@ -372,7 +376,8 @@
                 includes="wgspringcore-integration-test-*.jar"
                 excludes="wgspringcore-integration-test-src-*.jar"/>
         </pathconvert>
-        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration">
+        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
+                        disable-cache="true">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
@@ -445,6 +450,7 @@
 
     <target name="test-integration" depends="test-compile, test-integration-wgspringcore" 
         description="Run all integration tests">
+        <property name="run.nonslow.tests" value="false" file="${app.config.dir}/${servlet.name}.properties" />
         <junit-standard
             label="Integration tests"
             testdir="${integration.test.classes.dir}"
@@ -611,6 +617,16 @@
             <fileset dir="${app.webservice.src.dir}" includes="**/*.java" />
             <fileset dir="${app.webdriver.src.dir}" includes="**/*.java" />  
             <formatter type="xml" toFile="${results.dir}/checkstyle-errors.xml" />
+            <formatter type="plain" usefile="false" />
+        </checkstyle>
+        <fail if="checkstyle.failed" message="Checkstyle failed" />
+    </target>
+
+    <target name="freestyle" description="Run freemarker checkstyle">
+        <mkdir dir="${results.dir}"/>
+        
+        <checkstyle config="${imported.basedir}/flint.xml" failonviolation="true">
+            <fileset dir="${app.web.dir}/WEB-INF/freemarker" includes="**/*.ftl" />
             <formatter type="plain" usefile="false" />
         </checkstyle>
         <fail if="checkstyle.failed" message="Checkstyle failed" />

@@ -69,7 +69,7 @@
     <target name="build-test-jars" description="implemented only by wgspringcore" />
 
     <target name="build-app-jars" 
-                description="Compile the source into jars" depends="unzip-web-assets">
+                description="Compile the source into jars" depends="unzip-web-assets, sass-compile">
 
         <if>
             <isset property="${cobertura-instrument-app-jars}" />
@@ -81,6 +81,7 @@
         <mkdir dir="${jar.classes.dir.main}/app"/>
         <mkdir dir="${jar.classes.dir.main}/web"/>
 
+        <!-- compile source into the output directory -->
         <javac-conditional
                     srcdir="${app.src.dir}"
                     destdir="${jar.classes.dir.main}/app"
@@ -88,6 +89,14 @@
         >
                 <classpath refid="build.app.classpath"/>
         </javac-conditional>
+        
+        <!-- copy .properties files into the output directory -->
+        <copy todir="${jar.classes.dir.main}/app">
+            <fileset dir="${app.src.dir}">
+                <include name="**/*.properties" />
+            </fileset>
+        </copy>
+        
         <jar
             basedir="${jar.classes.dir.main}/app"
             destfile="${jar.outdir}/${jar.app.name}.jar"

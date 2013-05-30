@@ -245,5 +245,26 @@
         </unzip>
     </target>
 
-	
+    <target name="tinymce-hot-deploy">
+        <delete dir="${build.web.assets.unzip.dir}/tinymce-jquery-web-assets/web/static/tinymce-jquery" />
+        <copy todir="${build.web.assets.unzip.dir}/tinymce-jquery-web-assets/web/static/tinymce-jquery">
+            <fileset dir="../tinymce-jquery/src/main/webapp/static/tinymce-jquery" />
+        </copy>
+    </target>
+
+    <target name="sass-compile">
+        <if>
+            <available file="${app.static.dir}/css"/>
+            <then>
+                <exec executable="sass" dir="${basedir}" failonerror="true">
+                    <arg value="--update" />
+                    <arg value="${app.static.dir}/css:${build.web.assets.dir}/compile/css" />
+                </exec>
+                <copy todir="${build.web.assets.dir}/compile/css" encoding="UTF-8">
+                    <fileset dir="${app.static.dir}/css" includes="**/*" excludes="**/*.scss" />
+                </copy>
+            </then>
+        </if>
+    </target>
+
 </project>

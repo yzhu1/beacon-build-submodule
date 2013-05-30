@@ -30,7 +30,9 @@ runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
-isnightlybuild=${IS_NIGHTLY_BUILD:-false}
+isnightlywdbuild=${IS_NIGHTLY_BUILD:-false}
+runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
+isnightlyintegrationbuild=${IS_NIGHTLY_INTEGRATION_BUILD:-false}
 othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
@@ -82,8 +84,12 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 $ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-javadoc \
     clear-schema load-baseline-database migrate-schema rollback-schema
 
-if [ $isnightlybuild != 'true' ]; then
-
+if [ $isnightlywdbuild != 'true' ]; then
+    if [ $runonlynonslow = 'false' ]; then
+        runslowtestsflag='-f'
+    else
+        runslowtestsflag=
+    fi
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
         wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
     else
@@ -110,80 +116,82 @@ if [ $isnightlybuild != 'true' ]; then
 #              -s $TESTDOGS -v $apphomeenvvar -n $testsperbatch \
 #              -d -t update-schema
     fi
-    # Remove existing RPMs in the repo to ensure the one we build gets deployed
-    rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
-    rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
-    
-    # Build webapp and db rpms
-    rm -rf $workspace/RPM_STAGING
-    mkdir -p $workspace/opt/tt/webapps/$app
-    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-            -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-            -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-
-    if [ "$othermigrationsappname" != "" ]
-    then
-        # Remove and rebuild the other migration RPM
-        # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
-        rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
+    if [ $isnightlyintegrationbuild != 'true' ]; then
+        # Remove existing RPMs in the repo to ensure the one we build gets deployed
+        rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
+        rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
+        
+        # Build webapp and db rpms
+        rm -rf $workspace/RPM_STAGING
+        mkdir -p $workspace/opt/tt/webapps/$app
         python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-            -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
-    fi
+                -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
+        python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
+                -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
     
-    # Promote them to CI rpm repo
-    /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
-
+        if [ "$othermigrationsappname" != "" ]
+        then
+            # Remove and rebuild the other migration RPM
+            # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
+            rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
+            python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
+                -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
+        fi
+        
+        # Promote them to CI rpm repo
+        /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+    fi
 else
     # Migrate schema back up so webapp may start
     $ANT clear-schema migrate-schema
 fi
-
-# Deploy webapp, update bcfg, start webapp
-ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
-
-# Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
-echo "RUNNING WEBDRIVER TESTS"
-if [ $runonlysmoke = 'false' ]; then
-    runslowtestsflag='-l'
-else
-    runslowtestsflag=
-fi
-
-if [ "$webdrivertestdogs" == "" ]
-then
-    # If no testdogs are configured, run the ant test-webdriver-precompiled locally
-#    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
-#    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
-#    $ANT test-webdriver-precompiled
-    echo "OR NOT"
-else
-    echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
-    # Run the webdriver tests in parallel
-#    echo "--IN PARALLEL--"
-#    find target/test/webdriver -name *Test.class \
-#  | xargs -I CLASSFILE basename CLASSFILE .class \
-#  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-#    -s $webdrivertestdogs \
-#    -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
-#    -d -t prepare-db-for-parallel-tests
-fi
-
-if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
-
-    # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
-    cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-    cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-
-    if [ "$othermigrationsappname" != "" ]
-    then
-        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+if [ $isnightlyintegrationbuild != 'true' ]; then
+    # Deploy webapp, update bcfg, start webapp
+    ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
+    
+    # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
+    echo "RUNNING WEBDRIVER TESTS"
+    if [ $runonlysmoke = 'false' ]; then
+        runslowtestsflag='-l'
+    else
+        runslowtestsflag=
     fi
-
-    # call the create repo job downstream to avoid repo locking issues
-
-    # Move the last-stable tag to the current commit
-    git branch -f last-stable-$buildbranch
-    git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
-
+    
+    if [ "$webdrivertestdogs" == "" ]
+    then
+        # If no testdogs are configured, run the ant test-webdriver-precompiled locally
+        #    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
+        #    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
+        #    $ANT test-webdriver-precompiled
+      echo "OR NOT"
+    else
+        # Run the webdriver tests in parallel
+        echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
+        echo "--IN PARALLEL--"
+#        find target/test/webdriver -name *Test.class \
+#      | xargs -I CLASSFILE basename CLASSFILE .class \
+#      | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+#        -s $webdrivertestdogs \
+#        -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
+#        -d -t prepare-db-for-parallel-tests
+    fi
+    
+    if [ $isnightlywdbuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
+    
+        # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
+        cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+        cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+    
+        if [ "$othermigrationsappname" != "" ]
+        then
+            cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
+        fi
+    
+        # call the create repo job downstream to avoid repo locking issues
+    
+        # Move the last-stable tag to the current commit
+        git branch -f last-stable-$buildbranch
+        git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
+    
+    fi
 fi

@@ -78,7 +78,7 @@
                     <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
                     <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
                     <classpath>
-                        <fileset dir="${runtime.lib.dir}" includes="**/*.jar" />
+                        <fileset dir="${test.lib.dir}" includes="**/*.jar" />
                         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
                         <pathelement location="${app.resources.dir}" />
                         <pathelement location="${common.resources.dir}" />

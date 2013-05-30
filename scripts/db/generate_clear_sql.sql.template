@@ -10,4 +10,14 @@ SELECT 'DROP ' || CASE WHEN c.relkind='S' then 'SEQUENCE'
 LEFT JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
     WHERE c.relkind in ('S', 'r')
       AND n.nspname NOT LIKE 'pg%'
-      AND pg_catalog.pg_table_is_visible(c.oid);
+      AND pg_catalog.pg_table_is_visible(c.oid)
+
+UNION
+
+SELECT 'DROP FUNCTION IF EXISTS ' || n.nspname || '.' || c.proname || '(' || oidvectortypes(c.proargtypes) || ') CASCADE;'
+FROM pg_proc c
+INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = c.pronamespace
+WHERE
+    n.nspname NOT LIKE 'pg%' AND
+    pg_catalog.pg_function_is_visible(c.oid);
+

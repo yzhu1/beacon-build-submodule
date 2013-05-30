@@ -104,35 +104,47 @@
         <delete dir="${tomcat.dir}/work" />
     </target>
 
-    <target name="tomcat-start" depends="tomcat-clean" description="Start tomcat">
-        <property name="tomcat.coverage.path" location="${coverage.data.file.webapp}" />
-        <copy
-            file="${coverage.data.file.base}"
-            tofile="${tomcat.coverage.path}"
-            overwrite="true"
-            failonerror="false"
-        />
-        <exec executable="bash" failonerror="true">
-            <arg value="${tomcat.dir}/bin/catalina.sh"/>
-            <arg value="start"/>
-            <env key="JAVA_OPTS" value="${tomcat.java.opts}"/>
-            <env key="CATALINA_OPTS"
-                 value="-Dnet.sourceforge.cobertura.datafile=${tomcat.coverage.path}"
+    <macrodef name="run-catalina" description="runs catalina.sh with the supplied command {debug, debug -security, jpda start, run, run -security, start, start -security, stop, stop -force or version}">
+        <attribute name="command" default="start"/>
+        <sequential>
+            <property name="tomcat.coverage.path" location="${coverage.data.file.webapp}" />
+            <copy
+                file="${coverage.data.file.base}"
+                tofile="${tomcat.coverage.path}"
+                overwrite="true"
+                failonerror="false"
             />
-        </exec>
-        <echo>Waiting for tomcat to start...</echo>
-        <parallel threadCount="2" timeout="200000">
-            <daemons>
-                <exec executable="tail" failonerror="false" timeout="100000">
-                    <arg value="-f"/>
-                    <arg value="${tomcat.dir}/logs/catalina.out"/>
-                </exec>
-            </daemons>
-            <waitfor maxwait="3" maxwaitunit="minute" checkevery="1" checkeveryunit="second">
-                <http url="http://localhost:8080/${servlet.name}/login"/>
-            </waitfor>
-        </parallel>
-        <echo>...done!</echo>
+            <exec executable="bash" failonerror="true">
+                <arg value="${tomcat.dir}/bin/catalina.sh"/>
+                <arg line="@{command}"/>
+                <env key="JPDA_ADDRESS" value="${tomcat.jpda.address}"/>
+                <env key="JAVA_OPTS" value="${tomcat.java.opts}"/>
+                <env key="CATALINA_OPTS"
+                     value="-Dnet.sourceforge.cobertura.datafile=${tomcat.coverage.path}"
+                />
+            </exec>
+            <echo>Waiting for tomcat to start...</echo>
+            <parallel threadCount="2" timeout="100000">
+                <daemons>
+                    <exec executable="tail" failonerror="false" timeout="100000">
+                        <arg value="-f"/>
+                        <arg value="${tomcat.dir}/logs/catalina.out"/>
+                    </exec>
+                </daemons>
+                <waitfor maxwait="3" maxwaitunit="minute" checkevery="1" checkeveryunit="second">
+                    <http url="http://localhost:8080/${servlet.name}/login"/>
+                </waitfor>
+            </parallel>
+            <echo>...done!</echo>
+        </sequential>
+    </macrodef>
+
+    <target name="tomcat-start" depends="tomcat-clean" description="Start tomcat">
+        <run-catalina />
+    </target>
+
+    <target name="tomcat-debug-start" depends="tomcat-clean" description="Start tomcat with jpda option for debugging">
+        <run-catalina command="jpda start"/>
     </target>
     
     <target name="tomcat-stop" description="Stop tomcat">

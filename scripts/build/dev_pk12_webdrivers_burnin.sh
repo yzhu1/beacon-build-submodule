@@ -120,7 +120,7 @@ while [ $i -lt $ITERATIONS ]; do
     i=$(($i+1))
 done
 
-echo "Ran $TEST_NAME $ITERATIONS times with $passedtests successes";
+echo "Ran $ITERATIONS times with $passedtests successes";
 
 if [ $passedtests -ne $ITERATIONS ]; then # not all tests passed. fail the build.
     exit 1;

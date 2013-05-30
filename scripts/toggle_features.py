@@ -49,7 +49,7 @@ def create_dashboard(appname,fqa_hosts,cqa_hosts,preprod_hosts,production_hosts)
     }
 
 feature_groups = {
-    'rpt-out' : ['LMMultiAssmtView','StudentStandardsRPT']
+    'rpt-out' : ['StudentStandardsRPT']
 }
 
 env_dashboard = {

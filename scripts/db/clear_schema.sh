@@ -19,10 +19,6 @@ clear_sql_filename=/tmp/db_clear${RANDOM}.sql
 this_dir=`dirname $0`
 tmp_sql_file=/tmp/tt/itembank/sql/clear${RANDOM}.sql
 
-# remove any existing temp sql
-rm -f $tmp_sql_file
-rm -f $clear_sql_filename
-
 # generate the sql that will drop all db objects
 mkdir -p `dirname $tmp_sql_file`
 mkdir -p `dirname $clear_sql_filename`
@@ -46,3 +42,4 @@ psql -t -h $db_host -p $db_port -U $db_user $db -f $clear_sql_filename
 # clean-up
 rm -f $tmp_sql_file
 rm -f $clear_sql_filename
+rm -f "$clear_sql_filename.bak"
