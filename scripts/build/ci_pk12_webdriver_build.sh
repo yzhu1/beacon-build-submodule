@@ -49,7 +49,7 @@ app_rpm_stem=mclass-tt-$app-$rpmversion
 migration_rpm_stem=tt-migrations-$migrationsappname-$rpmversion
 
 # check for story-build issues
-bad_rpms=`find $REPO_FUTURE_CI -noleaf -maxdepth 1 -name "$migration_rpm_stem-1????.noarch.rpm" -o -name "$app_rpm_stem-1????.noarch.rpm"`
+bad_rpms=`find $buildrpmrepo -noleaf -maxdepth 1 -name "$migration_rpm_stem-1????.noarch.rpm" -o -name "$app_rpm_stem-1????.noarch.rpm"`
 if [ -n "$bad_rpms" ]
 then
     echo "DANGER found story-build RPMs in future-ci repo: $bad_rpms"
