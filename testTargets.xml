@@ -112,11 +112,11 @@
         <echo>checking for tests junit won't find because they don't follow the *Test.java naming convention</echo>
         <exec executable="sh">
             <arg line="-c" />
-            <arg value="grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|uniq" />
+            <arg value="grep -r @Test src --exclude=*Test.java --exclude=*TestAbstract.java|uniq" />
         </exec>
         <exec executable="sh" failonerror="true">
             <arg line="-c" />
-            <arg value="exit `grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|wc -l`" />
+            <arg value="exit `grep -r @Test src --exclude=*Test.java --exclude=*TestAbstract.java`" />
         </exec>
 
         <echo>checking for tests junit won't run because their names are not unique</echo>
