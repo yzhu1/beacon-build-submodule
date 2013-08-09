@@ -17,6 +17,7 @@ root_dir = "/opt/wgen/ivy/wgen"
 dpp13numbers = "(?P<%s>\d+)\.(?P<%s>\d+)\.(?P<%s>\d+)-(?P<%s>\d+)" % (
     MAJOR, MINOR, PATCHLEVEL, BUILD_NUMBER
 )
+dpp13format = "%s.%s.%s-%s"
 now = datetime.datetime.now()
 
 def get_build_list(h, keydict):
@@ -34,11 +35,12 @@ def get_build_list(h, keydict):
 		current_level[keydict[PATCHLEVEL]] = []
 	return current_level[keydict[PATCHLEVEL]]
 
-def main(module_name):
+def main(module_name, build_to_dump=None):
 	allfiles = os.listdir(os.path.join(root_dir, module_name))
 	ivyfiles = [f for f in allfiles if f.startswith("ivy-")]
 
 	ivymatcher = re.compile("^ivy-%s.xml$" % dpp13numbers)
+	generalmatcher = re.compile("^[-\w]+-%s.[a-z]+$" % dpp13numbers)
 	badfiles = []
 	revision_map = {}
 	file_age = {}
@@ -70,13 +72,31 @@ def main(module_name):
 				    build_count, latest_build, latest_age.days
 				)
 
+	file_lookup = {}
+	for general_file in allfiles:
+		match = re.match(generalmatcher, general_file)
+		if match:
+			version = match.groupdict()
+			versionString = dpp13format % (version[MAJOR], version[MINOR],version[PATCHLEVEL], version[BUILD_NUMBER])
+			if versionString not in file_lookup:
+				file_lookup[versionString] = []
+			file_lookup[versionString].append(general_file)
+
 	print "Non-matching files: "
 	print badfiles
+	if build_to_dump:
+		print "Dumping requested build files:"
+		versionString = dpp13format % (build_to_dump[0], build_to_dump[1], build_to_dump[2],build_to_dump[3])
+		for file_name in file_lookup[versionString]:
+			print file_name
 
 if __name__ == "__main__":
 	# to debug:
 	#pdb.runcall(main)
 	modulename = "wgspringmodule-userappstate"
+	toDump = None
 	if 1 != len(sys.argv):
 		modulename = sys.argv[1]
-	main(modulename)
+		if 6 == len(sys.argv):
+			toDump = sys.argv[2:6]
+	main(modulename, toDump)
