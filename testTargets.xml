@@ -348,9 +348,9 @@
     <target name="test-one" depends="one" description="run one test (see target 'one')"/>
 
     <target name="one" depends="test-compile" 
-        description="Run a single test: use with -Dtest=NameOfTest">
+        description="Run a single test: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
-		disable-cache="true">
+		disable-cache="true" method="${method}">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
