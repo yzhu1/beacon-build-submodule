@@ -108,27 +108,26 @@
     </target>
 
     <target name="check-for-tests-junit-wont-find">
-
         <echo>checking for tests junit won't find because they don't follow the *Test.java naming convention</echo>
-        <exec executable="sh">
+        <exec executable="sh" resultproperty="grep.result" failonerror="false">
             <arg line="-c" />
-            <arg value="grep -r @Test src --exclude=*Test.java --exclude=*TestAbstract.java|uniq" />
+            <arg value="grep -r @Test src --include=*.java --exclude=*Test.java --exclude=*TestAbstract.java" />
         </exec>
-        <exec executable="sh" failonerror="true">
-            <arg line="-c" />
-            <arg value="exit `grep -r @Test src --exclude=*Test.java --exclude=*TestAbstract.java|wc -l`" />
-        </exec>
-
+        <if><!-- if the grep found something, it returns 0 (success), which means we should fail -->
+            <equals arg1="0" arg2="${grep.result}" />
+            <then><fail/></then>
+        </if>
         <echo>checking for tests junit won't run because their names are not unique</echo>
-        <exec executable="sh">
+        <exec executable="sh" outputproperty="find.output">
             <arg line="-c" />
             <arg value="(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d" />
         </exec>
-        <exec executable="sh" failonerror="true">
-            <arg line="-c" />
-            <arg value="exit `(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d|wc -l`" />
-        </exec>
-
+        <if>
+            <length when="greater" string="${find.output}" trim="true" length="0" />
+            <then>
+                <fail message="Found non-unique test name(s): ${find.output}" />
+            </then>
+        </if>
     </target>
 
     <!-- set up test directories and compile test classes,  but don't copy
