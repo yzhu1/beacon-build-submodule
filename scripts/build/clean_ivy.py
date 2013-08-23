@@ -28,9 +28,12 @@ class build_info(object):
 		if files is not None:
 			self._files.extend(files)
 
+	def get_file_names(self):
+		return self._files
+
 	def get_file_paths(self):
-		project_name = self._patchlevel.project.project_name
-		return [ os.path.join(root_dir, project_name, filename) for filename in self._files ]
+		project = self._patchlevel.project
+		return [ project.get_path(filename) for filename in self._files ]
 
 	def get_number(self):
 		return self._build_number
@@ -102,6 +105,9 @@ class project_build_holder(object):
 		else:
 			self._bad_files.append(general_file)
 
+	def get_path(self, filename):
+		return os.path.join(root_dir, self.project_name, filename)
+
 	def get_revisions(self, major=None, minor=None, patchlevel=None):
 		if major is None:
 			major_revs = self._h.values()
@@ -149,8 +155,11 @@ class project_build_holder(object):
 			current_level[patch_level] = patchlevel(self, keydict)
 		return current_level[patch_level]
 
-	def bad_files(self):
+	def bad_file_names(self):
 		return self._bad_files
+
+	def bad_file_paths(self):
+		return [self.get_path(filename) for filename in self._bad_files]
 
 def clean(build_collection, min_keep_days=7, always_keep_latest=True):
 	latest_build = None
@@ -185,18 +194,18 @@ def main(module_name, build_to_dump=None):
 		revision_holder.add_build_for_file(ivyfile)
 
 	for patchlevel_object in revision_holder.get_revisions():
-				latest_build = patchlevel_object.latest_build()
-				latest_age = now - latest_build.get_timestamp()
-				print "Revision %s has %s builds (%s is latest, at %s days old)" % (
-				    patchlevel_object.version_string(),
-				    patchlevel_object.build_count(), latest_build.get_number(), latest_age.days
-				)
+		latest_build = patchlevel_object.latest_build()
+		latest_age = now - latest_build.get_timestamp()
+		print "Revision %s has %s builds (%s is latest, at %s days old)" % (
+			patchlevel_object.version_string(),
+			patchlevel_object.build_count(), latest_build.get_number(), latest_age.days
+		)
 
 	for general_file in allfiles:
 		revision_holder.add_file_to_build(general_file)
 
 	print "Non-matching files: "
-	for bad_path in revision_holder.bad_files():
+	for bad_path in revision_holder.bad_file_names():
 		print bad_path
 
 	if build_to_dump:
