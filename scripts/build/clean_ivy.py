@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/opt/wgen-3p/python27/bin/python
 
 import re
 import os
@@ -7,6 +7,7 @@ import optparse
 import pdb
 import sys
 import datetime
+import itertools
 
 MAJOR = 'major'
 MINOR = 'minor'
@@ -18,8 +19,30 @@ dpp13numbers = "(?P<%s>\d+)\.(?P<%s>\d+)\.(?P<%s>\d+)-(?P<%s>\d+)" % (
     MAJOR, MINOR, PATCHLEVEL, BUILD_NUMBER
 )
 
+class build_info(object):
+	def __init__(self, patchlevel, build_number, timestamp, files=None):
+		self._patchlevel = patchlevel
+		self._build_number = int(build_number)
+		self._timestamp = timestamp
+		self._files = []
+		if files is not None:
+			self._files.extend(files)
+
+	def get_file_paths(self):
+		project_name = self._patchlevel.project.project_name
+		return [ os.path.join(root_dir, project_name, filename) for filename in self._files ]
+
+	def get_number(self):
+		return self._build_number
+
+	def get_timestamp(self):
+		return self._timestamp
+
+	def add_file(self, filename):
+		self._files.append(filename)
+
 class patchlevel(object):
-	def __init__(self,dict=None,major=None,minor=None,patchlevel=None):
+	def __init__(self, project, dict=None, major=None, minor=None, patchlevel=None):
 		if dict:
 			self.major = dict[MAJOR]
 			self.minor = dict[MINOR]
@@ -28,25 +51,26 @@ class patchlevel(object):
 			self.major = major
 			self.minor = minor
 			self.patchlevel = patchlevel
+		self.project = project
 		self.builds = []
 
 	def version_string(self):
 		return "%s.%s.%s" % (self.major, self.minor, self.patchlevel)
 
-	def add_build(self,build_number,timestamp):
-		self.builds.append({BUILD_NUMBER : int(build_number), "TIMESTAMP":timestamp, "FILES": []})
+	def add_build(self, build_number, timestamp):
+		self.builds.append(build_info(self, build_number, timestamp))
 
 	def get_build(self, build_number):
 		numeric_build_number = int(build_number)
 		for build in self.builds:
-			if build[BUILD_NUMBER] == numeric_build_number:
+			if build.get_number() == numeric_build_number:
 				return build
 		raise Exception("Could not find build %s for patchlevel %s" % (build_number, self.version_string()))
 
 	def latest_build(self):
 		latest = self.builds[0]
 		for build in self.builds:
-			if build[BUILD_NUMBER] > latest[BUILD_NUMBER]:
+			if build.get_number() > latest.get_number():
 				latest = build
 		return latest
 
@@ -55,11 +79,51 @@ class patchlevel(object):
 
 class project_build_holder(object):
 	def __init__(self, project_name):
-		self.h = {}
+		self._h = {}
+		self._bad_files = []
+		self._ivy_matcher = re.compile("^ivy-%s.xml$" % dpp13numbers)
+		self._general_matcher = re.compile("^[-\w]+-%s.[a-z]+$" % dpp13numbers)
 		self.project_name = project_name
 
+	def add_build_for_file(self, ivyfile):
+		match = re.match(self._ivy_matcher, ivyfile)
+		if match:
+			mtime = os.path.getmtime(os.path.join(root_dir, self.project_name, ivyfile))
+			filestamp = datetime.datetime.fromtimestamp(mtime)
+			build_list = self.get_build_list(match.groupdict())
+			build_list.add_build(match.group(BUILD_NUMBER), filestamp)
+
+	def add_file_to_build(self, general_file):
+		match = re.match(self._general_matcher, general_file)
+		if match:
+			version = match.groupdict()
+			build = self.get_build_list(version, True).get_build(version[BUILD_NUMBER])
+			build.add_file(general_file)
+		else:
+			self._bad_files.append(general_file)
+
+	def get_revisions(self, major=None, minor=None, patchlevel=None):
+		if major is None:
+			major_revs = self._h.values()
+		else:
+			major_revs = [self._h[int(major)]]
+		# major_revs now is a list of hashes from int to hash of int to build_collection
+		if minor is None:
+			minor_revs = [ r.values() for r in major_revs ]
+		else:
+			int_minor = int(minor)
+			minor_revs = [ [r[int_minor] for r in major_revs if int_minor in r ]]
+		# minor_revs is now a list of hashes from int to build_collection
+		build_list = [] # inefficient as hell
+		for r in itertools.chain.from_iterable(minor_revs):
+			if patchlevel is None:
+				build_list.extend(r.values())
+			elif int(patchlevel) in r:
+				build_list.append(r[int(patchlevel)])
+		return build_list
+
 	def get_build_list(self, keydict, read_only=False):
-		current_level = self.h
+		current_level = self._h
 		needsall = False
 		major_version = int(keydict[MAJOR])
 		minor_version = int(keydict[MINOR])
@@ -82,11 +146,11 @@ class project_build_holder(object):
 			if read_only:
 				raise Exception("Patchlevel %s.%s.%s of %s never built"
 					% (major_version, minor_version, patch_level, self.project_name))
-			current_level[patch_level] = patchlevel(keydict)
+			current_level[patch_level] = patchlevel(self, keydict)
 		return current_level[patch_level]
 
-	def items(self):
-		return self.h.items()
+	def bad_files(self):
+		return self._bad_files
 
 def clean(build_collection, min_keep_days=7, always_keep_latest=True):
 	latest_build = None
@@ -94,69 +158,54 @@ def clean(build_collection, min_keep_days=7, always_keep_latest=True):
 	is_old = {}
 
 	for build in build_collection.builds:
-		if latest_build is None or latest_build[BUILD_NUMBER] < build[BUILD_NUMBER]:
+		if latest_build is None or latest_build.get_number() < build.get_number():
 			latest_build = build
-		build_age = (now - build["TIMESTAMP"]).days
-		is_old[build[BUILD_NUMBER]] = (build_age > min_keep_days)
+		build_age = (now - build.get_timestamp()).days
+		is_old[build] = (build_age > min_keep_days)
 
 	# now loop again, and use that information
 	for build in build_collection.builds:
 		if build == latest_build and always_keep_latest:
-			print "Keeping build %s (latest)" % build[BUILD_NUMBER]
-		elif is_old[build[BUILD_NUMBER]]:
-			print "Removing build %s" % build[BUILD_NUMBER]
-			for filename in build["FILES"]:
+			print "Keeping build %s (latest)" % build.get_number()
+		elif is_old[build]:
+			print "Removing build %s" % build.get_number()
+			for filename in build.get_file_paths():
 				print "rm %s" % filename
 		else:
-			print "Keeping build %s (below age cutoff)" % build[BUILD_NUMBER]
+			print "Keeping build %s (below age cutoff)" % build.get_number()
 
 def main(module_name, build_to_dump=None):
 	now = datetime.datetime.now()
 	allfiles = os.listdir(os.path.join(root_dir, module_name))
 	ivyfiles = [f for f in allfiles if f.startswith("ivy-")]
 
-	ivymatcher = re.compile("^ivy-%s.xml$" % dpp13numbers)
-	generalmatcher = re.compile("^[-\w]+-%s.[a-z]+$" % dpp13numbers)
 	revision_holder = project_build_holder(module_name)
-	badfiles = []
 
 	for ivyfile in ivyfiles:
-		match = re.match(ivymatcher,ivyfile)
-		if match:
-			mtime = os.path.getmtime(os.path.join(root_dir, module_name, ivyfile))
-			filestamp = datetime.datetime.fromtimestamp(mtime)
-			build_list = revision_holder.get_build_list(match.groupdict())
-			build_list.add_build(match.group(BUILD_NUMBER), filestamp)
-		else:
-			badfiles.append(ivyfile)
+		revision_holder.add_build_for_file(ivyfile)
 
-	for top_level_tuple in revision_holder.items():
-		(major_revision, minor_revision_map) = top_level_tuple
-		for minor_level_tuple in minor_revision_map.items():
-			(minor_revision, patchlevel_map) = minor_level_tuple
-			for patchlevel_tuple in patchlevel_map.items():
-				(patch_level, patchlevel_object) = patchlevel_tuple
+	for patchlevel_object in revision_holder.get_revisions():
 				latest_build = patchlevel_object.latest_build()
-				latest_age = now - latest_build["TIMESTAMP"]
+				latest_age = now - latest_build.get_timestamp()
 				print "Revision %s has %s builds (%s is latest, at %s days old)" % (
 				    patchlevel_object.version_string(),
-				    patchlevel_object.build_count(), latest_build[BUILD_NUMBER], latest_age.days
+				    patchlevel_object.build_count(), latest_build.get_number(), latest_age.days
 				)
 
 	for general_file in allfiles:
-		match = re.match(generalmatcher, general_file)
-		if match:
-			version = match.groupdict()
-			build = revision_holder.get_build_list(version, True).get_build(version[BUILD_NUMBER])
-			build["FILES"].append(general_file)
+		revision_holder.add_file_to_build(general_file)
 
 	print "Non-matching files: "
-	print badfiles
+	for bad_path in revision_holder.bad_files():
+		print bad_path
+
 	if build_to_dump:
 		print "Dumping requested build files:"
-		patchlevel = revision_holder.get_build_list({MAJOR:build_to_dump[0], MINOR:build_to_dump[1], PATCHLEVEL: build_to_dump[2]}, True)
+		patchlevel = revision_holder.get_build_list(
+			{MAJOR:build_to_dump[0], MINOR:build_to_dump[1], PATCHLEVEL: build_to_dump[2]},
+			True)
 		build = patchlevel.get_build(build_to_dump[3])
-		for file_name in build["FILES"]:
+		for file_name in build.get_file_paths():
 			print file_name
 		clean(patchlevel)
 
