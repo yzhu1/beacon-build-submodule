@@ -17,8 +17,7 @@ root_dir = "/opt/wgen/ivy/wgen"
 dpp13numbers = "(?P<%s>\d+)\.(?P<%s>\d+)\.(?P<%s>\d+)-(?P<%s>\d+)" % (
     MAJOR, MINOR, PATCHLEVEL, BUILD_NUMBER
 )
-dpp13format = "%s.%s.%s-%s"
-now = datetime.datetime.now()
+
 class patchlevel(object):
 	def __init__(self,dict=None,major=None,minor=None,patchlevel=None):
 		if dict:
@@ -54,41 +53,56 @@ class patchlevel(object):
 	def build_count(self):
 		return len(self.builds)
 
-def get_build_list(h, keydict):
-	current_level = h
-	needsall = False
-	if keydict[MAJOR] not in current_level:
-		current_level[keydict[MAJOR]] = {}
-		needsall = True
-	current_level = current_level[keydict[MAJOR]]
-	if needsall or keydict[MINOR] not in current_level:
-		current_level[keydict[MINOR]] = {}
-		needsall = True
-	current_level = current_level[keydict[MINOR]]
-	if needsall or keydict[PATCHLEVEL] not in current_level:
-		current_level[keydict[PATCHLEVEL]] = patchlevel(keydict)
-	return current_level[keydict[PATCHLEVEL]]
+class project_build_holder(object):
+	def __init__(self, project_name):
+		self.h = {}
+		self.project_name = project_name
+
+	def get_build_list(self, keydict, read_only=False):
+		current_level = self.h
+		needsall = False
+		if keydict[MAJOR] not in current_level:
+			if read_only:
+				raise Exception("Major version %s of %s never built" % (keydict[MAJOR], self.project_name))
+			current_level[keydict[MAJOR]] = {}
+			needsall = True
+		current_level = current_level[keydict[MAJOR]]
+		if needsall or keydict[MINOR] not in current_level:
+			if read_only:
+				raise Exception("Minor version %s of %s never built" % (keydict[MINOR], self.project_name))
+			current_level[keydict[MINOR]] = {}
+			needsall = True
+		current_level = current_level[keydict[MINOR]]
+		if needsall or keydict[PATCHLEVEL] not in current_level:
+			if read_only:
+				raise Exception("Patchlevel %s of %s never built" % (keydict[PATCHLEVEL], self.project_name))
+			current_level[keydict[PATCHLEVEL]] = patchlevel(keydict)
+		return current_level[keydict[PATCHLEVEL]]
+
+	def items(self):
+		return self.h.items()
 
 def main(module_name, build_to_dump=None):
+	now = datetime.datetime.now()
 	allfiles = os.listdir(os.path.join(root_dir, module_name))
 	ivyfiles = [f for f in allfiles if f.startswith("ivy-")]
 
 	ivymatcher = re.compile("^ivy-%s.xml$" % dpp13numbers)
 	generalmatcher = re.compile("^[-\w]+-%s.[a-z]+$" % dpp13numbers)
+	revision_holder = project_build_holder(module_name)
 	badfiles = []
-	revision_map = {}
 
 	for ivyfile in ivyfiles:
 		match = re.match(ivymatcher,ivyfile)
 		if match:
 			mtime = os.path.getmtime(os.path.join(root_dir, module_name, ivyfile))
 			filestamp = datetime.datetime.fromtimestamp(mtime)
-			build_list = get_build_list(revision_map, match.groupdict())
-			build_list.add_build(int(match.group(BUILD_NUMBER)), filestamp)
+			build_list = revision_holder.get_build_list(match.groupdict())
+			build_list.add_build(match.group(BUILD_NUMBER), filestamp)
 		else:
 			badfiles.append(ivyfile)
 
-	for top_level_tuple in revision_map.items():
+	for top_level_tuple in revision_holder.items():
 		(major_revision, minor_revision_map) = top_level_tuple
 		for minor_level_tuple in minor_revision_map.items():
 			(minor_revision, patchlevel_map) = minor_level_tuple
@@ -105,14 +119,14 @@ def main(module_name, build_to_dump=None):
 		match = re.match(generalmatcher, general_file)
 		if match:
 			version = match.groupdict()
-			build = get_build_list(revision_map, version).get_build(version[BUILD_NUMBER])
+			build = revision_holder.get_build_list(version, True).get_build(version[BUILD_NUMBER])
 			build["FILES"].append(general_file)
 
 	print "Non-matching files: "
 	print badfiles
 	if build_to_dump:
 		print "Dumping requested build files:"
-		patchlevel = get_build_list(revision_map, {MAJOR:build_to_dump[0], MINOR:build_to_dump[1], PATCHLEVEL: build_to_dump[2]})
+		patchlevel = revision_holder.get_build_list({MAJOR:build_to_dump[0], MINOR:build_to_dump[1], PATCHLEVEL: build_to_dump[2]}, True)
 		build = patchlevel.get_build(build_to_dump[3])
 		for file_name in build["FILES"]:
 			print file_name
