@@ -61,26 +61,54 @@ class project_build_holder(object):
 	def get_build_list(self, keydict, read_only=False):
 		current_level = self.h
 		needsall = False
-		if keydict[MAJOR] not in current_level:
+		major_version = int(keydict[MAJOR])
+		minor_version = int(keydict[MINOR])
+		patch_level = int(keydict[PATCHLEVEL])
+		if major_version not in current_level:
 			if read_only:
-				raise Exception("Major version %s of %s never built" % (keydict[MAJOR], self.project_name))
-			current_level[keydict[MAJOR]] = {}
+				raise Exception("Major version %s of %s never built"
+					% (major_version, self.project_name))
+			current_level[major_version] = {}
 			needsall = True
-		current_level = current_level[keydict[MAJOR]]
-		if needsall or keydict[MINOR] not in current_level:
+		current_level = current_level[major_version]
+		if needsall or minor_version not in current_level:
 			if read_only:
-				raise Exception("Minor version %s of %s never built" % (keydict[MINOR], self.project_name))
-			current_level[keydict[MINOR]] = {}
+				raise Exception("Minor version %s.%s of %s never built"
+					% (major_version, minor_version, self.project_name))
+			current_level[minor_version] = {}
 			needsall = True
-		current_level = current_level[keydict[MINOR]]
-		if needsall or keydict[PATCHLEVEL] not in current_level:
+		current_level = current_level[minor_version]
+		if needsall or patch_level not in current_level:
 			if read_only:
-				raise Exception("Patchlevel %s of %s never built" % (keydict[PATCHLEVEL], self.project_name))
-			current_level[keydict[PATCHLEVEL]] = patchlevel(keydict)
-		return current_level[keydict[PATCHLEVEL]]
+				raise Exception("Patchlevel %s.%s.%s of %s never built"
+					% (major_version, minor_version, patch_level, self.project_name))
+			current_level[patch_level] = patchlevel(keydict)
+		return current_level[patch_level]
 
 	def items(self):
 		return self.h.items()
+
+def clean(build_collection, min_keep_days=7, always_keep_latest=True):
+	latest_build = None
+	now = datetime.datetime.now()
+	is_old = {}
+
+	for build in build_collection.builds:
+		if latest_build is None or latest_build[BUILD_NUMBER] < build[BUILD_NUMBER]:
+			latest_build = build
+		build_age = (now - build["TIMESTAMP"]).days
+		is_old[build[BUILD_NUMBER]] = (build_age > min_keep_days)
+
+	# now loop again, and use that information
+	for build in build_collection.builds:
+		if build == latest_build and always_keep_latest:
+			print "Keeping build %s (latest)" % build[BUILD_NUMBER]
+		elif is_old[build[BUILD_NUMBER]]:
+			print "Removing build %s" % build[BUILD_NUMBER]
+			for filename in build["FILES"]:
+				print "rm %s" % filename
+		else:
+			print "Keeping build %s (below age cutoff)" % build[BUILD_NUMBER]
 
 def main(module_name, build_to_dump=None):
 	now = datetime.datetime.now()
@@ -130,6 +158,7 @@ def main(module_name, build_to_dump=None):
 		build = patchlevel.get_build(build_to_dump[3])
 		for file_name in build["FILES"]:
 			print file_name
+		clean(patchlevel)
 
 if __name__ == "__main__":
 	# to debug:
