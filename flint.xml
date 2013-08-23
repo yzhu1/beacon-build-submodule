@@ -7,12 +7,12 @@
         <!-- report on each line containing tabs, not just first occurrence -->
         <property name="eachLine" value="true" />
     </module>
-    <module name="PreferNamedParameter">
+    <!--<module name="PreferNamedParameter">
         <property name="minParameterCount" value="2"/>
     </module>
     <module name="DumbLineLength">
         <property name="maxColumns" value="120"/>
     </module>
     <module name="ManualImportOfUtil" />
-    <module name="HardCodedTemplatePath" />
+    <module name="HardCodedTemplatePath" /> -->
 </module>
