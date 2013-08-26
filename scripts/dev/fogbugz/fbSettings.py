@@ -1,0 +1,11 @@
+URL     = "https://fb.wgen.net/"
+BLUE = '\033[94m'
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+RED = '\033[91m'
+ITALIC = '\033[93m'
+UNDERLINE = '\033[4m'
+MAGENTA = '\033[1m'
+ENDC = '\033[0m'
+OUTPUT_FORMAT = BLUE + UNDERLINE + "https://fb.wgen.net/default.asp?{caseId}" + ENDC + MAGENTA + " {status}" + ENDC + BLUE + " P{priority}" + ENDC + " bug in " + MAGENTA + "{project}" + ENDC + " assigned to " + GREEN + "{assignedTo}" + ENDC + " with milestone " + RED + "{milestone}" + ENDC + "\nTitle : {title}"
+MAX_SEARCH_RESULTS = 999
