@@ -49,6 +49,8 @@ def getargs():
 		help="the number of days that revisions should be kept regardless of being superseded")
 	parser.add_option("-f", "--force",action="store_true", dest="do_delete", default=False,
 		help="actually perform the deletes")
+	parser.add_option("-l", "--list",action="store_true", dest="list_files", default=False,
+		help="list files that would be deleted")
 	parser.add_option("--delete-non-matches", action="store_true", dest="delete_bad_files",
 		help="delete (only) files that do not match the DPP13 version spec")
 	parser.add_option("-k","--keep","--keep-build", action="append", dest="frozen",
@@ -59,6 +61,8 @@ def getargs():
 		help="only examine publications with this minor revision")
 	parser.add_option("--patch-level", dest="patch_level", type="int",
 		help="only examine publications with this patch-level")
+	parser.add_option("--no-keep-latest", dest="delete_latest", action="store_true", default=False,
+		help="Don't automatically keep the latest build of a given patchlevel")
 
 	parser.set_description("Deleeeeete!")
 	parser.set_usage("%prog [options] module_name")
@@ -263,6 +267,21 @@ def files_to_delete(build_collection, min_keep_days=7, always_keep_latest=True, 
 			print "Keeping build %s (below age cutoff)" % build_number
 	return to_delete
 
+def process_files(file_list, print_files, delete_files):
+	if delete_files:
+		print "Deleting these files:"
+	elif print_files:
+		print "Would delete these files:"
+	else:
+		return # if neither printing nor deleting, there's nothing more to do
+	if not file_list:
+		print "No files found."
+	else:
+		for path in file_list:
+			print path
+			if delete_files:
+				os.remove(path)
+
 def main():
 	(opts, args) = getargs()
 	module_name = args[0]
@@ -287,11 +306,9 @@ def main():
 		revision_holder.add_file_to_build(general_file)
 
 	if opts.delete_bad_files:
-		print "Non-matching files: "
-		for bad_path in revision_holder.bad_file_paths():
-			print bad_path
-			if opts.do_delete:
-				os.unlink(bad_path)
+		print "Searching for non-matching files."
+		non_matches=revision_holder.bad_file_paths()
+		process_files(file_list=non_matches, print_files=True, delete_files=opts.do_delete)
 		return
 
 	all_revisions = revision_holder.get_revisions(opts.major, opts.minor, opts.patch_level)
@@ -304,13 +321,13 @@ def main():
 		)
 	to_delete = []
 	for patchlevel_object in all_revisions:
-		new_files = files_to_delete(patchlevel_object, min_keep_days=opts.days, keep_specs=frozen_builds, actually_delete=opts.do_delete)
+		new_files = files_to_delete(patchlevel_object,
+			min_keep_days=opts.days,
+			keep_specs=frozen_builds,
+			actually_delete=opts.do_delete,
+			always_keep_latest=not opts.delete_latest)
 		to_delete.extend(new_files)
-	for filename in to_delete:
-		print "rm %s" % filename
-		if opts.do_delete:
-			os.remove(filename)
-
+	process_files(file_list=to_delete, print_files=opts.list_files, delete_files=opts.do_delete)
 
 if __name__ == "__main__":
 	# sneaky, sneaky, sneaky:
