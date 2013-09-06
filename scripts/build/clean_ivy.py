@@ -19,7 +19,7 @@
 #      exception of the most recent build for each patchlevel and any builds that are explicity
 #      called out as builds to preserve (if, for example, they are currently in use in production)
 
-# For local testing, it may be helpful to invoke the script with the (otherwise undocumented) -d option,
+# For local testing, it may be helpful to invoke the script with the (otherwise undocumented) --debug option,
 # which will cause it to execute inside the python debugger, but otherwise be ignored by the script.
 
 import re
@@ -343,8 +343,8 @@ def main():
 
 if __name__ == "__main__":
 	# sneaky, sneaky, sneaky:
-	if len(sys.argv) > 1 and sys.argv[1] == "-d":
-		sys.argv.remove("-d")
+	if len(sys.argv) > 1 and sys.argv[1] == "--debug":
+		sys.argv.remove("--debug")
 		pdb.runcall(main)
 	else:
 		main()
