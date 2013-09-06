@@ -7,10 +7,10 @@
 # bad network connections).
 
 # The script should be invoked with a single argument, which will be either a project within the
-# "wgen" organization or a project and branch (in the form "${project}/${branch}", e.g.
-# "wgspringcore/future").  The project's artifacts should use the full four-part DPP13 version-
-# numbering scheme (major.minor.patchlevel-build). Depending on the options chosen, the script will
-# do one of the following:
+# "wgen" organization (or "mclass" if the appropriate option is set) or a project and branch
+# (in the form "${project}/${branch}", e.g. "wgspringcore/future").  The project's artifacts
+# should use the full four-part DPP13 version-numbering scheme (major.minor.patchlevel-build).
+# Depending on the options chosen, the script will do one of the following:
 #   1) list all files that do not match the expected DPP13 pattern
 #   2) list all distinct revisions found (optionally matching filters that are passed in as
 #      options), with the number of builds, and the most recent build date
@@ -37,14 +37,17 @@ MAJOR = 'major'
 MINOR = 'minor'
 PATCHLEVEL = 'patch'
 BUILD_NUMBER = 'build'
+VALID_ORGS = set(['mclass','wgen'])
 
-root_dir = "/opt/wgen/ivy/wgen" # NOTE: if you change this to allow "mclass", please change the comment above!
+root_dir = "/opt/wgen/ivy"
 dpp13numbers = "(?P<%s>\d+)\.(?P<%s>\d+)\.(?P<%s>\d+)-(?P<%s>\d+)" % (
     MAJOR, MINOR, PATCHLEVEL, BUILD_NUMBER
 )
 
 def getargs():
 	parser = optparse.OptionParser()
+	parser.add_option("-o", "--organization", "--organisation", dest="org", default="wgen",
+		help="The organization that publishes this project ('wgen' or 'mclass')")
 	parser.add_option("-d", "--days-of-grace", dest="days", type="int",
 		help="the number of days that revisions should be kept regardless of being superseded")
 	parser.add_option("-f", "--force",action="store_true", dest="do_delete", default=False,
@@ -67,6 +70,8 @@ def getargs():
 	parser.set_description("Deleeeeete!")
 	parser.set_usage("%prog [options] module_name")
 	(opts, args) =  parser.parse_args()
+	if opts.org not in VALID_ORGS:
+		parser.error("organization must be one of %s" % VALID_ORGS)
 	if len(args) != 1:
 		parser.error("exactly one argument (module_name) is required")
 	return (opts, args)
@@ -154,17 +159,18 @@ class patchlevel(object):
 		return len(self.builds)
 
 class project_build_holder(object):
-	def __init__(self, project_name):
+	def __init__(self, project_name, organization="wgen"):
 		self._h = {}
 		self._bad_files = []
 		self._ivy_matcher = re.compile("^ivy-%s.xml$" % dpp13numbers)
 		self._general_matcher = re.compile("^[-\w]+-%s.[a-z]+$" % dpp13numbers)
 		self.project_name = project_name
+		self.organization = organization
 
 	def add_build_for_file(self, ivyfile):
 		match = re.match(self._ivy_matcher, ivyfile)
 		if match:
-			mtime = os.path.getmtime(os.path.join(root_dir, self.project_name, ivyfile))
+			mtime = os.path.getmtime(self.get_path(ivyfile))
 			filestamp = datetime.datetime.fromtimestamp(mtime)
 			build_list = self.get_build_list(match.groupdict())
 			build_list.add_build(match.group(BUILD_NUMBER), filestamp)
@@ -180,8 +186,11 @@ class project_build_holder(object):
 		else:
 			print "Ignoring directory entry '%s' (not a regular file)" % general_file
 
+	def get_root_path(self):
+		return os.path.join(root_dir, self.organization, self.project_name)
+
 	def get_path(self, filename):
-		return os.path.join(root_dir, self.project_name, filename)
+		return os.path.join(root_dir, self.organization, self.project_name, filename)
 
 	def get_revisions(self, major=None, minor=None, patchlevel=None):
 		if major is None:
@@ -285,6 +294,7 @@ def process_files(file_list, print_files, delete_files):
 def main():
 	(opts, args) = getargs()
 	module_name = args[0]
+	org = opts.org
 	frozen_builds = []
 	if opts.frozen:
 		version_matcher = re.compile(dpp13numbers)
@@ -295,10 +305,12 @@ def main():
 			else:
 				raise Exception("Invalid argument to --keep: '%s'" % frozen_rev_string)
 	now = datetime.datetime.now()
-	allfiles = os.listdir(os.path.join(root_dir, module_name))
+
+	print "Cleaning ivy directory %s/%s" % (org, module_name)
+	revision_holder = project_build_holder(module_name, org)
+	allfiles = os.listdir(revision_holder.get_root_path())
 	ivyfiles = [f for f in allfiles if f.startswith("ivy-")]
 
-	revision_holder = project_build_holder(module_name)
 
 	for ivyfile in ivyfiles:
 		revision_holder.add_build_for_file(ivyfile)
