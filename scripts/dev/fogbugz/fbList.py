@@ -87,7 +87,8 @@ def main(argv):
     caseList = find_cases(query)
     show_cases_info(caseList, opts)
     if opts.export:
-        export_case_info(caseList, 'fbList_export'+str(datetime.datetime.now())+'.csv')
+        fileName = 'fbList_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
+        export_case_info(caseList, fileName)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
