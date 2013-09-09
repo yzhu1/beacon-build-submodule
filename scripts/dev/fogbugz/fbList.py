@@ -1,11 +1,10 @@
 #!/usr/bin/python
 import sys
-sys.path.append('conf/base/scripts/dev/')
 from fogbugz import FogBugz
 import optparse
 import fbSettings
-import authenticationConfigs
-import gitutils
+import pickle
+#from ... import gitutils
 import os
 import csv
 import datetime
@@ -17,9 +16,10 @@ def getargs():
     parser.add_option("-t", "--team", dest="project",action="store",help="show only cases for specified project")
     parser.add_option("-p", "--priority", dest="priority",action="store",help="show only cases for specified project")
     parser.add_option("-s", "--status", dest="status",action="store",help="show only cases with the specified status")
-    parser.add_option("-c", "--commits", action="store_true", dest="show_commits",help="shows all branches and commits which have the case id in the branch name or commit message")
+    parser.add_option("-f", "--filter", dest="filter",action="store",help="apply the specified filter")
+    #parser.add_option("-c", "--commits", action="store_true", dest="show_commits",help="shows all branches and commits which have the case id in the branch name or commit message")
     parser.add_option("-e", "--export",action="store_true", dest="export",help="exports results to csv")
-    parser.set_description('You need to have python and pip installed in order to use this script. \nAfter that run sudo pip install fogbugz. \nThen to set up your credentials, first go to https://fb.wgen.net/api.asp?cmd=logon&email=<email>&password=<password> to obtain your unique fogbugz token. Then create a file conf/base/scripts/dev/fogbugz/authenticationConfigs.py and add the line: \nTOKEN = "<your_token>" \n If you don\'t specify any of the options, then a fogbugzsearch will be performed based on whatever argument you provide which can include a space or comma separated list of bug ids. Max number of bugs which can be listed have been limited to 999 but this can be changed in fbSettings.py')
+    parser.set_description('You need to have python and pip installed in order to use this script. \nAfter that run sudo pip install fogbugz. \nThen to set up your credentials, first go to https://fb.wgen.net/api.asp?cmd=logon&email=<email>&password=<password> to obtain your unique fogbugz token. Now provide this token when the script asks for an authToken. \n If you don\'t specify any of the options, then a fogbugzsearch will be performed based on whatever argument you provide which can include a space or comma separated list of bug ids. If no arguments are provided, then the script will display bugs based on your currently active filter. Max number of bugs which can be listed have been limited to 999 but this can be changed in fbSettings.py')
     parser.set_usage("%prog [options] [case ids ... ]")
     return parser.parse_args()
 
@@ -39,8 +39,7 @@ def build_query(opts, arglist):
         query = ','.join(arglist)
     return query
 
-def find_cases(query):
-    fb = FogBugz(fbSettings.URL, authenticationConfigs.TOKEN)
+def find_cases(fb, query):
     required_columns = "ixBug,sTitle,sStatus,sProject,sPersonAssignedTo,ixPriority,sFixFor"
     resp = fb.search(q=query,cols=required_columns,max=fbSettings.MAX_SEARCH_RESULTS)
     casePropertiesList = []
@@ -62,16 +61,16 @@ def show_cases_info(caseList, opts):
     for caseProperties in caseList:
         output = fbSettings.OUTPUT_FORMAT.format(**caseProperties)
         print output
-        if opts.show_commits:
-            related_branches = gitutils.find_branches_by_pattern("^  (.+FB"+caseProperties['caseId']+".+)")
-            print "\n"+str(len(related_branches))+" Branch(es)"
-            for branch in related_branches:
-                print fbSettings.BLUE + branch + fbSettings.ENDC
-            related_commits = gitutils.find_commits_by_pattern(caseProperties['caseId'])
-            print "\n"+str(len(related_commits))+" Commit(s)"
-            for commit in related_commits:
-                sys.stdout.write(commit)
-            print "\n"
+#        if opts.show_commits:
+#            related_branches = gitutils.find_branches_by_pattern("^  (.+FB"+caseProperties['caseId']+".+)")
+#            print "\n"+str(len(related_branches))+" Branch(es)"
+#            for branch in related_branches:
+#                print fbSettings.BLUE + branch + fbSettings.ENDC
+#            related_commits = gitutils.find_commits_by_pattern(caseProperties['caseId'])
+#            print "\n"+str(len(related_commits))+" Commit(s)"
+#            for commit in related_commits:
+#                sys.stdout.write(commit)
+#            print "\n"
 
 def export_case_info(caseList, filename):
     f = open(filename, 'wb')
@@ -81,13 +80,55 @@ def export_case_info(caseList, filename):
     dict_writer.writer.writerow(keys)
     dict_writer.writerows(caseList)
 
+def setFilter(fb, filterString):
+    resp = fb.listFilters()
+    filters = resp.filters.findAll('filter')
+    matchingFilter = ''
+    for filter in filters:
+        if filterString == filter.string or filterString == filter['sfilter']:
+            print fbSettings.BLUE + "Applying new filter: " + filter['sfilter'] + " " + filter.string + fbSettings.ENDC
+            matchingFilter = filter['sfilter']
+            break
+    if len(matchingFilter) > 0:
+        fb.setCurrentFilter(sFilter=matchingFilter)
+    else:
+        print fbSettings.RED + "No filter found for: " + filterString + fbSettings.ENDC
+        printAllFilters(fb)
+
+def getCurrentFilter(fb):
+    resp = fb.listFilters()
+    filters = resp.filters.findAll('filter')
+    for filter in filters:
+        if filter.get('status', None) == 'current':
+            return filter
+
+def printAllFilters(fb):
+    resp = fb.listFilters()
+    filters = resp.filters.findAll('filter')
+    print "Available filters are: "
+    for filter in filters:
+        print filter.string + "[" + filter['sfilter'] + "]"
+
 def main(argv):
     (opts, arglist) = getargs()
+    tokenFilename = os.path.join(os.path.dirname(sys.argv[0]), "token.p")
+    if os.path.exists(tokenFilename):
+        authToken = pickle.load(open(tokenFilename,"rb"))
+    else:
+        authToken = raw_input("Enter authToken: ")
+        pickle.dump(authToken, open(tokenFilename,"wb"))
+    fb = FogBugz(fbSettings.URL, authToken)
+    currentFilter = getCurrentFilter(fb)
+    if currentFilter:
+        print fbSettings.YELLOW + "Active filter: " + currentFilter.string + fbSettings.ENDC
+    if opts.filter:
+        setFilter(fb, opts.filter)
     query = build_query(opts, arglist)
-    caseList = find_cases(query)
+    caseList = find_cases(fb, query)
     show_cases_info(caseList, opts)
     if opts.export:
-        export_case_info(caseList, 'fbList_export'+str(datetime.datetime.now())+'.csv')
+        fileName = 'fbList_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
+        export_case_info(caseList, fileName)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
