@@ -115,20 +115,25 @@ def main(argv):
     if os.path.exists(tokenFilename):
         authToken = pickle.load(open(tokenFilename,"rb"))
     else:
-        authToken = raw_input("Enter authToken: ")
+        authToken = raw_input("Enter authToken (go to https://fb.wgen.net/api.asp?cmd=logon&email=<email>&password=<password>): ")
         pickle.dump(authToken, open(tokenFilename,"wb"))
-    fb = FogBugz(fbSettings.URL, authToken)
-    currentFilter = getCurrentFilter(fb)
-    if currentFilter:
-        print fbSettings.YELLOW + "Active filter: " + currentFilter.string + fbSettings.ENDC
-    if opts.filter:
-        setFilter(fb, opts.filter)
-    query = build_query(opts, arglist)
-    caseList = find_cases(fb, query)
-    show_cases_info(caseList, opts)
-    if opts.export:
-        fileName = 'fbList_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
-        export_case_info(caseList, fileName)
+    try:
+        fb = FogBugz(fbSettings.URL, authToken)
+        currentFilter = getCurrentFilter(fb)
+        if currentFilter and len(argv) == 0:
+            print fbSettings.YELLOW + "Active filter: " + currentFilter.string + fbSettings.ENDC
+        if opts.filter:
+            setFilter(fb, opts.filter)
+        query = build_query(opts, arglist)
+        caseList = find_cases(fb, query)
+        show_cases_info(caseList, opts)
+        if opts.export:
+            fileName = 'fbList_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
+            export_case_info(caseList, fileName)
+    except :
+        print "Invalid Auth token"
+        os.remove(tokenFilename)
+        main(argv)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
