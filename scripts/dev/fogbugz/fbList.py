@@ -8,6 +8,8 @@ import pickle
 import os
 import csv
 import datetime
+import requests
+import xml.etree.ElementTree as ET
 
 def getargs():
     parser = optparse.OptionParser()
@@ -115,7 +117,16 @@ def main(argv):
     if os.path.exists(tokenFilename):
         authToken = pickle.load(open(tokenFilename,"rb"))
     else:
-        authToken = raw_input("Enter authToken (go to https://fb.wgen.net/api.asp?cmd=logon&email=<email>&password=<password>): ")
+	email = raw_input("Enter email:")
+	password = raw_input("Enter password:")
+	params = {'cmd':'logon'}
+	params['email'] = email
+	params['password'] = password
+	response = requests.post('https://fb.wgen.net/api.asp', params)
+	root = ET.fromstring(response.text)
+	authToken = '';
+	token = root.findall('token')[0]
+        authToken = token.text
         pickle.dump(authToken, open(tokenFilename,"wb"))
     try:
         fb = FogBugz(fbSettings.URL, authToken)
