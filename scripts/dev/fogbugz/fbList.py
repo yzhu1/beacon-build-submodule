@@ -9,6 +9,7 @@ import os
 import csv
 import datetime
 import requests
+import getpass
 import xml.etree.ElementTree as ET
 
 def getargs():
@@ -117,8 +118,8 @@ def main(argv):
     if os.path.exists(tokenFilename):
         authToken = pickle.load(open(tokenFilename,"rb"))
     else:
-	email = raw_input("Enter email:")
-	password = raw_input("Enter password:")
+	email = raw_input("Enter email: ")
+	password = getpass.getpass()
 	params = {'cmd':'logon'}
 	params['email'] = email
 	params['password'] = password
@@ -131,20 +132,20 @@ def main(argv):
     try:
         fb = FogBugz(fbSettings.URL, authToken)
         currentFilter = getCurrentFilter(fb)
-        if currentFilter and len(argv) == 0:
-            print fbSettings.YELLOW + "Active filter: " + currentFilter.string + fbSettings.ENDC
-        if opts.filter:
-            setFilter(fb, opts.filter)
-        query = build_query(opts, arglist)
-        caseList = find_cases(fb, query)
-        show_cases_info(caseList, opts)
-        if opts.export:
-            fileName = 'fbList_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
-            export_case_info(caseList, fileName)
     except :
         print "Invalid Auth token"
         os.remove(tokenFilename)
         main(argv)
+    if currentFilter and len(argv) == 0:
+        print fbSettings.YELLOW + "Active filter: " + currentFilter.string + fbSettings.ENDC
+    if opts.filter:
+        setFilter(fb, opts.filter)
+    query = build_query(opts, arglist)
+    caseList = find_cases(fb, query)
+    show_cases_info(caseList, opts)
+    if opts.export:
+        fileName = 'fbList_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
+        export_case_info(caseList, fileName)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
