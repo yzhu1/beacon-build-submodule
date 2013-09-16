@@ -1,4 +1,5 @@
-URL     = "https://fb.wgen.net/"
+URL = "https://fb.wgen.net/"
+AUTH_URL = "https://fb.wgen.net/api.asp"
 BLUE = '\033[94m'
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
@@ -7,5 +8,6 @@ ITALIC = '\033[93m'
 UNDERLINE = '\033[4m'
 MAGENTA = '\033[1m'
 ENDC = '\033[0m'
-OUTPUT_FORMAT = BLUE + UNDERLINE + "https://fb.wgen.net/default.asp?{caseId}" + ENDC + MAGENTA + " {status}" + ENDC + BLUE + " P{priority}" + ENDC + " bug in " + MAGENTA + "{project}" + ENDC + " assigned to " + GREEN + "{assignedTo}" + ENDC + " with milestone " + RED + "{milestone}" + ENDC + "\nTitle : {title}"
+BUG_INFO_FORMAT = YELLOW + "Title: {title}" + ENDC + BLUE + UNDERLINE + "\nhttps://fb.wgen.net/default.asp?{caseId}" + ENDC + MAGENTA + " {status}" + ENDC + BLUE + " P{priority}" + ENDC + " bug in " + MAGENTA + "{project}" + ENDC + " assigned to " + GREEN + "{assignedTo}" + ENDC + " with milestone " + RED + "{milestone}" + ENDC
+RELEASE_INFO_FORMAT = "Release Status: " + YELLOW + "{release_STATUS}" + ENDC + "\nMerges: " + BLUE + "{release_MERGES}" + ENDC + "\nCommits: " + BLUE + "{release_COMMIT}" + ENDC + "\nBranch: {release_BRANCH} [{release_PROJECT}{release_PROJECTS}]" + "\nRisks:" + RED + "{release_RISKS}" + ENDC + "\nFix Description: " + GREEN + "{release_FIXDESCRIPTION}" + ENDC
 MAX_SEARCH_RESULTS = 999
