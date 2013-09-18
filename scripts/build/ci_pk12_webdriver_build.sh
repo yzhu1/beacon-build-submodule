@@ -24,6 +24,7 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
+secondary_build_rpm_repo="$SECOND_RPM_REPO" # e.g. $REPO_DEV_EL6
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
 
 # Optional parameters
@@ -49,7 +50,7 @@ app_rpm_stem=mclass-tt-$app-$rpmversion
 migration_rpm_stem=tt-migrations-$migrationsappname-$rpmversion
 
 # check for story-build issues
-bad_rpms=`find $buildrpmrepo -noleaf -maxdepth 1 -name "$migration_rpm_stem-1????.noarch.rpm" -o -name "$app_rpm_stem-1????.noarch.rpm"`
+bad_rpms=`find $buildrpmrepo $secondary_build_rpm_repo -noleaf -maxdepth 1 -name "$migration_rpm_stem-1????.noarch.rpm" -o -name "$app_rpm_stem-1????.noarch.rpm"`
 if [ -n "$bad_rpms" ]
 then
     echo "DANGER found story-build RPMs in future-ci repo: $bad_rpms"

@@ -25,6 +25,7 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
+secondary_build_rpm_repo="$SECOND_RPM_REPO" # e.g. $REPO_DEV_EL6
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
@@ -114,10 +115,11 @@ if [ $isnightlywdbuild != 'true' ]; then
               -d -t update-schema
     fi
     if [ $isnightlyintegrationbuild != 'true' ]; then
+        # OK, I want this to be a function :-(
         # Remove existing RPMs in the repo to ensure the one we build gets deployed
         rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
         rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
-        
+
         # Build webapp and db rpms
         rm -rf $workspace/RPM_STAGING
         mkdir -p $workspace/opt/tt/webapps/$app
@@ -125,7 +127,17 @@ if [ $isnightlywdbuild != 'true' ]; then
                 -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
         python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
                 -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-    
+
+        if [ -n "$secondary_build_rpm_repo" ]
+        then
+            rm -f $secondary_build_rpm_repo/mclass-tt-$app-$rpmversion-*.noarch.rpm
+            rm -f $secondary_build_rpm_repo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
+            python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $secondary_build_rpm_repo -r $workspace/RPM_STAGING \
+                -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
+            python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $secondary_build_rpm_repo -r $workspace/RPM_STAGING \
+                -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
+        fi
+
         if [ "$othermigrationsappname" != "" ]
         then
             # Remove and rebuild the other migration RPM
@@ -137,6 +149,10 @@ if [ $isnightlywdbuild != 'true' ]; then
         
         # Promote them to CI rpm repo
         /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+        if [ -n "$secondary_build_rpm_repo" ]
+        then
+            /opt/wgen/rpmtools/wg_createrepo $secondary_build_rpm_repo
+        fi
     fi
 else
     # Migrate schema back up so webapp may start
