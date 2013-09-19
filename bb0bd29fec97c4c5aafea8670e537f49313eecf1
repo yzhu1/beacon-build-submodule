@@ -1,0 +1,8 @@
+Code-Review+2: Shannon Horneck <shorneck@amplify.com>
+Verified+1: Jenkins
+Code-Review+1: Yevgeni Chechelnitski <ychechelnitski@amplify.com>
+Submitted-by: Ben Warfield <bwarfield@amplify.com>
+Submitted-at: Thu, 19 Sep 2013 10:33:41 -0400
+Reviewed-on: https://mcgit.mc.wgenhq.net/gerrit/4827
+Project: beacon-build-submodule
+Branch: refs/heads/master
