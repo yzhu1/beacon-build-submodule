@@ -4,8 +4,8 @@ import re
 
 # need to remember how auto-doc works...
 
-_pattern_strict = "^ssh://(?:\w+)@([\w.]+)(?::(\d+))/(\S+)$"
-_pattern_loose = "(?:\w+)\@([\w.]+)[:/](\S+)"
+_pattern_strict = "^ssh://(?:\w+@)?([\w.]+)(?::(\d+))?/(\S+)$"
+_pattern_loose = "(?:\w+\@)?([\w.]+)[:/](\S+)"
 
 def find_repo_props():
     matcher = re.compile(_pattern_strict)
