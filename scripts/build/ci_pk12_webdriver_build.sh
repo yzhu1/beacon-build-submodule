@@ -24,13 +24,12 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
-secondary_build_rpm_repo="$SECOND_RPM_REPO" # e.g. $REPO_DEV_EL6
+secondary_build_rpm_repo=${SECOND_RPM_REPO:-""} # e.g. $REPO_DEV_EL6
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
 
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
 isnightlybuild=${IS_NIGHTLY_BUILD:-false}
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
@@ -126,11 +125,6 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # Copy the RPMs to the future-qa repo
     cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $nextrpmrepo
     cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $nextrpmrepo
-
-    if [ "$othermigrationsappname" != "" ]
-    then
-        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm $nextrpmrepo
-    fi
 
     # call the create repo job downstream to avoid repo locking issues
 

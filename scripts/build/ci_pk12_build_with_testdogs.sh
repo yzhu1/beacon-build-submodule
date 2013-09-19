@@ -25,7 +25,7 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
-secondary_build_rpm_repo="$SECOND_RPM_REPO" # e.g. $REPO_DEV_EL6
+secondary_build_rpm_repo=${SECOND_RPM_REPO:-""} # e.g. $REPO_DEV_EL6
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
@@ -34,7 +34,6 @@ runonlysmoke=${RUN_ONLY_SMOKE:-true}
 isnightlywdbuild=${IS_NIGHTLY_BUILD:-false}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
 isnightlyintegrationbuild=${IS_NIGHTLY_INTEGRATION_BUILD:-false}
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
@@ -137,15 +136,6 @@ if [ $isnightlywdbuild != 'true' ]; then
             python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $secondary_build_rpm_repo -r $workspace/RPM_STAGING \
                 -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
         fi
-
-        if [ "$othermigrationsappname" != "" ]
-        then
-            # Remove and rebuild the other migration RPM
-            # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
-            rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
-            python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-                -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
-        fi
         
         # Promote them to CI rpm repo
         /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
@@ -188,21 +178,13 @@ if [ $isnightlyintegrationbuild != 'true' ]; then
     fi
     
     if [ $isnightlywdbuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
-    
         # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
         cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
         cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-    
-        if [ "$othermigrationsappname" != "" ]
-        then
-            cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-        fi
-    
-        # call the create repo job downstream to avoid repo locking issues
-    
+        # after we're done, we'll call the create repo jenkins job downstream to avoid repo locking issues
+
         # Move the last-stable tag to the current commit
         git branch -f last-stable-$buildbranch
         git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
-    
     fi
 fi

@@ -25,11 +25,10 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
-secondary_build_rpm_repo="$SECOND_RPM_REPO" # e.g. $REPO_DEV_EL6
+secondary_build_rpm_repo=${SECOND_RPM_REPO:-""} # e.g. $REPO_DEV_EL6
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
 # Optional parameters
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
@@ -140,15 +139,6 @@ then
         -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
     python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $secondary_build_rpm_repo -r $workspace/RPM_STAGING \
         -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-fi
-
-if [ "$othermigrationsappname" != "" ]
-then
-    # Remove and rebuild the other migration RPM
-    # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
-    rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
-    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
 fi
 
 # Promote them to CI rpm repo
