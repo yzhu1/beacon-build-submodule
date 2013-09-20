@@ -24,7 +24,7 @@ function ci_build_utils.publish_rpms() {
     rm -rf $workspace/RPM_STAGING
     mkdir -p $workspace/opt/tt/webapps/$app
     mkdir -p $rpm_target_dir
-    rm $rpm_target_dir/*
+    rm -f $rpm_target_dir/*
     # Build webapp and db rpms in local workspace
     python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $rpm_target_dir -r $workspace/RPM_STAGING \
         -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
