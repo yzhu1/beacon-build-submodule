@@ -37,6 +37,10 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
 # Set the webapp home environment variable (needed to run integration, webservice, and webdriver tests)
 export $apphomeenvvar=.
 
@@ -71,16 +75,8 @@ wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgsprin
 rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
 rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
 
-# Build webapp and db rpms
-rm -rf $workspace/RPM_STAGING
-mkdir -p $workspace/opt/tt/webapps/$app
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-
-# Promote RPM to reop
-/opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+# Build webapp and db rpms and promote to build repo
+ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber $workspace $buildrpmrepo
 
 # Deploy webapp, update bcfg, start webapp
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs

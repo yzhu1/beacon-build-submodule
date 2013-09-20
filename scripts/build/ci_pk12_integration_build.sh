@@ -41,6 +41,10 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
 gitrepobaseurl="git@github.wgenhq.net:Beacon"
 
 # Set the migration testdog if testdogs have been set
@@ -123,30 +127,8 @@ rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
 rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
 
 # Build webapp and db rpms
-
-rm -rf $workspace/RPM_STAGING
-mkdir -p $workspace/opt/tt/webapps/$app
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-
-if [ -n "$secondary_build_rpm_repo" ]
-then
-    rm -f $secondary_build_rpm_repo/mclass-tt-$app-$rpmversion-*.noarch.rpm
-    rm -f $secondary_build_rpm_repo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
-    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $secondary_build_rpm_repo -r $workspace/RPM_STAGING \
-        -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $secondary_build_rpm_repo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-fi
-
-# Promote them to CI rpm repo
-/opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
-if [ -n "$secondary_build_rpm_repo" ]
-then
-    /opt/wgen/rpmtools/wg_createrepo $secondary_build_rpm_repo
-fi
+ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber \
+    $workspace "$buildrpmrepo $secondary_build_rpm_repo"
 
 # Add the last-stable-integration tag to the current commit
 git branch -f last-stable-integration-$buildbranch
