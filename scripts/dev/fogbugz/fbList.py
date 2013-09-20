@@ -20,7 +20,7 @@ def getargs():
     parser.add_option("-p", "--priority", dest="priority",action="store",help="show only cases for specified priority")
     parser.add_option("-s", "--status", dest="status",action="store",help="show only cases with the specified status")
     parser.add_option("-f", "--filter", dest="filter",action="store",help="apply the specified filter")
-    parser.add_option("-r", "--release",action="store_true", dest="showReleaseInfo",help="gives additional info specific for release bugs")
+    parser.add_option("-r", "--release",action="store_true", dest="showReleaseInfo",help="gives additional info specific for release bugs (affects load times).")
     parser.add_option("-e", "--export",action="store_true", dest="export",help="exports results to csv")
     parser.set_description('You need to have python and pip installed in order to use this script. \nAfter that run sudo pip install fogbugz. Now you can start using the script. \n If you don\'t specify any of the options, then a fogbugz search will be performed based on whatever argument you provide which can include a space or comma separated list of bug ids. If no arguments are provided, then the script will display bugs based on your currently active filter. Max number of bugs which can be listed have been limited to 999 but this can be changed in fbSettings.py')
     parser.set_usage("%prog [options] [case ids ... ]")
@@ -64,12 +64,15 @@ def addBeaconReleaseProperties(case, caseProperties):
         caseProperties['release_PROJECTS'] = ""
         for beaconAttributes in beaconAttributesArray:
             keyValueArray = beaconAttributes.split(':', 1)
-            key = keyValueArray[0].encode('ascii').replace(" ", "").replace("(S)", "")
-            value = keyValueArray[1].strip().replace("\r", "")
-            caseProperties["release_" + key] = value
+            if(len(keyValueArray) == 2):
+                key = keyValueArray[0].encode('ascii').replace(" ", "").replace("(S)", "")
+                value = keyValueArray[1].strip().replace("\r", "")
+                caseProperties["release_" + key] = value
 
 def find_cases(fb, query, showReleaseInfo):
-    required_columns = "ixBug,sTitle,sStatus,sProject,sPersonAssignedTo,ixPriority,sFixFor,events"
+    required_columns = "ixBug,sTitle,sStatus,sProject,sPersonAssignedTo,ixPriority,sFixFor"
+    if showReleaseInfo:
+        required_columns += ",events"
     resp = fb.search(q=query,cols=required_columns,max=fbSettings.MAX_SEARCH_RESULTS)
     casePropertiesList = []
     cases = resp.cases.findAll('case')
