@@ -285,7 +285,7 @@
                 <sysproperty key="RUN_ONLY_UTIL" value="${run-only-util}" /> <!-- reset the env variable -->
                 <!--Disable EhCache for batch testing! -->
                 <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
-                <sysproperty key="spring.profiles.active" value="${spring.profiles.active}" />
+                <sysproperty key="spring.profiles.active" value="${spring.profiles.junit}" />
                 <formatter type="brief" />
                 <formatter type="xml" />
 
