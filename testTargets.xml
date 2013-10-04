@@ -275,7 +275,7 @@
                 >
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
-                <sysproperty key="app.freemarker.source.dir" file="${app.dir}/src/main/webapp/WEB-INF/freemarker" />
+                <sysproperty key="app.freemarker.source.dir" file="${app.freemarker.dir}" />
                 <!-- The specific test method to run -->
                 <sysproperty key="net.wgen.spring.common.test.method" value="${method}" />
                 <sysproperty key="RUN_ONLY_UTIL" value="${run-only-util}" /> <!-- reset the env variable -->
@@ -621,7 +621,7 @@
         <mkdir dir="${results.dir}"/>
         
         <checkstyle config="${imported.basedir}/flint.xml" failonviolation="true">
-            <fileset dir="${app.web.dir}/WEB-INF/freemarker" includes="**/*.ftl" />
+            <fileset dir="${app.freemarker.dir}" includes="**/*.ftl" />
             <formatter type="plain" usefile="false" />
         </checkstyle>
         <fail if="checkstyle.failed" message="Checkstyle failed" />
@@ -663,8 +663,9 @@
               resultproperty="build.js.grep.return"
               failonerror="false">
            <arg value="-r" />
-           <arg value="${app.web.dir}/WEB-INF/freemarker" />
-           <arg value="${app.web.dir}/static/js" />
+           <arg value="-s" /> <!-- do not fail if one of these properties is not set -->
+           <arg value="${app.freemarker.dir}" />
+           <arg value="${app.static.dir}/js" />
            <arg value="-F" />
            <arg value="-e" />
            <arg value="$j.get" />
@@ -708,7 +709,8 @@
               failonerror="false">
            <arg value="-n" />
            <arg value="-r" />
-           <arg value="${app.web.dir}/WEB-INF/freemarker" />
+           <arg value="-s" /> <!-- succeed silently if app.freemarker.dir is unset -->
+           <arg value="${app.freemarker.dir}" />
            <!-- check for hard-coding of the context name -->
            <arg value="-e" />
            <arg value="/${servlet.name}" />

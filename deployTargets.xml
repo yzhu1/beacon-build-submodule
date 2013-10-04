@@ -189,7 +189,7 @@
         <!-- copy the freemarker templates, spring context, and web.xml into the web assets dir -->
         <mkdir dir="${build.web.assets.content.dir.web}"/>
         <copy todir="${build.web.assets.content.dir.web}" encoding="UTF-8">
-            <fileset dir="${app.dir}/src/main/webapp" includes="*.ftl"/>
+            <fileset dir="${app.web.dir}" includes="*.ftl"/>
             <filterchain>
                 <replacetokens>
                 <!-- in layout/basic.ftl file, replace "@build.number@" with the build number -->
@@ -202,7 +202,7 @@
             </filterchain>
         </copy>
         <copy todir="${build.web.assets.content.dir.web}" encoding="UTF-8">
-            <fileset dir="${app.dir}/src/main/webapp" excludes="*.ftl"/>
+            <fileset dir="${app.web.dir}" excludes="*.ftl"/>
 	</copy>
 
         <!-- copy common resources.
