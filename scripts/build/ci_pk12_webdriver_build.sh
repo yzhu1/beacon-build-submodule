@@ -26,6 +26,7 @@ buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
 secondary_build_rpm_repo=${SECOND_RPM_REPO:-""} # e.g. $REPO_DEV_EL6
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
+secondary_next_rpm_repo=${SECOND_NEXT_RPM_REPO:-""} # e.g. EL6 FQA
 
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
@@ -125,6 +126,10 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # Copy the RPMs to the future-qa repo
     cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $nextrpmrepo
     cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $nextrpmrepo
+    if [ $SECOND_NEXT_RPM_REPO != "" ]; then
+        cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $secondary_next_rpm_repo
+        cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $secondary_next_rpm_repo
+    fi
 
     # call the create repo job downstream to avoid repo locking issues
 
