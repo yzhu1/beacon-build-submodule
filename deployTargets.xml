@@ -175,9 +175,6 @@
                 <include name="**/common/**"/>
             </preserveintarget>
         </sync>
-        <sync todir="${war.exploded.freemarker.common.dir}" granularity="0" verbose="true">
-            <fileset dir="${common.freemarker.dir}"/>
-        </sync>
     </target>
 
 

@@ -221,9 +221,6 @@
         <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
             <fileset erroronmissingdir="false" dir="${app.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
-        <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
-            <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
-        </copy>
 
         <antcall target="check-for-tests-junit-wont-find" />
 
@@ -279,7 +276,6 @@
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
                 <sysproperty key="app.freemarker.source.dir" file="${app.dir}/src/main/webapp/WEB-INF/freemarker" />
-                <sysproperty key="common.freemarker.source.dir" file="${common.web.dir}/WEB-INF/freemarker" />
                 <!-- The specific test method to run -->
                 <sysproperty key="net.wgen.spring.common.test.method" value="${method}" />
                 <sysproperty key="RUN_ONLY_UTIL" value="${run-only-util}" /> <!-- reset the env variable -->
@@ -694,16 +690,6 @@
         </fail>
     </target>
     
-    <target name="jslint-common">
-        <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
-        <jslint options="browser, devel">
-            <predef>$$j,Class</predef>
-            <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
-            <formatter type="plain"/>
-            <fileset dir="${common.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js" />
-        </jslint>
-    </target>
-
     <!-- Don't use this for now... -->
     <target name="jslint-css">
         <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
