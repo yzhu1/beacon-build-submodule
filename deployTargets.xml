@@ -157,7 +157,6 @@
         <war destfile="${war.outdir}/${war.name}" update="false"
             webxml="${deploy.root.dir}/WEB-INF/web.xml">
             <classes dir="${app.resources.dir}"/>
-            <classes dir="${common.resources.dir}"/>
             <!-- NOTE: Tomcat won't find jars in subdirectories: recursive copy is useless -->
             <lib dir="${runtime.lib.dir}" includes="*.jar" />
             <!-- instead, copy directly from any subdirectories you need to include: -->
