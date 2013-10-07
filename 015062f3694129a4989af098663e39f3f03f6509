@@ -1,0 +1,7 @@
+Code-Review+2: Ben Warfield <bwarfield@amplify.com>
+Verified+1: Ben Warfield <bwarfield@amplify.com>
+Submitted-by: Ben Warfield <bwarfield@amplify.com>
+Submitted-at: Mon, 07 Oct 2013 17:25:45 -0400
+Reviewed-on: https://mcgit.mc.wgenhq.net/gerrit/4883
+Project: beacon-build-submodule
+Branch: refs/heads/story/US16624-no-wgspring-static-files
