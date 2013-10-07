@@ -96,7 +96,13 @@
                 <include name="**/*.properties" />
             </fileset>
         </copy>
-        
+
+        <copy todir="${jar.classes.dir.main}/app">
+            <fileset dir="${app.resources.dir}">
+                <include name="**/*.json" />
+            </fileset>
+        </copy>
+
         <jar
             basedir="${jar.classes.dir.main}/app"
             destfile="${jar.outdir}/${jar.app.name}.jar"
