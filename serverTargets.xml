@@ -118,7 +118,7 @@
                 <arg value="${tomcat.dir}/bin/catalina.sh"/>
                 <arg line="@{command}"/>
                 <env key="JPDA_ADDRESS" value="${tomcat.jpda.address}"/>
-                <env key="JAVA_OPTS" value="-Dspring.profiles.active=${spring.profiles.webapp} ${tomcat.java.opts}"/>
+                <env key="JAVA_OPTS" value="${tomcat.java.opts}"/>
                 <env key="CATALINA_OPTS"
                      value="-Dnet.sourceforge.cobertura.datafile=${tomcat.coverage.path}"
                 />
