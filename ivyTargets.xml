@@ -134,6 +134,7 @@
         <property name='log-message'
           value="build ${jenkins.job-id} built ${git.current.commit} as ${module.revision.published}${line.separator}"
         />
+        <echo>Pulling from ${git.current.branch}</echo>
         <git command="pull"><arg value="origin" /> <arg value="${git.current.branch}" /></git>
         <echo message="${git.command.output}"/>
         <echo append="true" file=".commitlog" message="${log-message}" />
