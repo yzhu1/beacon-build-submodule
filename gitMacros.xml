@@ -17,10 +17,23 @@
     <macrodef name="git-retrieve-branch-name">
         <attribute name="outputproperty" default="git.current.branch" />
         <sequential>
-            <git command="rev-parse" outputproperty="@{outputproperty}">
-                <arg value="--abbrev-ref" />
-                <arg value="HEAD" />
-            </git>
+            <if>
+                <isset property="sys_env.GIT_BRANCH" />
+                <then>
+                    <!-- possibly too clever: get FOO out of either FOO, origin/FOO, skylight/FOO (but also story/FOO) -->
+                    <propertyregex property="@{outputproperty}"
+                               input="${sys_env.GIT_BRANCH}"
+                               regexp="(?:[^/]+/)?(\S+)"
+                               select="\1"
+                    />
+                </then>
+                <else>
+                    <git command="rev-parse" outputproperty="@{outputproperty}">
+                        <arg value="--abbrev-ref" />
+                        <arg value="HEAD" />
+                    </git>
+                </else>
+            </if>
         </sequential>
     </macrodef>
 
