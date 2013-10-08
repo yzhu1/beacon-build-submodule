@@ -138,4 +138,15 @@
         <echo message="${git.command.output}"/>
         <echo append="true" file=".commitlog" message="${log-message}" />
     </target>
+
+    <target name="push-commit-log">
+        <git-retrieve-branch-name />
+        <git command="commit">
+            <arg value="-m" />
+            <arg value="update .commitlog" />
+            <arg value=".commitlog" />
+        </git>
+        <git-push-to-branch branchname="${git.current.branch}" />
+        <echo message="${git.command.output}" />
+    </target>
 </project>

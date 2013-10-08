@@ -31,4 +31,16 @@
             </git>
         </sequential>
     </macrodef>
+
+    <macrodef name="git-push-to-branch">
+        <attribute name="branchname" />
+        <attribute name="outputproperty" default="git.command.output" />
+        <sequential>
+            <git command="push" outputproperty="@{outputproperty}">
+                <arg value="origin" />
+                <arg value="HEAD:@{branchname}" />
+            </git>
+        </sequential>
+    </macrodef>
+
 </project>
