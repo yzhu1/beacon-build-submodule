@@ -126,7 +126,7 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # Copy the RPMs to the future-qa repo
     cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $nextrpmrepo
     cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $nextrpmrepo
-    if [ $SECOND_NEXT_RPM_REPO != "" ]; then
+    if [ $secondary_next_rpm_repo != "" ]; then
         cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $secondary_next_rpm_repo
         cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $secondary_next_rpm_repo
     fi
