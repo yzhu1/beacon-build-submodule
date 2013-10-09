@@ -660,7 +660,7 @@
                 <resourcecount refid="file.list.js" when="greater" count="0" />
             </and>
             <then>
-                <mkdir directory="${results.dir}" /> <!-- no earthly reason this should fail for a missing directory -->
+                <mkdir dir="${results.dir}" /> <!-- no earthly reason this should fail for a missing directory -->
                 <jslint haltOnFailure="${jslint.fatal}" options="browser, sub, forin">
                     <predef>$$j,Class</predef>
                     <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
