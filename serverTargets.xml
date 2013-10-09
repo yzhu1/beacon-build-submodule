@@ -64,6 +64,7 @@
         <sequential>
             <exec executable="bash" failonerror="true">
                 <env key="APACHE_LOG_DIR" file="${apache.log.dir}" />
+                <env key="COMMON_APACHE_CONFIG_PATH" value="target/web-assets/unzip/wgspringmodule-web-common-web-assets/web/static/common" />
                 <arg value="${apachectl}"/>
                 <arg value="-f"/>
                 <arg value="${conf}"/>
