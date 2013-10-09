@@ -64,10 +64,12 @@
     </path>
 
     <target name="test-quick" description="Run embarassing-to-fail tests" depends="quicktests"/>
-    
+    <target name="test-frontend" description="Run all tests for front-end code"
+            depends="jslint,template-lint,freestyle" />
+
     <target
         name="quicktests"
-        depends="test-compile,jslint,template-lint,checkstyle,freestyle,test-unit"
+        depends="test-compile,test-frontend,checkstyle,test-unit"
     />
 
     <target name="alltests">
@@ -658,6 +660,7 @@
                 <resourcecount refid="file.list.js" when="greater" count="0" />
             </and>
             <then>
+                <mkdir directory="${results.dir}" /> <!-- no earthly reason this should fail for a missing directory -->
                 <jslint haltOnFailure="${jslint.fatal}" options="browser, sub, forin">
                     <predef>$$j,Class</predef>
                     <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />

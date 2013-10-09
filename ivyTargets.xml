@@ -103,7 +103,7 @@
         <propertycopy name="module.revision.published" from="module.revision.dev" override="true" silent="true" />
     </target>
 
-    <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
             update="true" overwrite="true" forcedeliver="true">
             <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
@@ -111,8 +111,22 @@
         </ivy:publish>
     </target>
 
-    <target name="ivy-publish-dev" depends="-set-module-publish-version-dev, clean, clean-ivy, init-ivy, checkstyle, jslint, template-lint, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish-dev" depends="-set-module-publish-version-dev, clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
+            update="true" overwrite="true" forcedeliver="true">
+            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
+            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
+        </ivy:publish>
+    </target>
+
+    <target name="ivy-publish-repeat" depends="-set-module-publish-version-dev, build-app-jars, build-test-jars, zip-web-assets"
+            description="Run ivy-publish-dev without first running ivy-resolve and tests, to save time and aggravation (only run it after running publish-dev normally once)">
+        <ivy:settings id="ivy.settings" file="ivysettings.xml" />
+
+        <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
+            organisation="${project.organization}"
+            module="${project.name}"
+            revision="${module.revision.dev}"
             update="true" overwrite="true" forcedeliver="true">
             <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
             <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
