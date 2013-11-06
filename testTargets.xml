@@ -9,7 +9,7 @@
     <taskdef resource="checkstyletask.properties">
         <classpath>
             <pathelement location="${build.lib.dir}/freestyle-1.0.0.jar" />
-            <pathelement location="${build.lib.dir}/checkstyle-all-5.6.jar" />
+            <pathelement location="${build.lib.dir}/checkstyle-all-${external-dependencies.checkstyle.revision}.jar" />
         </classpath>
     </taskdef>
 
