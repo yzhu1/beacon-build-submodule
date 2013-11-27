@@ -95,7 +95,7 @@ if [ $isnightlywdbuild != 'true' ]; then
         runslowtestsflag=
     fi
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
-        wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
+        wgspringcoreintegrationtestpath=ivy_lib/test # correct path
     else
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
@@ -109,7 +109,7 @@ if [ $isnightlywdbuild != 'true' ]; then
         $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
         echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+        (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
          && find target/test/integration target/test/webservice \
 	)   | grep Test.class \
 	    | xargs -I CLASSFILE basename CLASSFILE .class \
