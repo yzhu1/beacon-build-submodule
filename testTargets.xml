@@ -8,7 +8,7 @@
 
     <taskdef resource="checkstyletask.properties">
         <classpath>
-            <pathelement location="${build.lib.dir}/freelinter-1.0.0.jar" />
+            <pathelement location="${build.lib.dir}/freestyle-1.0.0.jar" />
             <pathelement location="${build.lib.dir}/checkstyle-all-5.6.jar" />
         </classpath>
     </taskdef>
@@ -68,7 +68,7 @@
     
     <target
         name="quicktests"
-        depends="test-compile,jslint,template-lint,checkstyle,test-unit"
+        depends="test-compile,jslint,template-lint,checkstyle,freestyle,test-unit"
     />
 
     <target name="alltests">
@@ -108,27 +108,26 @@
     </target>
 
     <target name="check-for-tests-junit-wont-find">
-
         <echo>checking for tests junit won't find because they don't follow the *Test.java naming convention</echo>
-        <exec executable="sh">
+        <exec executable="sh" resultproperty="grep.result" failonerror="false">
             <arg line="-c" />
-            <arg value="grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|uniq" />
+            <arg value="grep -r @Test src --include=*.java --exclude=*Test.java --exclude=*TestAbstract.java" />
         </exec>
-        <exec executable="sh" failonerror="true">
-            <arg line="-c" />
-            <arg value="exit `grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|wc -l`" />
-        </exec>
-
+        <if><!-- if the grep found something, it returns 0 (success), which means we should fail -->
+            <equals arg1="0" arg2="${grep.result}" />
+            <then><fail/></then>
+        </if>
         <echo>checking for tests junit won't run because their names are not unique</echo>
-        <exec executable="sh">
+        <exec executable="sh" outputproperty="find.output">
             <arg line="-c" />
             <arg value="(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d" />
         </exec>
-        <exec executable="sh" failonerror="true">
-            <arg line="-c" />
-            <arg value="exit `(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d|wc -l`" />
-        </exec>
-
+        <if>
+            <length when="greater" string="${find.output}" trim="true" length="0" />
+            <then>
+                <fail message="Found non-unique test name(s): ${find.output}" />
+            </then>
+        </if>
     </target>
 
     <!-- set up test directories and compile test classes,  but don't copy
@@ -286,7 +285,7 @@
                 <sysproperty key="RUN_ONLY_UTIL" value="${run-only-util}" /> <!-- reset the env variable -->
                 <!--Disable EhCache for batch testing! -->
                 <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
-
+                <sysproperty key="spring.profiles.active" value="${spring.profiles.active}" />
                 <formatter type="brief" />
                 <formatter type="xml" />
 
@@ -348,9 +347,9 @@
     <target name="test-one" depends="one" description="run one test (see target 'one')"/>
 
     <target name="one" depends="test-compile" 
-        description="Run a single test: use with -Dtest=NameOfTest">
+        description="Run a single test: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
-		disable-cache="true">
+		disable-cache="true" method="${method}">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
