@@ -25,6 +25,7 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
+secondary_build_rpm_repo=${SECOND_RPM_REPO:-""} # e.g. $REPO_DEV_EL6
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
@@ -33,7 +34,6 @@ runonlysmoke=${RUN_ONLY_SMOKE:-true}
 isnightlywdbuild=${IS_NIGHTLY_BUILD:-false}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
 isnightlyintegrationbuild=${IS_NIGHTLY_INTEGRATION_BUILD:-false}
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
@@ -45,6 +45,10 @@ workspace=$WORKSPACE
 
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
+
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
 
 gitrepobaseurl="git@github.wgenhq.net:Beacon"
 
@@ -81,7 +85,7 @@ echo "rpm.version=$rpmversion" >> conf/build.properties
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\" ${extrawgrargs}
 
 # Compile, run static and unit tests, migrate one db up and down
-$ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-javadoc \
+$ANT clean test-clean deploy checkstyle freestyle template-lint jslint test-unit build-javadoc \
     clear-schema load-baseline-database migrate-schema rollback-schema
 
 if [ $isnightlywdbuild != 'true' ]; then
@@ -91,7 +95,7 @@ if [ $isnightlywdbuild != 'true' ]; then
         runslowtestsflag=
     fi
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
-        wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
+        wgspringcoreintegrationtestpath=ivy_lib/test # correct path
     else
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
@@ -117,29 +121,8 @@ if [ $isnightlywdbuild != 'true' ]; then
 #              -d -t update-schema
     fi
     if [ $isnightlyintegrationbuild != 'true' ]; then
-        # Remove existing RPMs in the repo to ensure the one we build gets deployed
-        rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
-        rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
-        
-        # Build webapp and db rpms
-        rm -rf $workspace/RPM_STAGING
-        mkdir -p $workspace/opt/tt/webapps/$app
-        python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-                -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-        python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-                -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-    
-        if [ "$othermigrationsappname" != "" ]
-        then
-            # Remove and rebuild the other migration RPM
-            # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
-            rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
-            python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-                -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
-        fi
-        
-        # Promote them to CI rpm repo
-        /opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+        ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber \
+            $workspace "$buildrpmrepo $secondary_build_rpm_repo"
     fi
 else
     # Migrate schema back up so webapp may start
@@ -177,21 +160,13 @@ if [ $isnightlyintegrationbuild != 'true' ]; then
     fi
     
     if [ $isnightlywdbuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
-    
         # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
         cp $buildrpmrepo/mclass-tt-$app-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
         cp $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-    
-        if [ "$othermigrationsappname" != "" ]
-        then
-            cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-$buildnumber.noarch.rpm $nextrpmrepo
-        fi
-    
-        # call the create repo job downstream to avoid repo locking issues
-    
+        # after we're done, we'll call the create repo jenkins job downstream to avoid repo locking issues
+
         # Move the last-stable tag to the current commit
         git branch -f last-stable-$buildbranch
         git push -f $gitrepobaseurl/$gitrepo.git last-stable-$buildbranch
-    
     fi
 fi

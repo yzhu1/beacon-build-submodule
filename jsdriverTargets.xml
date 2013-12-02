@@ -3,7 +3,7 @@
 
     <property file="${imported.basedir}/default.jsdriver.properties" />
 
-    <taskdef classpath="${build.lib.dir}/checkstyle-all-5.1.jar"
+    <taskdef classpath="${build.lib.dir}/checkstyle-all-${external-dependencies.checkstyle.revision}.jar"
              resource="checkstyletask.properties"
     />
 

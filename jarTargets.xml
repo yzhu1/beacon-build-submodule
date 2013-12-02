@@ -95,8 +95,13 @@
             <fileset dir="${app.src.dir}">
                 <include name="**/*.properties" />
             </fileset>
+            <fileset dir="${app.resources.dir}">
+                <include name="**/*.json" />
+                <include name="**/*.xml" />
+                <include name="**/*.properties" />
+            </fileset>
         </copy>
-        
+
         <jar
             basedir="${jar.classes.dir.main}/app"
             destfile="${jar.outdir}/${jar.app.name}.jar"

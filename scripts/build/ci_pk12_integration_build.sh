@@ -25,10 +25,10 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
+secondary_build_rpm_repo=${SECOND_RPM_REPO:-""} # e.g. $REPO_DEV_EL6
 runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 
 # Optional parameters
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
@@ -40,6 +40,10 @@ workspace=$WORKSPACE
 
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
+
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
 
 gitrepobaseurl="git@github.wgenhq.net:Beacon"
 
@@ -78,7 +82,7 @@ echo "rpm.version=$rpmversion" >> conf/build.properties
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -a \"release_start.sh ${webapphostclass}_stop.sh\" ${extrawgrargs}
 
 # Compile, run static and unit tests
-$ANT clean test-clean deploy checkstyle template-lint jslint test-unit build-javadoc
+$ANT clean test-clean deploy checkstyle freestyle template-lint jslint test-unit build-javadoc
 
 integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
@@ -92,7 +96,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         runslowtestsflag=
     fi
     if [ $runwgspringcoreintegrationtests == 'true' ]; then
-        wgspringcoreintegrationtestpath=ivy_lib/compile # correct path
+        wgspringcoreintegrationtestpath=ivy_lib/test # correct path
     else
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
@@ -108,7 +112,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
 	echo "PREPPING DB THEN SKIPPING WEBSERVICE AND INTEGRATION TESTS"
         /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 1 -d -t update-schema -v $apphomeenvvar
 #        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-#        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
+#        (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
 #         && find target/test/integration target/test/webservice \
 #    )   | grep Test.class \
 #        | xargs -I CLASSFILE basename CLASSFILE .class \
@@ -125,25 +129,8 @@ rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
 rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
 
 # Build webapp and db rpms
-
-rm -rf $workspace/RPM_STAGING
-mkdir -p $workspace/opt/tt/webapps/$app
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-
-if [ "$othermigrationsappname" != "" ]
-then
-    # Remove and rebuild the other migration RPM
-    # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
-    rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
-    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
-fi
-
-# Promote them to CI rpm repo
-/opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber \
+    $workspace "$buildrpmrepo $secondary_build_rpm_repo"
 
 # Add the last-stable-integration tag to the current commit
 git branch -f last-stable-integration-$buildbranch

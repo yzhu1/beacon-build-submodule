@@ -4,8 +4,8 @@ import re
 
 # need to remember how auto-doc works...
 
-_pattern_strict = "^ssh://(?:\w+)@([\w.]+)(?::(\d+))/(\S+)$"
-_pattern_loose = "(?:\w+)\@([\w.]+)[:/](\S+)"
+_pattern_strict = "^ssh://(?:\w+@)?([\w.]+)(?::(\d+))?/(\S+)$"
+_pattern_loose = "(?:\w+\@)?([\w.]+)[:/](\S+)"
 
 def find_repo_props():
     matcher = re.compile(_pattern_strict)
@@ -26,15 +26,25 @@ def find_repo_props():
     (repo_base,repo_ext) = os.path.splitext(repo)
     return { "server" : server, "root" : repo_base, "port" : port }
 
-def find_branch():
+def find_commits_by_pattern(pattern):
+    commits = os.popen("git log --pretty=format:'%Creset%C(red bold)[%ad] %C(blue bold)%h  %Creset%s %C(green bold)(%an)%Creset' --abbrev-commit --date=short --all --grep " + pattern)
+    found_commits = commits.readlines()
+    commits.close()
+    return found_commits
+
+def find_branches_by_pattern(pattern):
     branches = os.popen("git branch")
-    matcher = re.compile("^\* (.+)") # matches "(no branch)" or a real branch name
+    matcher = re.compile(pattern) 
+    found_branches = []
     for branchline in branches.readlines():
         branchmatch = matcher.search(branchline)
         if None != branchmatch:
-            found_branch = branchmatch.groups()[0]
-            break
+            found_branches.append(branchmatch.groups()[0])
     branches.close()
+    return found_branches
+
+def find_branch():
+    found_branch = find_branches_by_pattern("^\* (.+)")[0] # matches "(no branch)" or a real branch name
     if ("(no branch)" != found_branch) & ("master" != found_branch):
         return found_branch
     else:

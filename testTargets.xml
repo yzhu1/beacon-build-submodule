@@ -8,8 +8,8 @@
 
     <taskdef resource="checkstyletask.properties">
         <classpath>
-            <pathelement location="${build.lib.dir}/freelinter-1.0.0.jar" />
-            <pathelement location="${build.lib.dir}/checkstyle-all-5.6.jar" />
+            <pathelement location="${build.lib.dir}/freestyle-1.0.0.jar" />
+            <pathelement location="${build.lib.dir}/checkstyle-all-${external-dependencies.checkstyle.revision}.jar" />
         </classpath>
     </taskdef>
 
@@ -53,7 +53,6 @@
         <path refid="test.classpath.base" />
         <pathelement location="${test.resources.dir}" />
         <pathelement location="${app.resources.dir}" />
-        <pathelement location="${common.resources.dir}" />
         <pathelement location="${common.test.resources.dir}" />
     </path>
     <path id="test.classpath.run-integration">
@@ -65,10 +64,12 @@
     </path>
 
     <target name="test-quick" description="Run embarassing-to-fail tests" depends="quicktests"/>
-    
+    <target name="test-frontend" description="Run all tests for front-end code"
+            depends="jslint,template-lint,freestyle" />
+
     <target
         name="quicktests"
-        depends="test-compile,jslint,template-lint,checkstyle,test-unit"
+        depends="test-compile,test-frontend,checkstyle,test-unit"
     />
 
     <target name="alltests">
@@ -108,27 +109,26 @@
     </target>
 
     <target name="check-for-tests-junit-wont-find">
-
         <echo>checking for tests junit won't find because they don't follow the *Test.java naming convention</echo>
-        <exec executable="sh">
+        <exec executable="sh" resultproperty="grep.result" failonerror="false">
             <arg line="-c" />
-            <arg value="grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|uniq" />
+            <arg value="grep -r @Test src --include=*.java --exclude=*Test.java --exclude=*TestAbstract.java" />
         </exec>
-        <exec executable="sh" failonerror="true">
-            <arg line="-c" />
-            <arg value="exit `grep @Test src test -r --include=*.java --exclude=*Test.java|grep -v TestAbstract|wc -l`" />
-        </exec>
-
+        <if><!-- if the grep found something, it returns 0 (success), which means we should fail -->
+            <equals arg1="0" arg2="${grep.result}" />
+            <then><fail/></then>
+        </if>
         <echo>checking for tests junit won't run because their names are not unique</echo>
-        <exec executable="sh">
+        <exec executable="sh" outputproperty="find.output">
             <arg line="-c" />
             <arg value="(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d" />
         </exec>
-        <exec executable="sh" failonerror="true">
-            <arg line="-c" />
-            <arg value="exit `(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d|wc -l`" />
-        </exec>
-
+        <if>
+            <length when="greater" string="${find.output}" trim="true" length="0" />
+            <then>
+                <fail message="Found non-unique test name(s): ${find.output}" />
+            </then>
+        </if>
     </target>
 
     <!-- set up test directories and compile test classes,  but don't copy
@@ -206,7 +206,6 @@
 
         <!-- Copy spring context to integration test dir -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
-            <fileset dir="${common.context.src.dir}" includes="*-context.xml"/>
             <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml,spring.xml"/>
             <filterset begintoken="&quot;" endtoken="&quot;">
                 <filter token="ui-context.xml" value="&quot;test-ui-context.xml&quot;"/>
@@ -215,15 +214,11 @@
         <!-- copy test-specific spring context (no filtering games need be played) -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
             <fileset dir="${context.integration.dir}" includes="*-context.xml,*.properties"/>
-            <fileset dir="${context.common.integration.dir}" includes="*-context.xml"/>
             <fileset dir="${context.webdriver.dir}" includes="*-context.xml,*.properties"/>
         </copy>
         <!-- Copy freemarker templates to integration test dir, for tests that use FreeMarkerMerger -->
         <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
             <fileset erroronmissingdir="false" dir="${app.freemarker.dir}" includes="**/*.ftl"/>
-        </copy>
-        <copy todir="${integration.test.classes.dir}/freemarker/common" encoding="UTF-8">
-            <fileset dir="${common.freemarker.dir}" includes="**/*.ftl"/>
         </copy>
 
         <antcall target="check-for-tests-junit-wont-find" />
@@ -279,14 +274,13 @@
                 >
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
-                <sysproperty key="app.freemarker.source.dir" file="${app.dir}/src/main/webapp/WEB-INF/freemarker" />
-                <sysproperty key="common.freemarker.source.dir" file="${common.web.dir}/WEB-INF/freemarker" />
+                <sysproperty key="app.freemarker.source.dir" file="${app.freemarker.dir}" />
                 <!-- The specific test method to run -->
                 <sysproperty key="net.wgen.spring.common.test.method" value="${method}" />
                 <sysproperty key="RUN_ONLY_UTIL" value="${run-only-util}" /> <!-- reset the env variable -->
                 <!--Disable EhCache for batch testing! -->
                 <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
-
+                <sysproperty key="spring.profiles.active" value="${spring.profiles.junit}" />
                 <formatter type="brief" />
                 <formatter type="xml" />
 
@@ -295,7 +289,6 @@
 
                 <jvmarg value="-Xmx768m" />
             	<jvmarg value="-Dfile.encoding=utf8" />
-                <jvmarg value="-Dorg.owasp.esapi.resources=${common.resources.dir}/.esapi" />
             	<jvmarg value="-XX:MaxPermSize=256m" />
             	<jvmarg value="-XX:-UseGCOverheadLimit" />
             	<jvmarg value="-XX:+CMSClassUnloadingEnabled" />
@@ -348,9 +341,9 @@
     <target name="test-one" depends="one" description="run one test (see target 'one')"/>
 
     <target name="one" depends="test-compile" 
-        description="Run a single test: use with -Dtest=NameOfTest">
+        description="Run a single test: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
-		disable-cache="true">
+		disable-cache="true" method="${method}">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
@@ -626,7 +619,7 @@
         <mkdir dir="${results.dir}"/>
         
         <checkstyle config="${imported.basedir}/flint.xml" failonviolation="true">
-            <fileset dir="${app.web.dir}/WEB-INF/freemarker" includes="**/*.ftl" />
+            <fileset dir="${app.freemarker.dir}" includes="**/*.ftl" />
             <formatter type="plain" usefile="false" />
         </checkstyle>
         <fail if="checkstyle.failed" message="Checkstyle failed" />
@@ -654,22 +647,37 @@
 
     <target name="jslint">
         <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
-        <jslint haltOnFailure="${jslint.fatal}" options="browser, sub, forin">
-            <predef>$$j,Class</predef>
-            <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
-            <formatter type="plain"/>
-            <fileset dir="${app.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js">
+        <fileset id="file.list.js" dir="${app.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js">
                 <exclude name="WebHelp/*.js"/>
                 <exclude name="WebHelp/**/*.js"/>
-            </fileset>
-        </jslint>
+        </fileset>
+        <!-- run jslint if and only if there is a static directory that contains some javascript files -->
+        <if>
+            <and>
+                <resourceexists>
+                    <file file="${app.static.dir}" />
+                </resourceexists>
+                <resourcecount refid="file.list.js" when="greater" count="0" />
+            </and>
+            <then>
+                <mkdir dir="${results.dir}" /> <!-- no earthly reason this should fail for a missing directory -->
+                <jslint haltOnFailure="${jslint.fatal}" options="browser, sub, forin">
+                    <predef>$$j,Class</predef>
+                    <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
+                    <formatter type="plain"/>
+                    <fileset refid="file.list.js" />
+                </jslint>
+            </then>
+        </if>
+        <!-- check for direct use of jQuery get/post in any templates or JS files that exist -->
         <exec executable="grep"
               outputproperty="build.js.grep.output"
               resultproperty="build.js.grep.return"
               failonerror="false">
            <arg value="-r" />
-           <arg value="${app.web.dir}/WEB-INF/freemarker" />
-           <arg value="${app.web.dir}/static/js" />
+           <arg value="-s" /> <!-- do not fail if one of these properties is not set -->
+           <arg value="${app.freemarker.dir}" />
+           <arg value="${app.static.dir}/js" />
            <arg value="-F" />
            <arg value="-e" />
            <arg value="$j.get" />
@@ -695,16 +703,6 @@
         </fail>
     </target>
     
-    <target name="jslint-common">
-        <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
-        <jslint options="browser, devel">
-            <predef>$$j,Class</predef>
-            <formatter type="xml" destFile="${results.dir}/jslint-errors.xml" />
-            <formatter type="plain"/>
-            <fileset dir="${common.static.dir}" excludes="**/3p/**/*.js" includes="**/*.js" />
-        </jslint>
-    </target>
-
     <!-- Don't use this for now... -->
     <target name="jslint-css">
         <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${build.lib.dir}/jslint4java-1.3.3.jar" />
@@ -723,7 +721,8 @@
               failonerror="false">
            <arg value="-n" />
            <arg value="-r" />
-           <arg value="${app.web.dir}/WEB-INF/freemarker" />
+           <arg value="-s" /> <!-- succeed silently if app.freemarker.dir is unset -->
+           <arg value="${app.freemarker.dir}" />
            <!-- check for hard-coding of the context name -->
            <arg value="-e" />
            <arg value="/${servlet.name}" />

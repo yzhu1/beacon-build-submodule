@@ -24,12 +24,13 @@ rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
 buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
+secondary_build_rpm_repo=${SECOND_RPM_REPO:-""} # e.g. $REPO_DEV_EL6
 nextrpmrepo=${NEXT_RPM_REPO:-""}        # e.g., $REPO_FUTURE_QA
+secondary_next_rpm_repo=${SECOND_NEXT_RPM_REPO:-""} # e.g. EL6 FQA
 
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-true}
 isnightlybuild=${IS_NIGHTLY_BUILD:-false}
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
@@ -49,7 +50,7 @@ app_rpm_stem=mclass-tt-$app-$rpmversion
 migration_rpm_stem=tt-migrations-$migrationsappname-$rpmversion
 
 # check for story-build issues
-bad_rpms=`find $buildrpmrepo -noleaf -maxdepth 1 -name "$migration_rpm_stem-1????.noarch.rpm" -o -name "$app_rpm_stem-1????.noarch.rpm"`
+bad_rpms=`find $buildrpmrepo $secondary_build_rpm_repo -noleaf -maxdepth 1 -name "$migration_rpm_stem-1????.noarch.rpm" -o -name "$app_rpm_stem-1????.noarch.rpm"`
 if [ -n "$bad_rpms" ]
 then
     echo "DANGER found story-build RPMs in future-ci repo: $bad_rpms"
@@ -126,10 +127,9 @@ if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
     # Copy the RPMs to the future-qa repo
     cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $nextrpmrepo
     cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $nextrpmrepo
-
-    if [ "$othermigrationsappname" != "" ]
-    then
-        cp $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm $nextrpmrepo
+    if [ $secondary_next_rpm_repo != "" ]; then
+        cp $buildrpmrepo/$app_rpm_stem-*.noarch.rpm $secondary_next_rpm_repo
+        cp $buildrpmrepo/$migration_rpm_stem-*.noarch.rpm $secondary_next_rpm_repo
     fi
 
     # call the create repo job downstream to avoid repo locking issues

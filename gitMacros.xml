@@ -4,9 +4,10 @@
     <macrodef name="git">
         <attribute name="command"/>
         <attribute name="outputproperty" default="git.command.output"/>
+        <attribute name="failonerror" default="true" />
         <element description="arguments to the git command" name="git-args" implicit="true" optional="true"/>
         <sequential>
-             <exec executable="git" outputproperty="@{outputproperty}" logError="true">
+            <exec executable="git" outputproperty="@{outputproperty}" logError="true" failonerror="@{failonerror}">
                     <arg value="@{command}"/>
                     <git-args/>
             </exec>
@@ -16,10 +17,23 @@
     <macrodef name="git-retrieve-branch-name">
         <attribute name="outputproperty" default="git.current.branch" />
         <sequential>
-            <git command="rev-parse" outputproperty="@{outputproperty}">
-                <arg value="--abbrev-ref" />
-                <arg value="HEAD" />
-            </git>
+            <if>
+                <isset property="sys_env.GIT_BRANCH" />
+                <then>
+                    <!-- possibly too clever: get FOO out of either FOO, origin/FOO, skylight/FOO (but also story/FOO) -->
+                    <propertyregex property="@{outputproperty}"
+                               input="${sys_env.GIT_BRANCH}"
+                               regexp="(?:[^/]+/)?(\S+)"
+                               select="\1"
+                    />
+                </then>
+                <else>
+                    <git command="rev-parse" outputproperty="@{outputproperty}">
+                        <arg value="--abbrev-ref" />
+                        <arg value="HEAD" />
+                    </git>
+                </else>
+            </if>
         </sequential>
     </macrodef>
 
@@ -28,6 +42,18 @@
         <sequential>
             <git command="rev-parse" outputproperty="@{outputproperty}">
                 <arg value="HEAD" />
+            </git>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="git-push-to-branch">
+        <attribute name="branchname" />
+        <attribute name="outputproperty" default="git.command.output" />
+        <sequential>
+            <echo>Pushing HEAD to @{branchname}</echo>
+            <git command="push" outputproperty="@{outputproperty}">
+                <arg value="origin" />
+                <arg value="HEAD:refs/heads/@{branchname}" />
             </git>
         </sequential>
     </macrodef>

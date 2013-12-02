@@ -22,11 +22,10 @@ autoreleasebox=$AUTORELEASE_BOX         # e.g., tmc142.mc.wgenhq.net (consult cm
 rpmversion=$RPM_VERSION                 # e.g., 13.0.0
 releaseversion=$RELEASE_VERSION         # e.g., mc13.0.0
 buildbranch=$BUILD_BRANCH               # e.g., master
-buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI
+buildrpmrepo=$BUILD_RPM_REPO            # e.g., $REPO_FUTURE_CI (CAN BE MULTIPLE REPOS)
 
 # Optional parameters
 runonlysmoke=${RUN_ONLY_SMOKE:-false}
-othermigrationsappname=${OTHER_MIGRATIONS_APP_NAME:-""}  # e.g., a hack so that we can pretend outcomes and teacher portal are separate
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 
@@ -37,6 +36,10 @@ workspace=$WORKSPACE
 
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
+
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
 
 # Set the webapp home environment variable (needed to run integration, webservice, and webdriver tests)
 export $apphomeenvvar=.
@@ -68,29 +71,7 @@ $ANT clean test-clean deploy test-compile
 
 wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
 
-# Remove existing RPMs in the repo to ensure the one we build gets deployed
-rm -f $buildrpmrepo/mclass-tt-$app-$rpmversion-*.noarch.rpm
-rm -f $buildrpmrepo/tt-migrations-$migrationsappname-$rpmversion-*.noarch.rpm
-
-# Build webapp and db rpms
-rm -rf $workspace/RPM_STAGING
-mkdir -p $workspace/opt/tt/webapps/$app
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -D${app}dir=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-$app.spec
-python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$app.spec
-
-if [ "$othermigrationsappname" != "" ]
-then
-    # Remove and rebuild the other migration RPM
-    # Fairly specific to Outcomes - so we can pretend Teacher Portal is separate when it's really not
-    rm -f $buildrpmrepo/tt-migrations-$othermigrationsappname-$rpmversion-*.noarch.rpm
-    python /opt/wgen/rpmtools/wg_rpmbuild.py -v -o $buildrpmrepo -r $workspace/RPM_STAGING \
-        -Dcheckoutroot=$workspace -Drpm_version=$rpmversion -Dbuildnumber=$buildnumber $workspace/rpm/tt-migrations-$othermigrationsappname.spec
-fi
-
-# Promote RPM to reop
-/opt/wgen/rpmtools/wg_createrepo $buildrpmrepo
+ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber $workspace $buildrpmrepo
 
 # Deploy webapp, update bcfg, start webapp
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs

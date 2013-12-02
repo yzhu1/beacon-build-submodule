@@ -2,8 +2,6 @@
 <classpath>
     <classpathentry kind='src' path='src/main/java'/>
     <classpathentry including='*-context.xml' kind='src' path='src/test/resources'/>
-    <classpathentry kind='src' path='target/web-assets/unzip/wgspringcore-web-assets/web/WEB-INF'/>
-    <classpathentry kind='src' path='target/web-assets/unzip/wgspringcore-web-assets/resources'/>
     <classpathentry excluding='java/' kind='src' path='src/test/webdriver/util'/>
     <classpathentry excluding='java/' kind='src' path='src/test/integration/util'/>
     <classpathentry kind='src' path='src/main/webapp/WEB-INF'/>
