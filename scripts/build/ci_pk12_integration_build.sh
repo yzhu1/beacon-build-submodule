@@ -31,6 +31,7 @@ runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 # Optional parameters
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
+allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
 
 # Set automatically by Jenkins
@@ -108,15 +109,28 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         $ANT test-integration test-webservice
     else
         $ANT test-compile
-        # Run db updates on all the testdog dbs and then run all integration and webservice tests
-        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-        (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
-         && find target/test/integration target/test/webservice \
-    )   | grep Test.class \
-        | xargs -I CLASSFILE basename CLASSFILE .class \
-        | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-              -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
-              -d -t update-schema
+
+        non_java_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="\.java$"))
+        if [ $allow_targeted_tests = 'false' ] || [ $non_java_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
+            # Run db updates on all the testdog dbs and then run all integration and webservice tests
+            echo "RUNNING ALL INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+            (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
+            && find target/test/integration target/test/webservice \
+        )   | grep Test.class \
+            | xargs -I CLASSFILE basename CLASSFILE .class \
+            | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+                  -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
+                  -d -t update-schema
+        else
+            # run db updates on test dog dbs and then run integration and webservice tests affected by changes
+            echo "RUNNING SOME INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+            git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only \
+            | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
+            | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.0-rc0.jar" -c "target/" -t "target/test/integration" -t "target/test/webservice"  \
+                | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+                    -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
+                    -d -t update-schema
+        fi
     fi
 else
     echo "NO CHANGES FOUND OUTSIDE OF WEBDRIVER TESTS AND STATIC FILES.  SKIPPING INTEGRATION TESTS."
