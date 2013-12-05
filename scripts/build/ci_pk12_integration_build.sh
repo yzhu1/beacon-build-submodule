@@ -32,6 +32,7 @@ runwgspringcoreintegrationtests=$RUN_WGSPRINGCORE_INTEGRATION_TESTS # e.g., true
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
+allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -101,15 +102,16 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
 
+    non_java_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="\.java$"))
     if [ ! -n "${TESTDOGS+x}" ]
     then
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
         $ANT test-integration test-webservice
-    else
+    elif [ $allow_targeted_tests = 'false' ] || [ $non_java_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
         $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
-        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        echo "RUNNING ALL INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
         (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
          && find target/test/integration target/test/webservice \
     )   | grep Test.class \
@@ -117,6 +119,17 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
               -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
               -d -t update-schema
+    else
+        $ANT test-compile
+        # run db updates on test dog dbs and then run integration and webservice tests affected by changes
+        # dependencies detected with turbo-athena: https://github.com/burkemw3/turbo-athena/
+        echo "RUNNING SOME INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only \
+        | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
+        | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.0-rc2.jar" -c "target/" -t "target/test/integration" -t "target/test/webservice"  \
+        | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+            -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
+            -d -t update-schema
     fi
 else
     echo "NO CHANGES FOUND OUTSIDE OF WEBDRIVER TESTS AND STATIC FILES.  SKIPPING INTEGRATION TESTS."
