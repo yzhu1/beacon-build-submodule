@@ -37,6 +37,7 @@ isnightlyintegrationbuild=${IS_NIGHTLY_INTEGRATION_BUILD:-false}
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
+allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -67,6 +68,8 @@ rm -rf target
 
 # ivy-resolve first so we can get wgspringcoreversion accurately
 $ANT ivy-resolve
+
+ivy_changes=$(grep -r --regexp="downloaded=\"true\"" --include="*.xml" $WORKSPACE/.ivy2/cache/resolution | wc -l)
 
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
@@ -100,15 +103,19 @@ if [ $isnightlywdbuild != 'true' ]; then
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
 
+    non_java_changes=$(echo $(git diff HEAD HEAD~1 --name-only | grep -c -v --regexp="\.java$"))
+    echo $allow_targeted_tests
+    echo $non_java_changes
+    echo $ivy_changes
     if [ ! -n "${TESTDOGS+x}" ]
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
         $ANT test-integration test-webservice
-    else
+    elif [ $allow_targeted_tests = 'false' ] || [ $non_java_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
         $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
-        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        echo "RUNNING ALL INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
         (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
          && find target/test/integration target/test/webservice \
 	)   | grep Test.class \
@@ -116,6 +123,16 @@ if [ $isnightlywdbuild != 'true' ]; then
 	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
               -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag  -n $testsperbatch \
               -d -t update-schema
+    else
+        $ANT test-compile
+        # run db updates on test dog dbs and then run integration and webservice tests affected by changes
+        echo "RUNNING SOME INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        git diff HEAD HEAD~1 --name-only \
+        | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
+        | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.0-rc0.jar" -c "target/" -t "target/test/integration" -t "target/test/webservice"  \
+            | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+                -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
+                -d -t update-schema
     fi
     if [ $isnightlyintegrationbuild != 'true' ]; then
         ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber \
