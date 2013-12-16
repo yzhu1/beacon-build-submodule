@@ -1,5 +1,5 @@
 URL = "https://fb.wgen.net/"
-AUTH_URL = "https://fb.wgen.net/api.asp"
+AUTH_URL = URL + "api.asp"
 BLUE = '\033[94m'
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
@@ -9,7 +9,5 @@ UNDERLINE = '\033[4m'
 MAGENTA = '\033[1m'
 ENDC = '\033[0m'
 SEPARATOR = '|'
-HEADER = '|                     Title                        |                 Link                 |        Status       | P  |          Project          | Assigned To |      Milestone     |'
-BUG_INFO_FORMAT = SEPARATOR + YELLOW + "{title}" + ENDC + SEPARATOR + BLUE + UNDERLINE + "https://fb.wgen.net/default.asp?{caseId}" + ENDC + SEPARATOR + MAGENTA + " {status}" + ENDC + SEPARATOR + BLUE + " P{priority} " + ENDC + SEPARATOR +  MAGENTA + "{project}" + ENDC + SEPARATOR + GREEN + "{assignedTo}" + ENDC + SEPARATOR + RED + "{milestone}" + ENDC + SEPARATOR
-RELEASE_INFO_FORMAT = "Release Status: " + YELLOW + "{release_STATUS}" + ENDC + "\nMerges: " + BLUE + "{release_MERGES}" + ENDC + "\nCommits: " + BLUE + "{release_COMMIT}" + ENDC + "\nBranch: {release_BRANCH} [{release_PROJECT}{release_PROJECTS}]" + "\nRisks:" + RED + "{release_RISKS}" + ENDC + "\nFix Description: " + GREEN + "{release_FIXDESCRIPTION}" + ENDC
+BUG_INFO_FORMAT = SEPARATOR + YELLOW + "{sTitle}" + ENDC + SEPARATOR + BLUE + "{case}" + ENDC + SEPARATOR + MAGENTA + " {status}" + ENDC + SEPARATOR + BLUE + " P{priority} " + ENDC + SEPARATOR +  MAGENTA + "{project}" + ENDC + SEPARATOR + GREEN + "{assignedTo}" + ENDC + SEPARATOR + RED + "{milestone}" + ENDC + SEPARATOR
 MAX_SEARCH_RESULTS = 999
