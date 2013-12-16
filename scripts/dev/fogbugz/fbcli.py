@@ -265,6 +265,9 @@ def main(argv):
     except Exception, err:
         print "Exception occured: " + str(err)
         return
+    if opts.export or opts.editMessage is not None:
+        fileName = 'fb_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
+        export_case_info(caseList, fileName, opts.showReleaseInfo)
     try:
         if opts.editMessage is not None:
             caseIdList = [case[fbConstants.CASE] for case in caseList[1:]]
@@ -275,9 +278,6 @@ def main(argv):
             show_cases_info(caseList, opts)
     except (KeyboardInterrupt, SystemExit):
         print " Aborted."
-    if opts.export or opts.editMessage is not None:
-        fileName = 'fb_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
-        export_case_info(caseList, fileName, opts.showReleaseInfo)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
