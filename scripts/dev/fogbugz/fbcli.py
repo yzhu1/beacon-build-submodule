@@ -255,8 +255,6 @@ def main(argv):
         main(argv)
     if currentFilter and len(argv) == 0:
         print fbConfigs.YELLOW + "Active filter: " + currentFilter.string + fbConfigs.ENDC
-    print getFixForCode(fb, 'agoswmi@amplify.com')
-    
     if opts.filter:
         setFilter(fb, opts.filter)
     query = build_query(opts, arglist)
