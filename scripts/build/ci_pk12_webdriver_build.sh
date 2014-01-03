@@ -128,7 +128,7 @@ else
     echo "--AFFECTED WEBDRIVERS IN PARALLEL--"
     git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-webdriver-$buildbranch --name-only \
     | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
-    | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.0-rc2.jar" -c "target/test/webdriver" -t "target/test/webdriver"  \
+    | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.1.jar" -c "target/test/webdriver" -t "target/test/webdriver"  \
     | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \
     | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
         -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \

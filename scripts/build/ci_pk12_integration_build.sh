@@ -126,7 +126,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         echo "RUNNING SOME INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
         git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only \
         | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
-        | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.0-rc2.jar" -c "target/" -t "target/test/integration" -t "target/test/webservice"  \
+        | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.1.jar" -c "target/" -t "target/test/integration" -t "target/test/webservice"  \
         | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \
         | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
             -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
