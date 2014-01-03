@@ -34,6 +34,7 @@ isnightlybuild=${IS_NIGHTLY_BUILD:-false}
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
+allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -72,6 +73,7 @@ rm -rf target
 
 # ivy-resolve first so we can get wgspringcoreversion accurately
 $ANT ivy-resolve
+ivy_changes=$(grep -r --regexp="downloaded=\"true\"" --include="*.xml" $WORKSPACE/.ivy2/cache/resolution | wc -l)
 
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
@@ -95,6 +97,9 @@ $ANT clean test-clean deploy test-compile
 # Deploy webapp, update bcfg, start webapp
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
 
+# check changes
+non_webdriver_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-webdriver-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver"))
+
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
 echo "RUNNING WEBDRIVER TESTS"
 if [ $runonlysmoke = 'false' ]; then
@@ -109,7 +114,7 @@ then
     $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
     Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
     $ANT test-webdriver-precompiled
-else
+elif [ $allow_targeted_tests = 'false' ] || [ $non_webdriver_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
     # Run the webdriver tests in parallel
     echo "--IN PARALLEL--"
     find target/test/webdriver -name *Test.class \
@@ -118,6 +123,16 @@ else
     -s $webdrivertestdogs \
     -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
     -d -t prepare-db-for-parallel-tests
+else
+    # Run only webdrivers affected by change
+    echo "--AFFECTED WEBDRIVERS IN PARALLEL--"
+    git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-webdriver-$buildbranch --name-only \
+    | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
+    | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.0-rc2.jar" -c "target/test/webdriver" -t "target/test/webdriver"  \
+    | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \
+    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+        -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
+        -d -t prepare-db-for-parallel-tests
 fi
 
 if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
