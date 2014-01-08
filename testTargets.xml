@@ -5,13 +5,11 @@
     <!-- if the "method" property is not set, initialize to empty -->
     <!-- (if we don't, junit-explicit will see the value '${method} for that parameter, breaking util tests) -->
     <property name="method" value="" />
-
-    <taskdef resource="checkstyletask.properties">
-        <classpath>
-            <pathelement location="${build.lib.dir}/freestyle-1.0.0.jar" />
-            <pathelement location="${build.lib.dir}/checkstyle-all-${external-dependencies.checkstyle.revision}.jar" />
-        </classpath>
-    </taskdef>
+    <path id="checkstyle.classpath">
+        <pathelement location="${build.lib.dir}/freestyle-1.0.0.jar" />
+        <pathelement location="${build.lib.dir}/checkstyle-all-${external-dependencies.checkstyle.revision}.jar" />
+    </path>
+    <taskdef resource="checkstyletask.properties" classpathref="checkstyle.classpath" />
 
     <!-- COBERTURA-RELATED DEFINITIONS -->
     <if>
@@ -603,7 +601,7 @@
     <target name="checkstyle" description="Run checkstyle">
         <mkdir dir="${results.dir}"/>
 
-        <checkstyle config="${imported.basedir}/checkstyle.xml" failonviolation="true">
+        <checkstyle config="${imported.basedir}/checkstyle.xml" classpathref="checkstyle.classpath" failonviolation="true">
             <fileset dir="${app.src.dir}" includes="**/*.java" />
             <fileset dir="${app.unit.src.dir}" includes="**/*.java" />
             <fileset dir="${app.integration.src.dir}" includes="**/*.java" />
