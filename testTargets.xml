@@ -616,7 +616,7 @@
     <target name="freestyle" description="Run freemarker checkstyle">
         <mkdir dir="${results.dir}"/>
         
-        <checkstyle config="${imported.basedir}/flint.xml" failonviolation="true">
+        <checkstyle config="${imported.basedir}/flint.xml" classpathref="checkstyle.classpath" failonviolation="true">
             <fileset dir="${app.freemarker.dir}" includes="**/*.ftl" />
             <formatter type="plain" usefile="false" />
         </checkstyle>
@@ -627,7 +627,7 @@
         description="Run checkstyle with layering violations">
         <mkdir dir="${results.dir}"/>
 
-        <checkstyle config="${imported.basedir}/checkstyleWithLayeringViolations.xml" failonviolation="true" >
+        <checkstyle config="${imported.basedir}/checkstyleWithLayeringViolations.xml" classpathref="checkstyle.classpath" failonviolation="true" >
             <fileset dir="${common.src.dir}" includes="**/*.java" />
             <formatter type="xml" toFile="${results.dir}/checkstyle-errors.xml" />
             <formatter type="plain" usefile="false" />
