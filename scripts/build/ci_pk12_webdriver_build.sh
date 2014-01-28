@@ -11,6 +11,13 @@
 set -eux
 ANT="/opt/wgen-3p/ant-1.8.1/bin/ant"
 
+if [ -e "/opt/wgen-3p/python26/bin/python" ]
+ then
+  PYTHON="/opt/wgen-3p/python26/bin/python"
+ else
+  PYTHON="/usr/bin/python2.6"
+fi
+
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp
@@ -113,7 +120,7 @@ else
     echo "--IN PARALLEL--"
     find target/test/webdriver -name *Test.class \
   | xargs -I CLASSFILE basename CLASSFILE .class \
-  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+  | $PYTHON conf/base/scripts/build/parallelTests.py \
     -s $webdrivertestdogs \
     -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
     -d -t prepare-db-for-parallel-tests
