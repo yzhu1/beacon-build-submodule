@@ -1,0 +1,911 @@
+button.finishLater {
+  background-image: url("/oa/static/images/finishLater.png");
+  background-repeat: no-repeat;
+  width: 100px;
+  height: 25px;
+  padding-top: 10px;
+  vertical-align: middle; }
+
+button.endTest {
+  background-image: url("/oa/static/images/EndTest_Button.png");
+  background-repeat: no-repeat;
+  width: 72px;
+  height: 25px;
+  margin: 0px 23px 0px 0;
+  padding-top: 10px;
+  vertical-align: middle; }
+
+span.help .help {
+  vertical-align: middle; }
+
+div.imagePreLoad {
+  position: absolute;
+  top: -500px; }
+
+div.imagePreLoad img {
+  height: 1px; }
+
+textarea.assessmentJSONText {
+  height: 600px;
+  width: 1000px; }
+
+div.previewHeader {
+  color: #fff; }
+
+/**
+ * CSS class to make truncated text boxes with ellipses.
+ *   -text-overflow:    IE6, IE7, Safari, Chrome & other WebKit browsers
+ *   -ms-text-overflow: IE8 in Standards Mode
+ *   -o-text-overflow:  Opera
+ *   -moz-binding:      MAJOR hack for Firefox using XBL bindings in CSS
+ *                      See http://mattsnider.com/css/css-string-truncation-with-ellipsis/
+ */
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  -o-text-overflow: ellipsis;
+  -ms-text-overflow: ellipsis;
+  -moz-binding: url("/oa/static/css/ellipsis.xml#ellipsis"); }
+
+.ui-dialog-titlebar {
+  position: relative;
+  top: 0px;
+  width: 100%;
+  background: #b3d6f2 url("/oa/static/images/gradient_bar.png") repeat-x;
+  height: 30px;
+  cursor: move;
+  border-radius: 8px 8px 0px 0px;
+  -moz-border-radius: 8px 8px 0px 0px;
+  border-bottom: 2px solid #96c9e6;
+  text-align: right; }
+
+.ui-widget-overlay {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: black;
+  position: fixed;
+  z-index: 100;
+  top: 0px;
+  opacity: 0.6;
+  filter: alpha(opacity=60); }
+
+.ui-icon-closethick {
+  background: url("/oa/static/images/close.png") 45px 0px no-repeat;
+  color: white;
+  position: absolute;
+  right: 5px;
+  top: 10px;
+  width: 70px;
+  font-size: 12px;
+  font-weight: bold;
+  height: 14px;
+  text-align: left;
+  cursor: pointer; }
+
+.assignmentAlreadyTakenPopup,
+.remainingQuestionsPopup,
+.lostConnectionPopup,
+.dueDatePassedPopup {
+  background: white;
+  border-radius: 8px;
+  -moz-border-radius: 8px; }
+
+.dueDatePassedPopup .ui-icon-closethick {
+  display: none; }
+
+.assignmentAlreadyTaken,
+.dueDatePassed,
+.lostConnection,
+.answerNotSaved {
+  text-align: center;
+  line-height: 120%;
+  height: 250px; }
+
+#retryingConnectionText {
+  padding-top: 60px;
+  font-weight: bold;
+  font-size: 18px;
+  color: #666666; }
+
+#askForHelpConnectionText {
+  font-size: 16px;
+  color: #666666; }
+
+.loadSpinner {
+  padding-top: 99px;
+  border-radius: 10px; }
+
+#preloadSpinner {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  left: -1px;
+  top: -1px;
+  background: white url("/oib/static/images/ajax-loader-lrg.gif") no-repeat scroll center center !important; }
+
+.assignmentAlreadyTaken button,
+.dueDatePassed button,
+.lostConnection button {
+  background: url("/oa/static/images/continue.png") no-repeat white;
+  border-color: white;
+  height: 27px;
+  width: 104px;
+  margin-top: 20px; }
+
+.popupClose {
+  position: absolute;
+  right: 5px;
+  padding-top: 3px;
+  cursor: pointer; }
+
+.warning {
+  background: url("/oa/static/images/endtest_warn.png") no-repeat white;
+  height: 64px;
+  margin: 10px auto auto;
+  width: 450px; }
+
+.warning p {
+  color: #548FC9;
+  font-size: 16px;
+  font-weight: bold;
+  position: relative;
+  top: 22px; }
+
+.questionsRemaining {
+  font-size: 15px;
+  margin-top: 15px; }
+
+.questionsRemaining img {
+  left: 11%;
+  position: absolute; }
+
+.alertText {
+  font-size: 18px;
+  font-weight: bold; }
+
+.bigButtons {
+  margin-bottom: 15px; }
+
+.goToQuestionText {
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  font-size: 11pt;
+  font-weight: bold; }
+
+.warningBox {
+  text-align: center;
+  padding-bottom: 40px; }
+
+.bigButtons button {
+  background: url("/oa/static/images/largePillYellow.png") no-repeat white;
+  font-size: 21pt;
+  width: 41px;
+  height: 41px;
+  border: 0px;
+  margin: 1px;
+  padding: 0px; }
+
+.smallfont button {
+  font-size: 14pt; }
+
+button.confirmEnd,
+button.return {
+  background: url("/oa/static/images/green_gradient.png") repeat-x;
+  display: block;
+  margin: auto;
+  width: 200px;
+  font-size: 9pt;
+  font-weight: bold;
+  color: white;
+  border: 2px solid #54a5d0; }
+
+button.confirmEnd {
+  margin-bottom: 40px; }
+
+button.return {
+  background: #b3d6f2 url("/oa/static/images/blue_gradient.png") repeat-x;
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px; }
+
+.disabledButton {
+  opacity: 0.6;
+  filter: alpha(opacity=60);
+  border: 2px solid #54a5d0; }
+
+.opacity0 {
+  opacity: 0;
+  filter: alpha(opacity=0); }
+
+html {
+  /* IE7 needs this */
+  overflow: auto; }
+
+p {
+  margin-top: 0px;
+  word-wrap: break-word; }
+
+.blockStatement p {
+  margin-top: 3px; }
+
+.questionContentItem .itemBody p {
+  line-height: 1.5;
+  -webkit-margin-before: 0em;
+  padding-top: 0;
+  margin-top: 0; }
+
+div.centerContent {
+  background: white;
+  margin-left: auto;
+  margin-right: auto; }
+
+div.questionContainer {
+  overflow-y: auto;
+  position: relative;
+  background-color: #ffffff;
+  margin: 0px; }
+
+div.ajaxLoader {
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  padding-top: 20%; }
+
+div.passageContainer {
+  height: 100%;
+  overflow: auto;
+  float: left;
+  position: relative;
+  width: 49%;
+  border-right: 1px solid #b3d6f2;
+  line-height: 1.5;
+  background-color: #ffffff; }
+
+div.noBorderRight {
+  border-right: 0px none; }
+
+div#passageContent {
+  height: 100%;
+  width: 100%;
+  margin: -1px;
+  float: left;
+  color: #77787B;
+  padding: 20px 0px 0 0px;
+  word-wrap: break-word; }
+
+div.passage_align {
+  padding: 13px 25px 0 38px; }
+
+div#passageContent img,
+div#questionContent img {
+  max-width: 600px;
+  height: auto; }
+
+#passageContent ol[style*="margin-left: 0"] {
+  list-style-type: none;
+  margin-left: 0; }
+
+#passageContent ol[style*="margin-left: 0"] > li {
+  counter-increment: customlistcounter; }
+
+#passageContent ol[style*="margin-left: 0"] > li:before {
+  content: counter(customlistcounter) " ";
+  padding-top: 2px;
+  float: left;
+  width: 3em;
+  font-size: 10px; }
+
+#passageContent ol[style*="margin-left: 0"]:first-child {
+  counter-reset: customlistcounter; }
+
+#passageContent ol[style*="margin-left: 0"] p {
+  margin-left: 30px; }
+
+.saveMessage .savedMessageText, .saveMessage .savingMessageText {
+  font-size: 10pt;
+  position: relative;
+  -webkit-transform: translate3d(0, 0, 0); }
+
+div.passageContentResize {
+  width: 100%;
+  margin: 0px; }
+
+div.countHidden {
+  font-size: 1px;
+  position: absolute; }
+
+div.itemBody {
+  width: 60%;
+  margin: 20px 0 25px 109px;
+  padding-top: 8px;
+  min-height: 65px;
+  line-height: 120%; }
+
+div.styledText img {
+  max-width: 600px; }
+
+div.passageBody {
+  border: 1px solid #cccccc;
+  padding: 20px;
+  margin: 10px 0;
+  margin-left: 25%; }
+
+button.unsolved,
+button.solved {
+  background: url("/oa/static/images/qButton_yellow.jpg") no-repeat;
+  padding: 0px;
+  width: 26px;
+  height: 24px;
+  font-size: 10px;
+  border: 0px; }
+
+button.unsolved:active {
+  background-image: url("/oa/static/images/qButton_yellow_active.jpg"); }
+
+button.solved:active {
+  background-image: url("/oa/static/images/qButton_white_active.jpg"); }
+
+button.solved {
+  background-image: url("/oa/static/images/qButton_white.jpg"); }
+
+div.singleAnswer {
+  margin: 10px 30px;
+  color: #4a8ac7; }
+
+div.indexButton {
+  position: absolute;
+  left: 39px;
+  width: 40px;
+  padding-top: 10px; }
+
+div.indexOf {
+  display: block;
+  color: grey;
+  text-align: center;
+  margin-top: 5px; }
+
+.lrn_widget {
+  margin-right: 10%; }
+
+div.response {
+  min-height: 45px;
+  margin-left: 108px;
+  position: relative;
+  margin-right: 10%; }
+
+div.response div {
+  cursor: pointer; }
+
+div.responseLetter {
+  background-image: url("/oa/static/images/mc_option_bg_unselected.png");
+  background-repeat: no-repeat;
+  background-position: 0px -5px;
+  background-color: white;
+  border: 0px;
+  width: 30px;
+  font-size: 20px;
+  font-weight: bold;
+  min-height: 40px;
+  min-width: 30px;
+  font-family: arial;
+  color: #4a8ac7;
+  display: inline;
+  position: absolute;
+  text-align: center;
+  padding-top: 10px; }
+
+div.selectedResponse .responseLetter {
+  background-image: url("/oa/static/images/mc_option_bg_selected.png");
+  border: 0px;
+  color: white; }
+
+div.activeResponse .responseLetter {
+  background-image: url("/oa/static/images/mc_option_bg_active.png");
+  border: 0px;
+  color: black; }
+
+div.hoverReponse {
+  background-color: #fef9c1; }
+
+div.hoverReponse .responseLetter {
+  background-color: #fef9c1; }
+
+button.largePill {
+  background: url("/oa/static/images/largePillYellow.png") no-repeat white;
+  font-size: 21pt;
+  width: 41px;
+  height: 41px;
+  border: 0px;
+  cursor: auto;
+  padding: 0px; }
+
+button.largePillThreeDigitFontSize {
+  font-size: 14pt; }
+
+button.solvedLargePill {
+  background: url("/oa/static/images/largePillWhite.png") no-repeat white; }
+
+div.responseContent {
+  padding: 10px 10px 10px 45px; }
+
+div.questionArrowContainer {
+  text-align: right;
+  height: 42px;
+  padding-top: 9px;
+  z-index: 99;
+  background: #ffffff;
+  width: 100%;
+  margin-right: 20px; }
+
+span.nextQuestionArrow,
+span.prevQuestionArrow {
+  cursor: pointer;
+  height: 40px;
+  width: 150px; }
+
+span.arrowContainerSpace {
+  width: 40px;
+  margin-right: 11px; }
+
+span.prevQuestionArrow {
+  padding: 0px 90px 20px 0px; }
+
+span.nextQuestionArrow {
+  padding: 0px 46px 20px 46px; }
+
+span.nextQuestionArrow {
+  background: url("/oa/static/images/next_question_arrow.png") no-repeat white; }
+
+span.prevQuestionArrow {
+  background: url("/oa/static/images/prev_question_arrow.png") no-repeat white; }
+
+hr.separator {
+  width: 425px;
+  height: 2px;
+  border: 0px;
+  background: #d5d1ce; }
+
+div.lastQuestionEndTestPage img.arrow {
+  padding-top: 7px;
+  position: absolute; }
+
+div.lastQuestionEndTestPage {
+  padding-bottom: 50px;
+  padding-top: 50px;
+  clear: left;
+  text-align: center; }
+
+div.lastQuestionAlert {
+  background: url("/oa/static/images/endtest_warn.png") no-repeat white;
+  height: 64px;
+  margin: 10px auto auto;
+  width: 450px; }
+
+div.lastQuestionAlert span {
+  color: #548FC9;
+  font-size: 16px;
+  font-weight: bold;
+  position: relative;
+  top: 22px; }
+
+div.lastQuestionInstruction {
+  text-align: left;
+  width: 490px;
+  margin: auto;
+  margin-top: 15px; }
+
+div.questionButtonsBar {
+  display: table;
+  background: #b3d6f2;
+  border-bottom: 2px solid #96c9e6;
+  /*  FB#167004  */
+  *border-bottom: 10px solid #b3d6f2;
+  min-width: 720px;
+  min-height: 38px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 100%;
+  *width: auto;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  text-align: right; }
+
+div.qButton {
+  float: left;
+  margin: 6px 1px 7px 1px; }
+
+div.selectedQuestionButton {
+  margin: 6px 1px 0px 1px; }
+
+div.questionContentItem {
+  padding-bottom: 9px; }
+
+div.qButton img {
+  display: none; }
+
+div.selectedQuestionButton img {
+  display: block;
+  padding-left: 8px; }
+
+div.itemInstructions {
+  padding-left: 50px;
+  padding-bottom: 10px;
+  line-height: 120%; }
+
+div.itemText {
+  margin: 20px 0 25px 110px; }
+
+textarea.expanding {
+  width: 80%;
+  min-height: 90px;
+  line-height: 16px;
+  overflow: hidden; }
+
+span.saveMessage {
+  color: #999999;
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 12px;
+  position: relative;
+  left: 180px; }
+
+.smallLoadSpinner {
+  background: url("/oa/static/images/ajax-loader.gif") no-repeat scroll center center !important;
+  border-left-width: 10px;
+  height: 10px;
+  margin-left: 0;
+  padding-left: 20px;
+  width: 10px; }
+
+div.displayMessage {
+  width: 450px; }
+
+.savingInProgress {
+  position: relative;
+  top: 60px;
+  left: 90px;
+  font-family: arial;
+  font-size: 18px;
+  font-weight: bold;
+  color: #77787B; }
+
+#saveInProgress {
+  background: url("/oib/static/images/ajax-loader-lrg.gif") no-repeat scroll center 120px white !important;
+  border-radius: 10px; }
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  src: local("Open Sans Regular"), local("Open-Sans-Regular"), url("../fonts/OpenSans-Regular.ttf") format("truetype"); }
+
+@font-face {
+  font-family: 'Open Sans Semibold';
+  font-style: normal;
+  src: local("Open Sans Semibold"), local("Open-Sans-Semibold"), url("../fonts/OpenSans-Semibold.ttf") format("truetype"); }
+
+@font-face {
+  font-family: 'Open Sans Bold';
+  font-style: normal;
+  src: local("Open Sans Bold"), local("Open-Sans-Bold"), url("../fonts/OpenSans-Bold.ttf") format("truetype"); }
+
+body {
+  margin: 0px;
+  background: #565654;
+  font-size: 15px;
+  width: 100%; }
+
+/*Remove button padding in FF*/
+/* http://stackoverflow.com/questions/1679952/input-type-submit-text-vertical-alignment-in-firefox */
+input::-moz-focus-inner,
+button::-moz-focus-inner {
+  border: 0;
+  padding: 0; }
+
+/* ie7 uses some default margin */
+form {
+  margin: 0px; }
+
+button {
+  border-color: #54a5d0;
+  border-width: 2px;
+  height: 28px;
+  text-align: center;
+  font-size: 12px;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  cursor: pointer; }
+
+div.plain_bar, #header {
+  background-color: #b3d6f2;
+  height: 40px;
+  border-bottom: 2px solid #96c9e6;
+  text-align: right;
+  position: relative;
+  line-height: 2.6;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: 100%; }
+
+#header .helpAlign button {
+  position: relative;
+  top: 6px;
+  left: 0; }
+
+#assessmentContainer {
+  width: 100%; }
+
+@-moz-document url-prefix() {
+  #header .helpAlign button {
+    top: 0px; } }
+
+div.gradient_bar {
+  background: #b3d6f2 url("/oa/static/images/gradient_bar.png") repeat-x; }
+
+#assessmentDetail {
+  float: left;
+  padding: 10px;
+  line-height: 16px; }
+
+div.alignleft {
+  position: absolute;
+  left: 5px;
+  top: 5px; }
+
+div.alignright {
+  position: absolute;
+  right: 5px;
+  top: 5px; }
+
+.subjectName {
+  font-size: 18px;
+  font-weight: bold; }
+
+.assessmentTitle.ellipsis {
+  width: 500px;
+  text-align: left;
+  position: relative;
+  top: 3px;
+  display: inline-block; }
+
+div.questionButtonsBar {
+  min-width: 720px !important; }
+
+#questionButtonsContainer {
+  max-width: 83%; }
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .assessmentTitle.ellipsis {
+    top: 4px;
+    vertical-align: bottom;
+    padding-bottom: 4px; } }
+span.studentName {
+  font-size: 11px;
+  padding: 13px 5px 0 0;
+  width: 150px;
+  position: relative; }
+
+@-moz-document url-prefix() {
+  span.studentName {
+    top: 1px; } }
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  span.studentName {
+    top: 2px; }
+
+  ::i-block-chrome, span.studentName {
+    top: 3px; } }
+div.saveMessage {
+  padding: 5px 10px 0 0;
+  line-height: 31px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch; }
+
+button.instructions {
+  background-image: url("/oa/static/images/Instructions_Button.png");
+  background-repeat: no-repeat;
+  width: 101px;
+  height: 25px;
+  margin-left: 5px;
+  padding-top: 10px;
+  vertical-align: middle; }
+
+.helpAlign {
+  padding: 5px 10px; }
+
+div.hidden {
+  display: none; }
+
+button.logoutBtn {
+  background-image: url("/oa/static/images/EndTest_Button.png");
+  width: 85px;
+  height: 25px; }
+
+#buttonsContainer {
+  white-space: nowrap; }
+
+@media only screen and (orientation: portrait) {
+  .assessmentTitle.ellipsis {
+    width: 300px !important; }
+
+  span.studentName {
+    width: 70px !important; } }
+@media only screen and (orientation: landscape) {
+  .assessmentTitle.ellipsis {
+    width: auto !important; }
+
+  span.studentName {
+    width: 100px !important; } }
+div.loginBox {
+  background-image: url("/oa/static/images/roundedBackground.png");
+  background-repeat: no-repeat;
+  border: 1px none;
+  border-radius: 8px 8px 8px 8px;
+  height: 180px;
+  margin: 15% auto auto;
+  padding: 15px;
+  width: 320px;
+  position: relative;
+  text-align: center; }
+
+.loginForm {
+  margin-right: 35px;
+  text-align: right; }
+
+input.enterButton {
+  color: white;
+  font-size: 15px;
+  border-color: #4d6bb4;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  background-image: url("/oa/static/images/enter_bt_bg.png");
+  background-repeat: no-repeat;
+  cursor: pointer;
+  height: 25px;
+  width: 84px;
+  border: 0px;
+  position: absolute;
+  bottom: 25px;
+  right: 50px; }
+
+input.enterButton:active {
+  background-image: url("/oa/static/images/enter_bt_bg_active.png"); }
+
+input.logout {
+  font-weight: bold;
+  margin-top: 40px;
+  position: relative;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  top: 0px; }
+
+input.textField {
+  border: 1px solid black;
+  width: 160px; }
+
+div.loginField {
+  margin-bottom: 5px; }
+
+.whiteBody {
+  background-color: white; }
+
+.loginHead {
+  font-size: 18pt;
+  color: #028abe;
+  font-weight: bold; }
+
+.loginErrorMessage {
+  height: 30px;
+  color: #ed0101;
+  font-size: 9pt;
+  padding-top: 15px;
+  font-weight: bold; }
+
+.loginKeyText {
+  font-size: 12px;
+  color: #ff6201;
+  font-weight: bold;
+  padding-right: 10px;
+  text-align: right; }
+
+div.currentAcctKey,
+div.studentIDHelp {
+  color: #fff;
+  font-family: Arial sans-serif;
+  position: absolute;
+  margin: auto;
+  width: 100%;
+  left: 0px; }
+
+div.currentAcctKey {
+  font-size: 12px;
+  top: -20px; }
+
+div.studentIDHelp {
+  font-size: 18pt;
+  bottom: -30px; }
+
+a.wrongAcctLink,
+a.wrongAcctLink:visited {
+  text-decoration: underline;
+  color: #a5a5a5; }
+
+.accountKeyLabelExtraPadding {
+  padding-bottom: 15px; }
+
+p.logoutText {
+  color: #575757;
+  height: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1.5;
+  margin-top: 45px; }
+
+.studentLogin .enterButton {
+  bottom: 10px; }
+
+body {
+  margin: 0px; }
+
+#preTestDialog {
+  padding-top: 25px;
+  margin: auto;
+  width: 55%; }
+
+div.instructionsHeaderBar img {
+  cursor: pointer; }
+
+.instructionsHeader {
+  color: #548fc9;
+  padding-top: 30px;
+  padding-left: 30px;
+  font-size: 20px;
+  font-weight: bold; }
+
+.instructionsContainer {
+  background-color: #fff;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  height: 100%; }
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .instructionsContainer {
+    height: auto; } }
+.blueHeaderBar {
+  height: 36px;
+  background-color: #00457b; }
+
+.iframeWrapper {
+  height: 100%;
+  overflow: auto;
+  overflow-y: hidden; }
+
+.fullScreenIframeWrapper, .iframeWrapper {
+  -webkit-overflow-scrolling: touch; }
+
+.instructionsContent {
+  padding-top: 30px;
+  padding-left: 150px;
+  padding-right: 50px;
+  font-size: 13px;
+  line-height: 150%; }
+
+.instructionsFrame {
+  width: 100%;
+  height: 100%;
+  border-width: 0px; }
+
+.instructionHeading {
+  padding-top: 10px; }
+
+.instructionsHeaderBar {
+  background: #bad4eb;
+  height: 28px;
+  border-radius: 8px 8px 0px 0px;
+  -moz-border-radius: 8px 8px 0px 0px;
+  border-bottom: 2px solid #96c9e6; }

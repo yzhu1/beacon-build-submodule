@@ -40,14 +40,23 @@ for dir_, _, files in os.walk(cssDir):
 # Write the output to a new SCSS file
 allStylesFile = open(allStylesFilePath, 'w+')
 
+count = 0
+
 for filePath in fileSet:
     if tabletDirName in filePath: continue
     if filePath.endswith('.css') or filePath.endswith('.scss'):
+        currentFile = open(os.path.join(cssDir, filePath))
+        for line in currentFile:
+            if '{' in line:
+                count += 1
+        currentFile.close()
         if filePath.startswith('./'):
             filePath = filePath[2:]
         filename, fileExtension = os.path.splitext(filePath)
         os.rename(os.path.join(cssDir, filePath), os.path.join(cssDir, filename+'.scss'))
         allStylesFile.write('@import "' + filename + '";\n')
 allStylesFile.close()
+
+print 'Number of Styles: %d' % count
 
 
