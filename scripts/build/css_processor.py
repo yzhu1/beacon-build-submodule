@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from __future__ import print_function
 import asset_processing_settings as settings
 import os, sys
 import re
@@ -29,7 +28,7 @@ def create_combined_sass_file(stylesFileList, appStaticDir, buildWebAssetsDir, r
     outputFilePath = os.path.join(cssDir, manifestFileName + settings.FILENAME_SEPARATOR + rpmVersion + settings.SASS_EXT)
     outputFile = open(outputFilePath, 'w+')
     for stylesFileName in stylesFileList:
-        print('@import "' + stylesFileName + '";', file=outputFile)
+        outputFile.write('@import "' + stylesFileName + '";\n')
     outputFile.close()
     os.system('sass --update ' + cssDir + ':' + buildWebAssetsDir + '/compile/css' + ' --style compressed ')
     compileStylesheet = os.path.join(buildWebAssetsDir, 'compile', 'css', manifestFileName + settings.FILENAME_SEPARATOR + rpmVersion + '.css')
