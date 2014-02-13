@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from __future__ import print_function, with_statement
+from __future__ import print_function
 import asset_processing_settings as settings
 import os, sys
 import re
@@ -10,15 +10,16 @@ def count_css_selectors(fileName):
     patternRules = '([^\{]+\{(?:[^\{\}]|\{[^\{\}]*\})*\})'
     patternSelectors = '(?:\s*@media\s*[^\{]*(\{))?(?:\s*(?:[^,\{]*(?:(,)|(\{)(?:[^\}]*\}))))' #also looks inside media queries
     commentsPattern = '(\/\*[^*]*\*+([^/*][^*]*\*+)*\/)'
-    with open (fileName, "r") as cssFile:
-        data = cssFile.read()
-        rules = re.findall(patternRules, data)
-        for rule in rules:
-            # remove comments
-            rule = re.sub(commentsPattern, '', rule)
-            selectorMatches = re.findall(patternSelectors, rule)
-            for selectorMatch in selectorMatches:
-                count = count + len(selectorMatches)
+    cssFile = open (fileName, "r")
+    data = cssFile.read()
+    rules = re.findall(patternRules, data)
+    for rule in rules:
+        # remove comments
+        rule = re.sub(commentsPattern, '', rule)
+        selectorMatches = re.findall(patternSelectors, rule)
+        for selectorMatch in selectorMatches:
+            count = count + len(selectorMatches)
+    cssFile.close()
     return count;
 
 # for all the css files in stylesFileList, changes the extension to scss and imports all in a new scss file
