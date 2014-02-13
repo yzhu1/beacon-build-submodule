@@ -26,16 +26,16 @@ def count_css_selectors(fileName):
 # for all the css files in stylesFileList, changes the extension to scss and imports all in a new scss file
 # and compiles the combined scss file using sass
 def create_combined_sass_file(stylesFileList, appStaticDir, buildWebAssetsDir, rpmVersion, manifestFileName):
-    cssDir = appStaticDir + settings.CSS_DIR
-    outputFilePath = cssDir + manifestFileName + settings.COMBINED_STYLESHEET_PREFIX + rpmVersion + SASS_EXT
-    totalSelectorsCount = 0;
+    cssDir = os.path.join(appStaticDir, settings.CSS_DIR)
+    outputFilePath = os.path.join(cssDir, manifestFileName + settings.FILENAME_SEPARATOR + rpmVersion + SASS_EXT)
     outputFile = open(outputFilePath, 'w+')
-    print("creating combined scss file at " + outputFilePath)
     for stylesFileName in stylesFileList:
-        totalSelectorsCount += count_css_selectors(cssDir + stylesFileName + SASS_EXT)
-        if (totalSelectorsCount > 4095):
-            raise Exception("selectors count is over 4095 limit for IE")
         print('@import "' + stylesFileName + '";', file=outputFile)
     outputFile.close()
+    print("created combined scss file at " + outputFilePath)
     os.system('sass --update ' + cssDir + ':' + buildWebAssetsDir + '/compile/css' + ' --style compressed ')
-
+    compileStylesheet = os.path.join(buildWebAssetsDir, 'compile', 'css', manifestFileName + settings.FILENAME_SEPARATOR + rpmVersion + '.css')
+    totalSelectorsCount = count_css_selectors(compileStylesheet)
+    print('Total styles count for compiled css file: ' + str(totalSelectorsCount))
+    if (totalSelectorsCount > 4095):
+        raise Exception("selectors count is over 4095 limit for IE!")

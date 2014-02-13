@@ -1,8 +1,8 @@
 import css_processor
 
-CSS_DIR = '/css/'
-MANIFEST_DIR = '/manifest/'
-MANIFEST_EXT = '.manifest'
-COMBINED_STYLESHEET_PREFIX = '_compressed_'
+CSS_DIR = 'css'
+ASSET_MANIFEST_EXT = '.assets'
+STATIC_DIR = 'static'
+FILENAME_SEPARATOR = '_'
 PROCESSORS = {'.scss':css_processor.create_combined_sass_file
                 }
