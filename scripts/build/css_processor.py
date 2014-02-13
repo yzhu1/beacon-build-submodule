@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from __future__ import print_function
+from __future__ import print_function, with_statement
 import asset_processing_settings as settings
 import os, sys
 import re
@@ -30,10 +30,11 @@ def create_combined_sass_file(stylesFileList, appStaticDir, buildWebAssetsDir, r
     for stylesFileName in stylesFileList:
         print('@import "' + stylesFileName + '";', file=outputFile)
     outputFile.close()
-    print("created combined scss file at " + outputFilePath)
     os.system('sass --update ' + cssDir + ':' + buildWebAssetsDir + '/compile/css' + ' --style compressed ')
     compileStylesheet = os.path.join(buildWebAssetsDir, 'compile', 'css', manifestFileName + settings.FILENAME_SEPARATOR + rpmVersion + '.css')
     totalSelectorsCount = count_css_selectors(compileStylesheet)
     print('Total styles count for compiled css file: ' + str(totalSelectorsCount))
     if (totalSelectorsCount > 4095):
         raise Exception("selectors count is over 4095 limit for IE!")
+    os.remove(outputFilePath)
+
