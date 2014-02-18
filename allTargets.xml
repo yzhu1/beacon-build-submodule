@@ -55,7 +55,7 @@
                     <fileset dir="${test.lib.dir}" includes="**/*.jar" />
                     <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
                     <pathelement location="${app.resources.dir}" />
-                    <pathelement location="${common.test.resources.dir}" />
+                    <pathelement location="${test.resources.dir}" />
                     <pathelement location="${unit.test.classes.dir}" />
                     <pathelement location="${integration.test.classes.dir}" />
                     <pathelement location="${webservice.test.classes.dir}"/>
@@ -83,7 +83,7 @@
                         <fileset dir="${test.lib.dir}" includes="**/*.jar" />
                         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
                         <pathelement location="${app.resources.dir}" />
-                        <pathelement location="${common.test.resources.dir}" />
+                        <pathelement location="${test.resources.dir}" />
                         <pathelement location="${unit.test.classes.dir}" />
                         <pathelement location="${integration.test.classes.dir}" />
                         <pathelement location="${webservice.test.classes.dir}"/>

@@ -53,7 +53,6 @@
         <path refid="test.classpath.base" />
         <pathelement location="${test.resources.dir}" />
         <pathelement location="${app.resources.dir}" />
-        <pathelement location="${common.test.resources.dir}" />
     </path>
     <path id="test.classpath.run-integration">
         <path refid="test.classpath.run-base" />
