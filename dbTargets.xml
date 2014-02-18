@@ -203,6 +203,21 @@
         adding here so that it gets created in all test environments.
         Can't be an actual migration because it can't exist in prod and other real environments -->
         <antcall target="create-truncate-tables-function" />
+
+        <antcall target="validate-foreign-key-names" />
+    </target>
+
+    <target name="validate-foreign-key-names">
+        <exec executable="bash" failonerror="true">
+            <env key="PGPASSFILE" file="${app.config.dir}/.pgpass"/>
+            <!-- couldn't get ant to pass excluded constraints argument with useable quotation escaping -->
+            <env key="EXCLUDED_CONSTRAINTS" value="${wgspring.db.constraint-check.excluded-constraints}" />
+            <arg value="${imported.basedir}/scripts/db/validate-foreign-key-names.sh" />
+            <arg value="${wgspring.migrations.db.username}" />
+            <arg value="${wgspring.db.host}" />
+            <arg value="${wgspring.db.port}" />
+            <arg value="${wgspring.db.dbname}" />
+         </exec>
     </target>
 
     <target name="tag-schema"
