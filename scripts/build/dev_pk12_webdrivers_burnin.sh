@@ -83,7 +83,7 @@ else
 fi
 
 # Prepare for running webdrivers locally
-Xvfb +extension RANDR :5 -screen 0 1152x864x24 >/dev/null 2>&1 & export DISPLAY=:5.0
+Xvfb +extension RANDR :5 -screen 0 1280x864x24 >/dev/null 2>&1 & export DISPLAY=:5.0
 
 # run tests
 passedtests=0
