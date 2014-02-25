@@ -130,7 +130,7 @@ if [ $isnightlywdbuild != 'true' ]; then
     fi
 else
     # Migrate schema back up so webapp may start
-    $ANT clear-schema migrate-schema
+    $ANT clear-schema load-baseline-database migrate-schema
 fi
 if [ $isnightlyintegrationbuild != 'true' ]; then
     # Deploy webapp, update bcfg, start webapp
