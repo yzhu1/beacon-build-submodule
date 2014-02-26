@@ -132,7 +132,7 @@
         </sequential>
     </macrodef>
 
-    <target name="clear-schema" if="wgspring.db.migrate" depends="prepare-pgpass">
+    <target name="clear-schema" if="wgspring.db.migrate" depends="-check-allow-destructive-db-targets, prepare-pgpass">
         <clear-named-schema schema-name="${wgspring.db.schema}" />
     </target>
 
@@ -175,13 +175,13 @@
 
     <target name="change-default-schema"
             description="clear old schema and create the new one"
-            depends="prepare-pgpass">
+            depends="-check-allow-destructive-db-targets, prepare-pgpass">
         <clear-named-schema schema-name="${wgspring.db.schema.previous}" />
         <pg-run sql="create schema ${wgspring.db.schema}" />
         <pg-run sql="alter user ${wgspring.migrations.db.username} set search_path to ${wgspring.db.schema}" />
     </target>
 
-    <target name="migrate-schema" if="wgspring.db.migrate"
+    <target name="migrate-schema" if="wgspring.db.migrate" depends="-check-allow-destructive-db-targets"
             description="run migrations for current release">
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
@@ -239,7 +239,7 @@
         </exec>
     </target>
 
-    <target name="rollback-schema"
+    <target name="rollback-schema" depends="-check-allow-destructive-db-targets"
             description="run down-migrations for current release" >
         <exec executable="bash" failonerror="true">
             <arg value="${imported.basedir}/scripts/migrations/liquibase.sh"/>
@@ -258,20 +258,20 @@
         </exec>
     </target>
     
-    <target name="update-schema" depends="clear-schema, load-snapshot, repair-migration-filenames, migrate-schema" 
+    <target name="update-schema" depends="-check-allow-destructive-db-targets, clear-schema, load-snapshot, repair-migration-filenames, migrate-schema"
         description="Clear and update the schema"/>
     
-    <target name="load-fixtures" depends="update-schema,fixture-run-all-datamakers" description="Load fixtures"/>
+    <target name="load-fixtures" depends="-check-allow-destructive-db-targets, update-schema,fixture-run-all-datamakers" description="Load fixtures"/>
 	
     <target name="load-fixtures-without-clearing-db"
-            depends="repair-migration-filenames, migrate-schema, fixture-run-all-datamakers"
+            depends="-check-allow-destructive-db-targets, repair-migration-filenames, migrate-schema, fixture-run-all-datamakers"
             description="Load fixture data, but do not clear the database before doing so"/>
 
     <target name="prepare-db-for-parallel-tests"
-            depends="load-fixtures-snapshot, repair-migration-filenames, tag-schema, migrate-schema"
+            depends="-check-allow-destructive-db-targets, load-fixtures-snapshot, repair-migration-filenames, tag-schema, migrate-schema"
             description="Run on testdogs by parallelTests.py to get them prepared for integration testing; overridden in projects that don't use snapshots" />
 
-    <target name="fixture-run-all-datamakers" description="Run all fixture Datamakers">
+    <target name="fixture-run-all-datamakers" description="Run all fixture Datamakers" depends="-check-allow-destructive-db-targets">
        <mkdir dir="${fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
             bean="fixtureRunnerLoadDatamakers"
@@ -292,7 +292,7 @@
        </spring-runner>
     </target>
 
-    <target name="run-fixture-exporters" depends="test-compile" description="Run just the fixture exporters.">
+    <target name="run-fixture-exporters" depends="-check-allow-destructive-db-targets, test-compile" description="Run just the fixture exporters.">
        <mkdir dir="${fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
            bean="fixtureRunnerLoadDatamakers"
@@ -301,7 +301,7 @@
        </spring-runner>
     </target>
 
-    <target name="run-some-exporters" depends="test-compile"
+    <target name="run-some-exporters" depends="-check-allow-destructive-db-targets, test-compile"
         description="Run fewer than all exporters, use with -Dexporter=FixtureExporterClassName">
        <mkdir dir="${fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
@@ -312,7 +312,7 @@
        </spring-runner>
     </target>
 
-    <target name="run-napi-fixture-exporters" depends="test-compile" description="Run just the napi fixture exporters.">
+    <target name="run-napi-fixture-exporters" depends="-check-allow-destructive-db-targets, test-compile" description="Run just the napi fixture exporters.">
        <mkdir dir="${napi.fixture.export.dir}"/>
        <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
            bean="fixtureRunnerLoadDatamakers"
@@ -321,7 +321,7 @@
        </spring-runner>
     </target>
     
-    <target name="load-fixtures-snapshot" description="Load fixtures snapshot">
+    <target name="load-fixtures-snapshot" description="Load fixtures snapshot" depends="-check-allow-destructive-db-targets">
         <exec executable="/bin/bash" failonerror="true">
             <arg value="./conf/base/scripts/build/check_for_postgres_user_in_db_snap.sh" />
             <arg value="${sql.fixtures}" />
@@ -332,7 +332,7 @@
         </antcall>
     </target>
     
-    <target name="load-snapshot" description="Load March 2010 snapshot">
+    <target name="load-snapshot" description="Load March 2010 snapshot" depends="-check-allow-destructive-db-targets">
         <echo>${sql.snapshot}</echo>
         <echo>checking for "postgres" in snapshot, should be "tt_manage" instead</echo>
         <exec executable="/bin/bash" failonerror="true">
@@ -346,10 +346,10 @@
 
     <target name="load-baseline-database"
             description="Load, repair, and tag previous-release snapshot"
-            depends="load-snapshot,repair-migration-filenames,tag-schema"
+            depends="-check-allow-destructive-db-targets, load-snapshot,repair-migration-filenames,tag-schema"
     />
     
-    <target name="load-snapshot-provided" depends="prepare-pgpass">
+    <target name="load-snapshot-provided" depends="-check-allow-destructive-db-targets, prepare-pgpass">
         <if>
             <not>
                 <available file="${snapshot}" />
@@ -372,7 +372,7 @@
         </exec>
     </target>
     
-    <target name="create-truncate-tables-function" depends="prepare-pgpass"
+    <target name="create-truncate-tables-function" depends="-check-allow-destructive-db-targets, prepare-pgpass"
         description="create a pg function that truncates most tables - used by integration tests">
         <if>
           <or>
@@ -447,6 +447,16 @@
               <arg value="${wgspring.db.host}"/>
               <arg value="${wgspring.db.port}"/>
         </exec>
+    </target>
+
+    <target name="-check-allow-destructive-db-targets">
+        <fail message="destructive DB targets are highly discouraged against deployed environments">
+            <condition>
+                <not>
+                    <equals arg1="true" arg2="${allow.destructive.db.targets}" />
+                </not>
+            </condition>
+        </fail>
     </target>
 
 </project>
