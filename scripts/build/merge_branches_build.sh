@@ -7,7 +7,15 @@ gitrepo=$1
 headbranch=$2
 basebranch=$3
 
-git fetch $gitrepobaseurlgit/$gitrepo
+#git fetch $gitrepobaseurlgit/$gitrepo
+
+echo "** Checkout: $basebranch"
 git checkout origin-$gitrepo $basebranch
+echo "** Pull: $basebranch"
+git pull origin-$gitrepo $basebranch
+
+echo "** Merge $headbranch into $basebranch"
 git merge origin-$gitrepo/$headbranch
-git push -f origin-$gitrepo $basebranch 
+
+echo "** Push merge commits to $basebranch"
+git push origin-$gitrepo $basebranch
