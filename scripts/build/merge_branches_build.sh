@@ -6,7 +6,7 @@
 set -e
 
 gitrepo=$1
-origin=origin-$gitrepo
+origin=origin
 headbranch=$2
 basebranch=$3
 
@@ -23,4 +23,4 @@ echo "** Merge $headbranch into $basebranch"
 git merge $origin/$headbranch
 
 echo "** Push merge commits to $basebranch"
-git push $origin $basebranch
+git push -f $origin $basebranch
