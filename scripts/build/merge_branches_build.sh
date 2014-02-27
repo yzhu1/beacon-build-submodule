@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script for up-stream merges. (i.e release->master, master->next)
+# Script for up-stream merges. (i.e release->master or master->next)
 
 gitrepobaseurl="git@github.wgenhq.net:Beacon"
 gitrepo=$1
