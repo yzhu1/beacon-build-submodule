@@ -6,7 +6,7 @@
 set -e
 
 gitrepo=$1
-origin=origin
+origin=origin-$gitrepo
 headbranch=$2
 basebranch=$3
 
