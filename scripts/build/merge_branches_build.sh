@@ -8,6 +8,6 @@ headbranch=$2
 basebranch=$3
 
 git fetch $gitrepobaseurlgit/$gitrepo
-git checkout $basebranch
+git checkout origin-$gitrepo $basebranch
 git merge origin-$gitrepo/$headbranch
-git push $gitrepobaseurlgit/$gitrepo $basebranch
+git push -f origin-$gitrepo $basebranch 
