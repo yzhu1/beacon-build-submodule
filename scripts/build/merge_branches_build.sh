@@ -7,7 +7,9 @@ gitrepo=$1
 headbranch=$2
 basebranch=$3
 
-#git fetch $gitrepobaseurlgit/$gitrepo
+echo "** Reset: $basebranch"
+git fetch $gitrepobaseurlgit/$gitrepo
+git reset --hard origin-$gitrepo/$basebranch
 
 echo "** Checkout: $basebranch"
 git checkout origin-$gitrepo $basebranch
