@@ -21,8 +21,10 @@ workspace=$WORKSPACE
 gitrepo=$GIT_REPO
 origin=origin-$gitrepo
 default_build_properties_file=./conf/default.build.properties
+releasebranch=release
 
 git fetch $origin
+git checkout $releasebranch
 
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
 
@@ -38,5 +40,9 @@ sed -i "s/^tinymce-jquery.revision.*/tinymce-jquery.revision = ${tinymce_revisio
 sed -i "s/^java-logging.revision.*/java-logging.revision = ${java_logging_revision}/g" $default_build_properties_file
 
 git add $default_build_properties_file
-git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions."
-git push $origin release
+output=`git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'no changes added to commit|files changed' | wc -l`
+if [[ $output ==  "0" ]]; then
+    exit -1
+else
+    git push $origin $releasebranch
+fi
