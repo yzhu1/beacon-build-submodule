@@ -22,8 +22,6 @@ gitrepo=$GIT_REPO
 origin=origin-$gitrepo
 default_build_properties_file=./conf/default.build.properties
 
-cd $workspace/
-
 git fetch $origin
 
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
