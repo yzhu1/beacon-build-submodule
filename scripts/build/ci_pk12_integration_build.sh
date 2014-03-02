@@ -155,3 +155,10 @@ ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber \
 git branch -f last-stable-integration-$buildbranch
 git push -f $gitrepobaseurl/$gitrepo.git last-stable-integration-$buildbranch
 
+# Create tag with release number, if the build branch is the release branch
+if ["$buildbranch" = "release" ]
+then
+    buildreleasetag=$gitrepo_$releaseversion
+    git tag -a -f -m "Release build #$buildnumber" $buildreleasetag
+    git push -f $gitrepobaseurl/$gitrepo +refs/tags/$buildreleasetag:$buildreleasetag
+fi
