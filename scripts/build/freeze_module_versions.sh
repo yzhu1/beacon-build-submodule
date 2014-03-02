@@ -19,9 +19,12 @@ java_logging_revision=${10}
 
 workspace=$WORKSPACE
 gitrepo=$GIT_REPO
+origin=origin-$gitrepo
 default_build_properties_file=./conf/default.build.properties
 
 cd $workspace/
+
+git fetch $origin
 
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
 
@@ -38,4 +41,4 @@ sed -i "s/^java-logging.revision.*/java-logging.revision = ${java_logging_revisi
 
 git add $default_build_properties_file
 git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions."
-git push origin-$gitrepo release
+git push $origin release
