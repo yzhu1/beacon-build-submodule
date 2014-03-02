@@ -40,9 +40,5 @@ sed -i "s/^tinymce-jquery.revision.*/tinymce-jquery.revision = ${tinymce_revisio
 sed -i "s/^java-logging.revision.*/java-logging.revision = ${java_logging_revision}/g" $default_build_properties_file
 
 git add $default_build_properties_file
-output=`git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'no changes added to commit|files changed' | wc -l`
-if [[ $output ==  "0" ]]; then
-    exit -1
-else
-    git push $origin $releasebranch
-fi
+git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'no changes added to commit|files changed'
+git push $origin $releasebranch | grep -E 'Everything up-to-date|Writing objects'
