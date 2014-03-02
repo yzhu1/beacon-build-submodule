@@ -24,7 +24,7 @@ default_build_properties_file=./conf/default.build.properties
 releasebranch=release
 
 git fetch $origin
-git checkout $releasebranch
+git checkout $origin/$releasebranch
 
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
 
