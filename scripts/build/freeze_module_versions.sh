@@ -16,6 +16,7 @@ amplify_ui_toolkit_revision=${7}
 branding_web_assets_revision=${8}
 tinymce_revision=${9}
 java_logging_revision=${10}
+beacon_shared_web_assets_revision=${11}
 
 workspace=$WORKSPACE
 gitrepo=$GIT_REPO
@@ -40,6 +41,7 @@ sed -i "s/^mclass-dependencies.amplify-ui-toolkit.revision.*/mclass-dependencies
 sed -i "s/^branding-web-assets.revision.*/branding-web-assets.revision = ${branding_web_assets_revision}/g" $default_build_properties_file
 sed -i "s/^tinymce-jquery.revision.*/tinymce-jquery.revision = ${tinymce_revision}/g" $default_build_properties_file
 sed -i "s/^java-logging.revision.*/java-logging.revision = ${java_logging_revision}/g" $default_build_properties_file
+sed -i "s/^beacon-shared-web-assets.revision.*/beacon-shared-web-assets.revision = ${beacon_shared_web_assets_revision}/g" $default_build_properties_file
 
 git add $default_build_properties_file
 git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'no changes added to commit|nothing to commit|files changed'
