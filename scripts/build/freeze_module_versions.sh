@@ -44,5 +44,7 @@ sed -i "s/^java-logging.revision.*/java-logging.revision = ${java_logging_revisi
 sed -i "s/^beacon-shared-web-assets.revision.*/beacon-shared-web-assets.revision = ${beacon_shared_web_assets_revision}/g" $default_build_properties_file
 
 git add $default_build_properties_file
+git status
 git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'no changes added to commit|nothing to commit|files changed'
+git status
 git push -f $origin $releasebranch | grep -E 'Everything up-to-date|Writing objects|${releasebranch} -> ${releasebranch}'
