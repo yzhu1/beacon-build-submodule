@@ -158,7 +158,7 @@ git push -f $gitrepobaseurl/$gitrepo.git last-stable-integration-$buildbranch
 # Create tag with release number, if the build branch is the release branch
 if [ "$buildbranch" = "release" ]
 then
-    buildreleasetag=$gitrepo_$releaseversion
+    buildreleasetag=$gitrepo-$rpmversion
     git tag -a -f -m "Release build #$buildnumber" $buildreleasetag
     git push -f $gitrepobaseurl/$gitrepo +refs/tags/$buildreleasetag:$buildreleasetag
 fi
