@@ -24,9 +24,6 @@ origin=origin-$gitrepo
 default_build_properties_file=./conf/default.build.properties
 releasebranch=release
 
-git fetch $origin
-git reset --hard $origin/$releasebranch
-git checkout $origin/$releasebranch
 git pull $origin $releasebranch
 
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
@@ -43,8 +40,7 @@ sed -i "s/^tinymce-jquery.revision.*/tinymce-jquery.revision = ${tinymce_revisio
 sed -i "s/^java-logging.revision.*/java-logging.revision = ${java_logging_revision}/g" $default_build_properties_file
 sed -i "s/^beacon-shared-web-assets.revision.*/beacon-shared-web-assets.revision = ${beacon_shared_web_assets_revision}/g" $default_build_properties_file
 
+git status
 git add $default_build_properties_file
-git status
 git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'no changes added to commit|nothing to commit|files changed'
-git status
 git push -f $origin $releasebranch | grep -E 'Everything up-to-date|Writing objects|${releasebranch} -> ${releasebranch}'
