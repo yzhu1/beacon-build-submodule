@@ -24,6 +24,7 @@ origin=origin-$gitrepo
 default_build_properties_file=./conf/default.build.properties
 releasebranch=release
 
+git checkout $releasebranch
 git pull $origin $releasebranch
 
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
