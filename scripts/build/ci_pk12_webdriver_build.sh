@@ -142,7 +142,7 @@ else
         -d -t prepare-db-for-parallel-tests
 fi
 
-if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != ""  && "$buildbranch" != "release"]; then
+if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]  && [ "$buildbranch" != "release" ]; then
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
 
     # Copy the RPMs to the future-qa repo
