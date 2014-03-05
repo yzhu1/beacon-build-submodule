@@ -43,5 +43,5 @@ sed -i "s/^beacon-shared-web-assets.revision.*/beacon-shared-web-assets.revision
 
 git status
 git add $default_build_properties_file
-git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'no changes added to commit|nothing to commit|files changed'
+git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'nothing added to commit|no changes added to commit|nothing to commit|files changed'
 git push -f $origin $releasebranch
