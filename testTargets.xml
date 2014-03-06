@@ -290,8 +290,9 @@
             	<jvmarg value="-Dfile.encoding=utf8" />
             	<jvmarg value="-XX:MaxPermSize=256m" />
             	<jvmarg value="-XX:-UseGCOverheadLimit" />
+                <!-- these are almost certainly useless, but harmless (we don't expect the JVM to hang around long enough to need them) -->
             	<jvmarg value="-XX:+CMSClassUnloadingEnabled" />
-                <jvmarg value="-XX:+CMSPermGenSweepingEnabled" />
+                <jvmarg value="-XX:+UseConcMarkSweepGC" />
                 <!--<jvmarg value="${test.vm.args}" />-->
                 <batchtest todir="${results.dir}">
                     <junit-filesets />
