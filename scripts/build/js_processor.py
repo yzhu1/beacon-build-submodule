@@ -6,7 +6,7 @@ def copy_and_overwrite(rootSrcDir, rootDstDir):
     for srcDir, dirs, files in os.walk(rootSrcDir):
         dstDir = srcDir.replace(rootSrcDir, rootDstDir)
         if not os.path.exists(dstDir):
-            os.mkdir(dstDir)
+            os.makedirs(dstDir)
         for jsfile in files:
             srcFile = os.path.join(srcDir, jsfile)
             dstFile = os.path.join(dstDir, jsfile)
