@@ -155,5 +155,57 @@
         </exec>
     </target>
 
+    <property name="keytool" value="keytool" /> <!-- set here to allow command-line overrides -->
+    <macrodef name="run-keytool-import" description="run keytool -importcert with some arguments. You may need to set -Dkeytool=/path/to/keytool">
+        <element name="keytool-import-args" implicit="true" optional="false" />
+        <sequential>
+            <exec executable="${keytool}">
+                <arg value="-importcert"/>
+                <keytool-import-args />
+                <arg value="-keystore" />  <arg value="${java.ssl.truststore.shared}" />
+                <arg value="-storepass" /> <arg value="trustme" />
+                <arg value="-noprompt" />
+            </exec>
+        </sequential>
+    </macrodef>
 
+    <target name="import-cert" description="Import a certificate into the shared trust store.  You may need to set -Dkeytool=/path/to/keytool">
+        <fail message="Please define both a 'certificate' and an 'alias' property on the command line">
+             <condition>
+                  <not>
+                      <and>
+                         <isset property="alias" />
+                         <isset property="certificate" />
+                      </and>
+                  </not>
+             </condition>
+        </fail>
+        <run-keytool-import>
+            <arg value="-file" />      <arg value="${certificate}" />
+            <arg value="-alias" />     <arg value="${alias}"/>
+        </run-keytool-import>
+    </target>
+
+    <target name="delete-cert" description="Delete a certificate from the shared trust store.  You may need to set -Dkeytool=/path/to/keytool">
+        <fail message="Please define the 'alias' property on the command line">
+             <condition>
+                  <not>
+                      <isset property="alias" />
+                  </not>
+             </condition>
+        </fail>
+        <run-keytool-import>
+            <arg value="-delete" />
+            <arg value="-alias" />
+            <arg value="${alias}"/>
+        </run-keytool-import>
+    </target>
+
+    <target name="list-certs" description="List the currently installed certificates in the shared trust store.  You may need to set -Dkeytool=/path/to/keytool">
+        <exec executable="${keytool}">
+            <arg value="-list"/>
+            <arg value="-keystore" />  <arg value="${java.ssl.truststore.shared}" />
+            <arg value="-storepass" /> <arg value="trustme" />
+        </exec>
+    </target>
 </project>
