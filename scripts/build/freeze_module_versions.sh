@@ -24,9 +24,6 @@ origin=origin-$gitrepo
 default_build_properties_file=./conf/default.build.properties
 releasebranch=release
 
-git checkout $releasebranch
-git pull $origin $releasebranch
-
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
 
 sed -i "s/^wgspringcore.revision.*/wgspringcore.revision = ${wgspringcore_revision}/g" $default_build_properties_file
@@ -44,4 +41,4 @@ sed -i "s/^beacon-shared-web-assets.revision.*/beacon-shared-web-assets.revision
 git status
 git add $default_build_properties_file
 git commit $default_build_properties_file -m "Release build script: Freeze the project's module versions." | grep -E 'nothing added to commit|no changes added to commit|nothing to commit|files changed'
-git push -f $origin $releasebranch
+git push $origin HEAD:$releasebranch

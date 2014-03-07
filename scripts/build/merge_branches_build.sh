@@ -5,30 +5,19 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-gitrepo=$1
-origin=origin-$gitrepo
-headbranch=$2
-basebranch=$3
-excludefile=$4
 
-echo "** Reset: $basebranch"
-git fetch $origin
-git reset --hard $origin/$basebranch
-
-echo "** Checkout: $basebranch"
-git checkout $origin/$basebranch
-echo "** Pull: $basebranch"
-git pull $origin $basebranch
+headbranch=$1
+basebranch=$2
+excludefile=$3
 
 echo "** Merge $headbranch into $basebranch"
 if [ -z "$excludefile" ]; then
-    git merge $origin/$headbranch
+    git merge origin/$headbranch
 else
-    git merge --no-commit $origin/$headbranch
-    git reset HEAD $excludefile
-    git checkout -- $excludefile
+    git merge --no-commit origin/$headbranch
+    git checkout HEAD $excludefile
     git commit -m "Merged $headbranch to $basebranch. Changes to $excludefile were ignored."
 fi
 
 echo "** Push merge commits to $basebranch"
-git push -f $origin $basebranch
+git push origin HEAD:$basebranch
