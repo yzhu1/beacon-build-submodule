@@ -3,6 +3,8 @@ import js_processor
 
 CSS_DIR = 'css'
 STATIC_DIR = 'static'
+COMPILE_DIR = 'compile'
+UNZIP_DIR = 'unzip'
 SASS_EXT = '.scss'
 JS_DIR = 'js'
 JS_EXT = '.js'
