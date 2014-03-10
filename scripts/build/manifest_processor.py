@@ -5,9 +5,9 @@ import asset_processing_settings as settings
 
 app_web_dir = sys.argv[1]
 app_static_dir = os.path.join(app_web_dir, settings.STATIC_DIR)
-rpm_version = sys.argv[2]
 build_web_assets_dir = sys.argv[3]
 manifest_dir = os.path.join(app_web_dir, sys.argv[4])
+file_version = sys.argv[2] + settings.FILENAME_SEPARATOR + sys.argv[5] # rpmversion_buildnumber
 
 for manifest_file_name in os.listdir(manifest_dir):
     if not manifest_file_name.endswith(settings.ASSET_MANIFEST_EXT):
@@ -27,7 +27,7 @@ for manifest_file_name in os.listdir(manifest_dir):
         asset_map[file_extension].append(filename)
     manifest_file.close()
     for extension in asset_map.keys():
-        settings.PROCESSORS[extension](asset_map[extension], app_static_dir, build_web_assets_dir, rpm_version, manifest_file_name)
+        settings.PROCESSORS[extension](asset_map[extension], app_static_dir, build_web_assets_dir, file_version, manifest_file_name)
 print ("""                         __
                _.--\"\"  |
 .----.     _.-'   |/\| |.--.
