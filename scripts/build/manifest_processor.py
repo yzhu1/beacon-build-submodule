@@ -20,9 +20,8 @@ for manifest_file_name in os.listdir(manifest_dir):
         if len(asset) == 0 or asset.startswith('#'):
             continue
         filename, file_extension = os.path.splitext(asset)
-        # move to separate method for validating manifest file
-        if '.css' in file_extension:
-            raise Exception("CSS files are not supported, please change to SCSS")
+        if file_extension not in settings.PROCESSORS.keys():
+            raise Exception(file_extension + " files are not supported!")
         if file_extension not in asset_map:
 	        asset_map[file_extension] = []
         asset_map[file_extension].append(filename)
