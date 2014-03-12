@@ -23,15 +23,15 @@ def count_css_selectors(fileName):
 
 # for all the css files in stylesFileList, changes the extension to scss and imports all in a new scss file
 # and compiles the combined scss file using sass
-def create_combined_sass_file(stylesFileList, appStaticDir, buildWebAssetsDir, rpmVersion, manifestFileName):
+def create_combined_sass_file(stylesFileList, appStaticDir, buildWebAssetsDir, fileVersion, manifestFileName):
     cssDir = os.path.join(appStaticDir, settings.CSS_DIR)
-    outputFilePath = os.path.join(cssDir, manifestFileName + settings.FILENAME_SEPARATOR + rpmVersion + settings.SASS_EXT)
+    outputFilePath = os.path.join(cssDir, manifestFileName + settings.FILENAME_SEPARATOR + fileVersion + settings.SASS_EXT)
     outputFile = open(outputFilePath, 'w+')
     for stylesFileName in stylesFileList:
         outputFile.write('@import "' + stylesFileName + '";\n')
     outputFile.close()
     os.system('sass --update ' + cssDir + ':' + buildWebAssetsDir + '/compile/css' + ' --style compressed ')
-    compileStylesheet = os.path.join(buildWebAssetsDir, 'compile', 'css', manifestFileName + settings.FILENAME_SEPARATOR + rpmVersion + '.css')
+    compileStylesheet = os.path.join(buildWebAssetsDir, 'compile', 'css', manifestFileName + settings.FILENAME_SEPARATOR + fileVersion + '.css')
     totalSelectorsCount = count_css_selectors(compileStylesheet)
     print('Total styles count for compiled css file: ' + str(totalSelectorsCount))
     if (totalSelectorsCount > 4095):

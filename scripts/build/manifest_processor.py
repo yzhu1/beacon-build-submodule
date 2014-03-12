@@ -4,10 +4,13 @@ import sys, os
 import asset_processing_settings as settings
 
 app_web_dir = sys.argv[1]
-app_static_dir = os.path.join(app_web_dir, settings.STATIC_DIR)
+rpm_version = sys.argv[2]
 build_web_assets_dir = sys.argv[3]
 manifest_dir = os.path.join(app_web_dir, sys.argv[4])
-file_version = sys.argv[2] + settings.FILENAME_SEPARATOR + sys.argv[5] # rpmversion_buildnumber
+build_number = sys.argv[5]
+
+app_static_dir = os.path.join(app_web_dir, settings.STATIC_DIR)
+file_version = rpm_version + settings.FILENAME_SEPARATOR + build_number
 
 for manifest_file_name in os.listdir(manifest_dir):
     if not manifest_file_name.endswith(settings.ASSET_MANIFEST_EXT):
