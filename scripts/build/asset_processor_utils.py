@@ -2,11 +2,11 @@
 import os, shutil
 
 # recursively find a file in the given directory
-def find_file(directory, requiredFileName):
+def find_file(directory, requiredFileNameWithRelativePath):
     for root, dirnames, filenames in os.walk(directory):
         for filename in filenames:
             fullFilePath = os.path.join(root, filename)
-            if fullFilePath.endswith(requiredFileName):
+            if fullFilePath.endswith(requiredFileNameWithRelativePath):
                 return fullFilePath
 
 
