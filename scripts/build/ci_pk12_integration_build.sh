@@ -43,13 +43,13 @@ allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
 
 set +x
 # If the build branch is 'master', verify that the change is not a merge from the branch 'next'.
-if [ "$buildbranch" = "master" ] && [ -f "./next_branch" ]; then
+if [ "$buildbranch" = "master" ] && [ -f "./next_branch_sentinel" ]; then
     echo "ERROR: It seems that you are trying to merge the 'next' branch into 'master' - This is not allowed! Please revert your merge in the master branch."
     exit -1
 fi
 # If the build branch is 'next', verify that its file indicator exists.
-if [ "$buildbranch" = "next" ] && [ ! -f "./next_branch" ]; then
-    echo "ERROR: Build failed because the 'next' branch is missing the file: './next_branch'. This file is necessary to prevent disallowed merges (next->master)."
+if [ "$buildbranch" = "next" ] && [ ! -f "./next_branch_sentinel" ]; then
+    echo "ERROR: Build failed because the 'next' branch is missing the file: './next_branch_sentinel'. This file is necessary to prevent disallowed merges (next->master)."
     exit -1
 fi
 set -x
