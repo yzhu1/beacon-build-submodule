@@ -25,6 +25,7 @@ default_build_properties_file=./conf/default.build.properties
 releasebranch=release
 
 sed -i 's/^mclass-dependencies.default.branch.*/mclass-dependencies.default.branch = current/g' $default_build_properties_file
+echo "mclass-dependencies.default.branch = current" >> $default_build_properties_file
 
 sed -i "s/^wgspringcore.revision.*/wgspringcore.revision = ${wgspringcore_revision}/g" $default_build_properties_file
 sed -i "s/^wgspringmodule.userappstate.revision.*/wgspringmodule.userappstate.revision = ${wgspringmodule_userappstate_revision}/g" $default_build_properties_file
