@@ -164,4 +164,59 @@
         <git-push-to-branch branchname="${git.current.branch}" />
         <echo message="${git.command.output}" />
     </target>
+
+    <!-- this has some limitations, thanks to XML not handling "null" very well: project.organization *must* be set,
+         and module.branch *must* be in use.  If we really want to use this for non-branched repos, we can change
+         the core section to branch on whether module.branch is set, and either set or not set that value on each
+         task depending on the branch, but for now, let's not.
+    -->
+    <target name="verify-patch-level-public-api-compatibility"
+            description="verify that no breaking public api changes have been introduced for this patch level.  Works only for branched ivy repos."
+            depends="verify-patch-level-changelog-entry, build-app-jars, build-test-jars">
+
+      <property name="current.revision" value="${module.revision.major}.${module.revision.minor}.${module.revision.revision}-+" />
+      <ivy:findrevision organisation="${project.organization}" module="${project.name}" revision="${current.revision}"
+                        property="published.revision" branch="${module.branch}" />
+        <if>
+            <isset property="published.revision" />
+            <then>
+                <echo message="Found revision ${published.revision}" />
+                <ivy:resolve refresh="true" inline="true" keep="true"
+                  organisation="${project.organization}"
+                  module="${project.name}"
+                  revision="${published.revision}"
+                  branch="${module.branch}"
+                  transitive="false"
+                  resolveId="apivalidate"
+                  log="quiet"
+                  haltonfailure="true"
+                />
+                <ivy:retrieve inline="true"
+                  organisation="${project.organization}"
+                  module="${project.name}"
+                  revision="${published.revision}"
+                  branch="${module.branch}"
+                  transitive="false"
+                  resolveId="apivalidate"
+                  pattern="target/baseline-jars/[revision]/[artifact].[ext]"
+                  type="jar"
+                />
+                <exec executable="${common.config.dir}/scripts/build/api-compatibility/api-compatibility-check.sh" failonerror="true" >
+                   <arg value="${published.revision}" />
+                </exec>
+            </then>
+            <else>
+                <echo message="No previous publication matches ${current.revision}: go nuts." />
+            </else>
+        </if>
+    </target>
+
+    <target name="verify-patch-level-changelog-entry" description="make sure that the CHANGELOG contains an entry for the current patchlevel">
+      <exec executable="grep" failonerror="true">
+        <arg value="-q" />
+        <arg value="VERSION ${module.revision.major}.${module.revision.minor}.${module.revision.revision}" />
+        <arg file="CHANGELOG" />
+      </exec>
+    </target>
+
 </project>
