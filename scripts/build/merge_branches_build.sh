@@ -20,4 +20,4 @@ else
 fi
 
 echo "** Push merge commits to $basebranch"
-#git push origin HEAD:$basebranch
+git push origin HEAD:$basebranch
