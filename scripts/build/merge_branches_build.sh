@@ -16,7 +16,7 @@ if [ -z "$excludefile" ]; then
 else
     git merge --no-commit origin/$headbranch | grep -E 'fix conflicts and then commit the result|Already up-to-date'
     git checkout HEAD $excludefile
-    git commit -m "Merged $headbranch to $basebranch. Changes to $excludefile were ignored." | grep -E 'nothing added to commit|no changes added to commit|nothing to commit|files changed'
+    git commit -m "Merged $headbranch to $basebranch. Changes to $excludefile were ignored." | grep -E -i 'nothing added to commit|no changes added to commit|nothing to commit|Merged'
 fi
 
 echo "** Push merge commits to $basebranch"
