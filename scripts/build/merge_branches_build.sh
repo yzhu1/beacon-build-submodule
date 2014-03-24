@@ -14,7 +14,7 @@ echo "** Merge $headbranch into $basebranch"
 if [ -z "$excludefile" ]; then
     git merge origin/$headbranch
 else
-    git merge --no-commit origin/$headbranch
+    git merge --no-commit origin/$headbranch | grep -E 'fix conflicts and then commit the result|Already up-to-date'
     git checkout HEAD $excludefile
     git commit -m "Merged $headbranch to $basebranch. Changes to $excludefile were ignored."
 fi
