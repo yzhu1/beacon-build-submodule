@@ -181,7 +181,7 @@
     <!-- Web Assets                                                       -->
     <!-- ================================================================ -->
 
-    <target name="prepare-web-assets-for-zip">
+    <target name="prepare-web-assets-for-zip" unless="beacon.publish.web-assets.skip" >
         <!-- first clean -->
         <delete dir="${build.web.assets.content.dir}" includeemptydirs="true" failonerror="true" />
 
@@ -219,7 +219,7 @@
         <echo file="${web.assets.commit.hash.file}">${git.current.hash}</echo>
     </target>
 
-    <target name="zip-web-assets" depends="prepare-web-assets-for-zip">
+    <target name="zip-web-assets" depends="prepare-web-assets-for-zip" unless="beacon.publish.web-assets.skip" >
         <!-- first clean -->
         <delete file="${build.artifacts.dir}/${web.assets.zip.name}" failonerror="true" />
 
