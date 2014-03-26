@@ -10,14 +10,36 @@ headbranch=$1
 basebranch=$2
 excludefile=$3
 
-echo "** Merge $headbranch into $basebranch"
-if [ -z "$excludefile" ]; then
-    git merge origin/$headbranch
-else
-    git merge --no-commit origin/$headbranch | grep -E 'fix conflicts and then commit the result|Already up-to-date'
-    git checkout HEAD $excludefile
-    git commit -m "Merged $headbranch to $basebranch. Changes to $excludefile were ignored." | grep -E -i 'nothing added to commit|no changes added to commit|nothing to commit|Merged'
+if git merge --no-commit origin/$headbranch | grep "Automatic merge failed; fix conflicts and then commit the result."
+then
+	if git status | grep "modified:" | grep "conf/base"
+	then
+		git status
+		echo "ERROR: conf/base needs to be manually merged!"
+		exit 1
+    fi
 fi
 
-echo "** Push merge commits to $basebranch"
-git push origin HEAD:$basebranch
+# if the exclude file variable is set and if the file exists, ignore any modification to it
+if [[ ! -z "$excludefile" ]] && [[ -e "$excludefile" ]]
+then
+	git checkout HEAD $excludefile
+	git add $excludefile
+	echo "** Changes to $excludefile ignored"
+fi
+
+if git status | grep "both modified:"
+then
+	git status
+	echo "ERROR: There're still unmerged conflicts, need manual merge!"
+	exit 1
+fi
+
+if git status | grep "modified:"
+then
+	git commit -m "Jenkins: Merge $headbranch to $basebranch"
+	git push origin HEAD:$basebranch
+	echo "** Merged $headbranch to $basebranch"
+else
+	echo "** Nothing to merge."
+fi
