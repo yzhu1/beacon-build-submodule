@@ -66,7 +66,20 @@
         </fileset>
     </path>
         
-    <target name="build-test-jars" description="implemented only by wgspringcore" />
+    <target name="build-test-jars"
+            description="optionally build test and test infrastructure jars"
+            if="beacon.publish.test.jars">
+        <!-- main jar includes classfiles and any properties files that got pulled in at compilation time -->
+        <jar destfile="${jar.outdir}/test/${project.name}-webdriver-pages.jar"
+             basedir="${webdriver.test.classes.dir}"
+             includes="**/pages/**,**/util/**"
+            />
+        <!-- src jar contains only java source files -->
+        <jar destfile="${jar.outdir}/test/${project.name}-webdriver-pages-src.jar"
+             basedir="${app.webdriver.src.dir}/util/java"
+             includes="**/pages/**/*.java,**/util/**/*.java"
+            />
+    </target>
 
     <target name="build-app-jars" 
                 description="Compile the source into jars" depends="unzip-web-assets, sass-compile">
