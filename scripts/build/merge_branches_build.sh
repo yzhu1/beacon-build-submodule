@@ -10,7 +10,7 @@ headbranch=$1
 basebranch=$2
 excludefile=$3
 
-if git merge --no-commit origin/$headbranch | grep "Automatic merge failed; fix conflicts and then commit the result."
+if git merge --no-commit origin/$headbranch | grep -q "Automatic merge failed; fix conflicts and then commit the result."
 then
 	if git status | grep "modified:" | grep "conf/base"
 	then
