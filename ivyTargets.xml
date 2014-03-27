@@ -8,9 +8,17 @@
     <property environment="sys_env" />
     <property file="conf/version.properties" />
     <!-- pick up DPP/13 compliant version numbers from version.properties, and append BUILD_NUMBER (set by Jenkins) -->
-    <property name="module.revision.published" value="${module.revision.major}.${module.revision.minor}.${module.revision.revision}-${sys_env.BUILD_NUMBER}" />
     <property name="module.revision.dev" value="dev" />
-
+    <if>
+        <!-- if the BUILD_NUMBER is set, we are in Jenkins-land: use the DPP/13 version.  If not, assume "dev" -->
+        <isset property="sys_env.BUILD_NUMBER" />
+        <then>
+            <property name="module.revision.published" value="${module.revision.major}.${module.revision.minor}.${module.revision.revision}-${sys_env.BUILD_NUMBER}" />
+        </then>
+        <else>
+            <property name="module.revision.published" value="${module.revision.dev}" />
+        </else>
+    </if>
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
     <import file="dbTargets.xml"/>
@@ -96,45 +104,46 @@
         <delete dir="${ivy.resolution.cache.dir}" />
     </target>
 
-    <!-- target to set the publication version.  This needs to be at the front of the dependency chain
-	 so that the ivy-resolve before ivy-publish has the same revision as the ivy-publish does.
-    -->
-    <target name="-set-module-publish-version-dev">
-        <propertycopy name="module.revision.published" from="module.revision.dev" override="true" silent="true" />
-    </target>
-
     <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
-        <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
-            update="true" overwrite="true" forcedeliver="true">
-            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
-        </ivy:publish>
+        <publish resolver="ivyrepo"/>
     </target>
 
-    <target name="ivy-publish-dev" depends="-set-module-publish-version-dev, clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
-        <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
-            update="true" overwrite="true" forcedeliver="true">
-            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
-        </ivy:publish>
+    <target name="ivy-publish-dev" depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+        <publish resolver="localrepo" />
     </target>
 
-    <target name="ivy-publish-repeat" depends="-set-module-publish-version-dev, build-app-jars, build-test-jars, zip-web-assets"
+    <target name="ivy-publish-repeat" depends="build-app-jars, build-test-jars, zip-web-assets"
             description="Run ivy-publish-dev without first running ivy-resolve and tests, to save time and aggravation (only run it after running publish-dev normally once)">
-        <ivy:settings id="ivy.settings" file="ivysettings.xml" />
-
-        <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
-            organisation="${project.organization}"
-            module="${project.name}"
-            revision="${module.revision.dev}"
-            update="true" overwrite="true" forcedeliver="true">
-            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
-        </ivy:publish>
+        <publish resolver="localrepo" />
     </target>
 
     <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
 
+    <macrodef name="publish">
+        <attribute name="settingsFile" default="ivysettings.xml" />
+        <attribute name="resolver" /> <!-- no default! -->
+        <attribute name="revision" default="${module.revision.published}" />
+        <element name="artifact-nested" optional="true" implicit="true" />
+        <sequential>
+            <ivy:settings id="ivy.settings" file="@{settingsFile}" />
+            <ivy:publish
+                settingsRef="ivy.settings"
+                update="true"
+                overwrite="true"
+                forcedeliver="true"
+                resolver="@{resolver}"
+                organisation="${project.organization}"
+                module="${project.name}"
+                revision="@{revision}"
+                >
+                <artifact-nested /> <!-- if empty, only the default artifacts will publish -->
+                <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
+                <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
+            </ivy:publish>
+        </sequential>
+    </macrodef>
+
+    <!-- not technically ivy-related -->
     <target name="update-commit-log">
         <!-- set job ID to a placeholder if not actually running in Jenkins (for debugging) -->
         <condition
