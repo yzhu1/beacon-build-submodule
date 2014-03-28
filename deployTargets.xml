@@ -232,13 +232,18 @@
 
     <target name="unzip-web-assets">
         <!-- first clean -->
-        <delete dir="${build.web.assets.unzip.dir}" includeemptydirs="true" failonerror="true" />
-        <mkdir dir="${build.web.assets.unzip.dir}" />
-        <unzip dest="${build.web.assets.unzip.dir}">
-            <fileset dir="${web.assets.lib.dir}">
-                <include name="*.zip"/>
-            </fileset>
-        </unzip>
+        <if>
+            <available file="${web.assets.lib.dir}" />
+            <then>
+                <delete dir="${build.web.assets.unzip.dir}" includeemptydirs="true" failonerror="true" />
+                <mkdir dir="${build.web.assets.unzip.dir}" />
+                <unzip dest="${build.web.assets.unzip.dir}">
+                    <fileset dir="${web.assets.lib.dir}">
+                        <include name="*.zip"/>
+                    </fileset>
+                </unzip>
+            </then>
+        </if>
     </target>
 
     <target name="tinymce-hot-deploy">
