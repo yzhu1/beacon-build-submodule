@@ -320,15 +320,6 @@
        </spring-runner>
     </target>
 
-    <target name="run-napi-fixture-exporters" depends="-check-allow-destructive-db-targets, test-compile" description="Run just the napi fixture exporters.">
-       <mkdir dir="${napi.fixture.export.dir}"/>
-       <spring-runner context="${context.integration.dir}/fixture-runner-load-datamakers-context.xml"
-           bean="fixtureRunnerLoadDatamakers"
-           method="runNAPIDatamakers">
-         <arg value="${napi.fixture.export.dir}"/>
-       </spring-runner>
-    </target>
-    
     <target name="load-fixtures-snapshot" description="Load fixtures snapshot" depends="-check-allow-destructive-db-targets">
         <exec executable="/bin/bash" failonerror="true">
             <arg value="./conf/base/scripts/build/check_for_postgres_user_in_db_snap.sh" />
