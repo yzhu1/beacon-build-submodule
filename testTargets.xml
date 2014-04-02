@@ -6,6 +6,8 @@
     <!-- (if we don't, junit-explicit will see the value '${method} for that parameter, breaking util tests) -->
     <property name="method" value="" />
 
+    <property name="remoteDebug" value="false"/>
+
     <taskdef resource="checkstyletask.properties">
         <classpath>
             <pathelement location="${build.lib.dir}/freestyle-1.0.0.jar" />
@@ -247,6 +249,11 @@
             </if>
 
             <property environment="env" />
+            <condition property="remoteDebugJvmArgs"
+                value="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${tomcat.jpda.address}"
+                else="-ea">
+                <istrue value="${debug}"/>
+            </condition>
             <!-- first, use the parameter value if true -->
             <condition property="run-only-util" value="true">
                 <istrue value="@{run-only-util-param}" />
@@ -285,7 +292,7 @@
 
                 <classpath refid="@{classpathref}" />
                 <sysproperty key="net.sourceforge.cobertura.datafile" file="@{coverage-file}" />
-
+                <jvmarg value="${remoteDebugJvmArgs}"/>
                 <jvmarg value="-Xmx768m" />
             	<jvmarg value="-Dfile.encoding=utf8" />
             	<jvmarg value="-XX:MaxPermSize=256m" />
