@@ -69,6 +69,7 @@
     <target name="build-test-jars" description="implemented only by wgspringcore" />
 
     <target name="build-app-jars" 
+                if="jar.app.name"
                 description="Compile the source into jars" depends="unzip-web-assets, sass-compile">
 
         <if>
