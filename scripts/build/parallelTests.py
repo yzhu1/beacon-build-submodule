@@ -165,8 +165,8 @@ def runBatchOfTests(tests, testdog, manager, apphomeenvvar, runonlysmoketests, r
             + 'export ENV_PROPERTY_PREFIX=%s && ' % testdog \
             + 'export RUN_ONLY_SMOKE=%s && ' % ('true' if runonlysmoketests else 'false') \
             + 'export RUN_ONLY_NONSLOW=%s && ' % ('true' if runonlynonslow else 'false') \
+            + 'export ITEM_IMPORT_TMP_DIRECTORY=. && ' \
             + 'export %s=. && %s ' % (apphomeenvvar, getTaskToRunBatchOfTests(tests)) \
-            + 'export ITEM_IMPORT_TMP_DIRECTORY=$%s && ' % (apphomeenvvar) \
             + '&> %s; exitstatus=$? && tail -n 100 %s && exit $exitstatus' % (testlogfile, testlogfile)
         returncode, output = runSubprocess(cmd, manager)
         output = '<ran on %s> ' % testdog + output
