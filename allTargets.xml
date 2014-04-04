@@ -9,6 +9,17 @@
         <classpath><pathelement path="${build.lib.dir}/ant-contrib-*.jar"/></classpath>
     </taskdef>
 
+    <property environment="env"/>
+    <if>
+        <isset property="env.RPM_VERSION"/>
+        <then>
+          <property name="project.revision" value="${env.RPM_VERSION}-${env.BUILD_NUMBER}" />
+        </then>
+        <else>
+          <property name="project.revision" value="dev" />
+        </else>
+    </if>
+
     <!-- set this directory this ant script is in as a property -->
     <dirname property="imported.basedir" file="${ant.file.wgspring-allTargets}"/>
 
