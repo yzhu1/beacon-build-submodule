@@ -113,18 +113,28 @@
         <delete dir="${ivy.resolution.cache.dir}" />
     </target>
 
-    <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish"
+            description="Run unit tests, build jar/zip files, and publish to ivy"
+            depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <publish resolver="ivyrepo"/>
     </target>
 
-    <target name="ivy-publish-dev" depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+    <target name="ivy-publish-only" description="Publish to ivy repo, assuming that all resolution, testing and compilation has already been done"
+            depends="build-app-jars,build-test-jars,zip-web-assets">
+        <publish resolver="ivyrepo" />
+    </target>
+
+    <target name="ivy-publish-dev"
+            description="Run unit tests, build jar/zip files, and publish to local repository"
+            depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
         <publish resolver="localrepo" />
     </target>
 
-    <target name="ivy-publish-repeat" depends="build-app-jars, build-test-jars, zip-web-assets"
+    <target name="ivy-publish-only-dev" depends="build-app-jars, build-test-jars, zip-web-assets"
             description="Run ivy-publish-dev without first running ivy-resolve and tests, to save time and aggravation (only run it after running publish-dev normally once)">
         <publish resolver="localrepo" />
     </target>
+    <target name="ivy-publish-repeat"><echo>RENAMED: to 'ivy-publish-only-dev', to better reflect how it fits into the build ecosystem</echo></target>
 
     <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
 
