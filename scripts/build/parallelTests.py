@@ -68,7 +68,7 @@ class SyncManager(object):
             self._outputlock.acquire()
             testnames = ', '.join(tests)
             if succeeded:
-                print '  (success) %s: %s PASSSED' % (testdog, testnames)
+                print '  (success) %s: %s PASSED' % (testdog, testnames)
                 self._successmessages.append(output)
             else:
                 print output
