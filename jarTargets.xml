@@ -70,12 +70,12 @@
             description="optionally build test and test infrastructure jars"
             if="beacon.publish.test.webdriver">
         <!-- main jar includes classfiles and any properties files that got pulled in at compilation time -->
-        <jar destfile="${jar.outdir}/test/${servlet.name}-webdriver-pages.jar"
+        <jar destfile="${jar.outdir}/test/${jar.test.webdriver-pages.name}.jar"
              basedir="${webdriver.test.classes.dir}"
              includes="**/pages/**,**/util/**"
             />
         <!-- src jar contains only java source files -->
-        <jar destfile="${jar.outdir}/test/${servlet.name}-webdriver-pages-src.jar"
+        <jar destfile="${jar.outdir}/test/${jar.test.webdriver-pages.name}-src.jar"
              basedir="${app.webdriver.src.dir}/util/java"
              includes="**/pages/**/*.java,**/util/**/*.java"
             />
@@ -83,7 +83,7 @@
 
     <!-- I question whether or not we need either of these dependencies... -->
     <target name="build-app-jars" 
-                if="jar.app.name"
+                unless="beacon.publish.app.skip"
                 description="Compile the source into jars" depends="unzip-web-assets, sass-compile">
 
         <if>
