@@ -611,7 +611,7 @@
         </fail>
     </target>
 
-    <target name="checkstyle" description="Run checkstyle">
+    <target name="checkstyle" description="Run checkstyle" unless="skip.checkstyle">
         <mkdir dir="${results.dir}"/>
 
         <checkstyle config="${imported.basedir}/checkstyle.xml" failonviolation="true">

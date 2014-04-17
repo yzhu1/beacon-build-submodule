@@ -6,7 +6,7 @@
     </taskdef>
 
     <property environment="sys_env" />
-    <property file="conf/version.properties" />
+    <property file="${app.config.dir}/version.properties" />
     <!-- pick up DPP/13 compliant version numbers from version.properties, and append BUILD_NUMBER (set by Jenkins) -->
     <property name="module.revision.dev" value="dev" />
     <if>
@@ -38,7 +38,7 @@
 
     <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
         <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
-        <delete file="ivysettings.xml"/>
+        <delete file="${ivy.settings.dir}/ivysettings.xml"/>
     </target>
 
     <target name="clean-ivy-local-repo-jar">
@@ -54,13 +54,13 @@
     <target name="ivy-get-settings" description="--> retrieve ivysettings.xml from server">
         <ivy:settings id="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-settings.xml" />
         <ivy:resolve settingsRef="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-module.xml" />
-        <ivy:retrieve settingsRef="bootstrap-settings" />
+        <ivy:retrieve settingsRef="bootstrap-settings" pattern="${ivy.settings.dir}/[artifact].[ext]"/>
     </target>
 
     <target name="ivy-resolve" description="--> retrieve dependencies with ivy" depends="ivy-get-settings, ivy-clean-resolution-cache">
-        <ivy:settings id="ivy.settings" file="ivysettings.xml" />
+        <ivy:settings id="ivy.settings" file="${ivy.settings.dir}/ivysettings.xml" />
         <!-- copy artifacts from repo(s) to cache -->
-        <ivy:resolve settingsRef="ivy.settings" file="conf/ivy.xml" />
+        <ivy:resolve settingsRef="ivy.settings" file="${ivy.module.file}" />
         <!-- copy artifacts from cache to destination dir -->
         <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
         <mkdir dir="${ivy.report.dir}" />
@@ -83,13 +83,13 @@
                     <arg value="--login"/>
                     <arg value="-i"/>
                     <arg value="-c"/>
-                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/rebuild_eclipse_classpath.py ./conf/eclipse.classpath.header" />
+                    <arg value="cd ${basedir.unix}; python ${app.config.dir}/base/scripts/dev/rebuild_eclipse_classpath.py ${app.config.dir}/eclipse.classpath.header" />
                 </exec>
             </then>
             <else>
                 <exec executable="/usr/bin/python" dir="${basedir}">
-                    <arg value="conf/base/scripts/dev/rebuild_eclipse_classpath.py" />
-                    <arg value="conf/eclipse.classpath.header" />
+                    <arg value="${common.config.dir}/scripts/dev/rebuild_eclipse_classpath.py" />
+                    <arg value="${app.config.dir}/eclipse.classpath.header" />
                 </exec>
             </else>
         </if>
@@ -139,7 +139,7 @@
     <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
 
     <macrodef name="publish">
-        <attribute name="settingsFile" default="ivysettings.xml" />
+        <attribute name="settingsFile" default="${ivy.settings.dir}/ivysettings.xml" />
         <attribute name="resolver" /> <!-- no default! -->
         <attribute name="revision" default="${module.revision.published}" />
         <element name="artifact-nested" optional="true" implicit="true" />
