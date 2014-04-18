@@ -92,7 +92,7 @@ function ci_build_utils.setup_build_env() {
     export RELEASE_VERSION=`perl -le' print {DEV=>"mcdev",FUTURE=>"mcfuture", CURRENT=>"mccurrentci"}->{$ENV{BASE_ENV}} || "NO_RELEASE_VERSION"'`
     export BUILD_BRANCH=${GIT_BRANCH#*last-stable-integration-}
 
-    if [ -z "${RPM_VERSION}" ]; then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
+    if [ -z "${RPM_VERSION:-}" ]; then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
     export AUTORELEASE_BOX=${!AUTORELEASE_VAR}
     export BUILD_RPM_REPO=${!BUILD_REPO_VAR}
     export NEXT_RPM_REPO=${!NEXT_REPO_VAR}
@@ -103,7 +103,7 @@ function ci_build_utils.setup_build_env() {
         export TESTDOGS=`perl -e'print join ",", map "testdog$ENV{ENV}$_", 0..($ENV{TESTDOG_COUNT} - 1)'`
     fi
 
-    if [ -n "${!REFSPEC_VAR}" ]; then export EXTRA_WGR_ARGS="--refspec '${!REFSPEC_VAR}'"; fi
+    if [ -n "${!REFSPEC_VAR:-}" ]; then export EXTRA_WGR_ARGS="--refspec '${!REFSPEC_VAR}'"; fi
 
     # this is highly jenkins-coupled: checking the box will set this environment variable to "true"
     if [ "true" == "${SKIP_BCFG:-}" ]
