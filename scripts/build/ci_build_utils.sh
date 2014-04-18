@@ -89,7 +89,7 @@ function ci_build_utils.setup_build_env() {
     fi
 
     export DB_HOSTCLASS="Unused Value"
-    export RELEASE_VERSION=`perl -le' print {DEV=>"mcdev",FUTURE=>"mcfuture", CURRENT=>"mccurrentci"}->{$ENV{BASE_ENV}} || "NO_RELEASE_VERSION"'`
+    export RELEASE_VERSION=`perl -le' print {DEV=>"mcfuture",FUTURE=>"mcfuture", CURRENT=>"mccurrentci"}->{$ENV{BASE_ENV}} || "NO_RELEASE_VERSION"'`
     export BUILD_BRANCH=${GIT_BRANCH#*last-stable-integration-}
 
     if [ -z "${RPM_VERSION:-}" ]; then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
