@@ -42,6 +42,7 @@ extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
 allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
+skipbcfg=${SKIP_BCFG:-false}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -63,6 +64,11 @@ if [ -n "$bad_rpms" ]
 then
     echo "DANGER found story-build RPMs in future-ci repo: $bad_rpms"
     exit 1
+fi
+
+if [ "true" == "$skipbcfg" ]
+then
+    releasestepstoskip="$releasestepstoskip mhctt${app}webapp_bcfg.sh"
 fi
 
 # Set the migration testdog if testdogs have been set
