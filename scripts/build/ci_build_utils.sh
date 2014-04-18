@@ -82,12 +82,13 @@ function ci_build_utils.setup_build_env() {
         BUILD_REPO_VAR=REPO_${BASE_ENV}_CI
         NEXT_REPO_VAR=REPO_${BASE_ENV}_QA
     fi
-    if [ "true" == "${BUILD_EL6}" ]
+    if [ "true" == "${BUILD_EL6:-}" ]
     then
         BUILD_REPO_VAR="${BUILD_REPO_VAR}_EL6"
         SECOND_NEXT_REPO_VAR=${NEXT_REPO_VAR}_EL6
     fi
 
+    export DB_HOSTCLASS="Unused Value"
     export RELEASE_VERSION=`perl -le' print {DEV=>"mcdev",FUTURE=>"mcfuture", CURRENT=>"mccurrentci"}->{$ENV{BASE_ENV}} || "NO_RELEASE_VERSION"'`
     export BUILD_BRANCH=${GIT_BRANCH#*last-stable-integration-}
 
@@ -97,7 +98,7 @@ function ci_build_utils.setup_build_env() {
     export NEXT_RPM_REPO=${!NEXT_REPO_VAR}
     export SECOND_NEXT_RPM_REPO=${!SECOND_NEXT_REPO_VAR:-}
     export ENV_PROPERTY_PREFIX=$ENV
-    if [ -n "$TESTDOG_COUNT" ]
+    if [ -n "${TESTDOG_COUNT:-}" ]
     then
         export TESTDOGS=`perl -e'print join ",", map "testdog$ENV{ENV}$_", 0..($ENV{TESTDOG_COUNT} - 1)'`
     fi
@@ -105,7 +106,7 @@ function ci_build_utils.setup_build_env() {
     if [ -n "${!REFSPEC_VAR}" ]; then export EXTRA_WGR_ARGS="--refspec '${!REFSPEC_VAR}'"; fi
 
     # this is highly jenkins-coupled: checking the box will set this environment variable to "true"
-    if [ "true" == "${SKIP_BCFG}" ]
+    if [ "true" == "${SKIP_BCFG:-}" ]
     then
         export RELEASE_STEPS_TO_SKIP="${RELEASE_STEPS_TO_SKIP} mhctt${APP}webapp_bcfg.sh"
     fi
