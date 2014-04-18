@@ -18,6 +18,13 @@ if [ -e "/opt/wgen-3p/python26/bin/python" ]
   PYTHON="/usr/bin/python2.6"
 fi
 
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
+# meta-configuration utility:
+ci_build_utils.setup_build_env
+
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp

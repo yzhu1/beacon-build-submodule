@@ -44,3 +44,69 @@ function ci_build_utils.publish_rpms() {
         /opt/wgen/rpmtools/wg_createrepo $rpm_repo
     done
 }
+
+## setup_build_env
+
+## No arguments, but reads the following environment variables:
+### BASE_ENV (required - one of DEV/FUTURE/CURRENT)
+### SKIP_BCFG (optional - if "true", does what it says)
+### BUILD_EL6 (optional - if "true", uses the EL6 repository as the build repo, and promotes to both EL5 and EL6 repos)
+### TESTDOG_COUNT (optional - if something that looks like a number, sets TESTDOGS to a reasonable value based on that number)
+
+## After running, the following should be set or updated, assuming the jenkins environment is correctly configured
+### ENV
+### ENV_PROPERTY_PREFIX
+### AUTORELEASE_BOX
+### RELEASE_VERSION
+### BUILD_BRANCH
+### BUILD_RPM_REPO
+### NEXT_RPM_REPO
+### SECOND_NEXT_RPM_REPO (if required)
+### EXTRA_WGR_ARG (if the global refspec is set)
+### RELEASE_STEPS_TO_SKIP (if SKIP_BCFG is set)
+### TESTDOGS (if TESTDOG_COUNT is set)
+
+function ci_build_utils.setup_build_env() {
+    # meta-configuration: figure out which Jenkins variables to look in for various properties
+    REFSPEC_VAR=BEACON_${BASE_ENV}_REFSPEC
+    if [ "DEV" == "${BASE_ENV}" ]
+    then
+        export ENV=dev
+        AUTORELEASE_VAR=AUTORELEASE_DEV
+        RPM_VERSION_VAR=FUTURE_RPM_VERSION
+        BUILD_REPO_VAR=REPO_DEV
+    else
+        export ENV=`perl -e 'printf "\L$ENV{BASE_ENV}ci"'`
+        AUTORELEASE_VAR=AUTORELEASE_${BASE_ENV}_CI
+        RPM_VERSION_VAR=${BASE_ENV}_RPM_VERSION
+        BUILD_REPO_VAR=REPO_${BASE_ENV}_CI
+        NEXT_REPO_VAR=REPO_${BASE_ENV}_QA
+    fi
+    if [ "true" == "${BUILD_EL6}" ]
+    then
+        BUILD_REPO_VAR="${BUILD_REPO_VAR}_EL6"
+        SECOND_NEXT_REPO_VAR=${NEXT_REPO_VAR}_EL6
+    fi
+
+    export RELEASE_VERSION=`perl -le' print {DEV=>"mcdev",FUTURE=>"mcfuture", CURRENT=>"mccurrentci"}->{$ENV{BASE_ENV}} || "NO_RELEASE_VERSION"'`
+    export BUILD_BRANCH=${GIT_BRANCH#*last-stable-integration-}
+
+    if [ -z "${RPM_VERSION}" ]; then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
+    export AUTORELEASE_BOX=${!AUTORELEASE_VAR}
+    export BUILD_RPM_REPO=${!BUILD_REPO_VAR}
+    export NEXT_RPM_REPO=${!NEXT_REPO_VAR}
+    export SECOND_NEXT_RPM_REPO=${!SECOND_NEXT_REPO_VAR:-}
+    export ENV_PROPERTY_PREFIX=$ENV
+    if [ -n "$TESTDOG_COUNT" ]
+    then
+        export TESTDOGS=`perl -e'print join ",", map "testdog$ENV{ENV}$_", 0..($ENV{TESTDOG_COUNT} - 1)'`
+    fi
+
+    if [ -n "${!REFSPEC_VAR}" ]; then export EXTRA_WGR_ARGS="--refspec '${!REFSPEC_VAR}'"; fi
+
+    # this is highly jenkins-coupled: checking the box will set this environment variable to "true"
+    if [ "true" == "${SKIP_BCFG}" ]
+    then
+        export RELEASE_STEPS_TO_SKIP="${RELEASE_STEPS_TO_SKIP} mhctt${APP}webapp_bcfg.sh"
+    fi
+}
