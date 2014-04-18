@@ -95,7 +95,7 @@ function ci_build_utils.setup_build_env() {
     if [ -z "${RPM_VERSION:-}" ]; then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
     export AUTORELEASE_BOX=${!AUTORELEASE_VAR}
     export BUILD_RPM_REPO=${!BUILD_REPO_VAR}
-    export NEXT_RPM_REPO=${!NEXT_REPO_VAR}
+    export NEXT_RPM_REPO=${!NEXT_REPO_VAR:-}
     export SECOND_NEXT_RPM_REPO=${!SECOND_NEXT_REPO_VAR:-}
     export ENV_PROPERTY_PREFIX=$ENV
     if [ -n "${TESTDOG_COUNT:-}" ]
