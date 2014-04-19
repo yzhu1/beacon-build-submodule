@@ -20,7 +20,6 @@ ci_build_utils.setup_build_env
 
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp
-dbhostclass=$DB_HOSTCLASS               # e.g., mhcttdbitembank
 app=$APP                                # e.g., itembank or outcomes
 gitrepo=$GIT_REPO                       # e.g., itembank-web or outcomes
 env=$ENV                                # e.g., futureci or currentci

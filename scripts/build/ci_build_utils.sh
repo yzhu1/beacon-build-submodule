@@ -91,11 +91,16 @@ function ci_build_utils.setup_build_env() {
         fi
     fi
 
-    export DB_HOSTCLASS="Unused Value"
     export RELEASE_VERSION=`perl -le' print {DEV=>"mcfuture",FUTURE=>"mcfuture", CURRENT=>"mccurrentci"}->{$ENV{BASE_ENV}} || "NO_RELEASE_VERSION"'`
     export BUILD_BRANCH=${GIT_BRANCH#*last-stable-integration-}
 
-    if [ -z "${RPM_VERSION:-}" ]; then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
+    # set defaults if the variables are currently empty:
+    if [ -z "${RPM_VERSION:-}" ];         then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
+    if [ -z "${MIGRATIONS_APP_NAME:-}" ]; then export MIGRATIONS_APP_NAME=$APP; fi
+    if [ -z "${GIT_REPO:-}" ];            then export GIT_REPO=$APP; fi
+    if [ -z "${WEBAPP_HOSTCLASS:-}" ];    then export WEBAPP_HOSTCLASS=mhctt${APP}webapp; fi
+
+
     export AUTORELEASE_BOX=${!AUTORELEASE_VAR}
     export BUILD_RPM_REPO=${!BUILD_REPO_VAR}
     export NEXT_RPM_REPO=${!NEXT_REPO_VAR:-}
@@ -108,9 +113,10 @@ function ci_build_utils.setup_build_env() {
 
     if [ -n "${!REFSPEC_VAR:-}" ]; then export EXTRA_WGR_ARGS="--refspec '${!REFSPEC_VAR}'"; fi
 
+    export RELEASE_STEPS_TO_SKIP="${RELEASE_STEPS_TO_SKIP:-} ${WEBAPP_HOSTCLASS}_nagios_notifications_disable.sh  ${WEBAPP_HOSTCLASS}_nagios_notifications_enable.sh"
     # this is highly jenkins-coupled: checking the box will set this environment variable to "true"
     if [ "true" == "${SKIP_BCFG:-}" ]
     then
-        export RELEASE_STEPS_TO_SKIP="${RELEASE_STEPS_TO_SKIP} mhctt${APP}webapp_bcfg.sh"
+        export RELEASE_STEPS_TO_SKIP="${RELEASE_STEPS_TO_SKIP} ${WEBAPP_HOSTCLASS}_bcfg.sh"
     fi
 }
