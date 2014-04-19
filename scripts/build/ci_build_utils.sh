@@ -92,6 +92,9 @@ function ci_build_utils.setup_build_env() {
     fi
 
     export RELEASE_VERSION=`perl -le' print {DEV=>"mcfuture",FUTURE=>"mcfuture", CURRENT=>"mccurrentci"}->{$ENV{BASE_ENV}} || "NO_RELEASE_VERSION"'`
+    # strip off origin-whatever:
+    BUILD_BRANCH=${GIT_BRANCH#origin*/}
+    # then strip off last-stable-integration-, if present:
     export BUILD_BRANCH=${GIT_BRANCH#*last-stable-integration-}
 
     # set defaults if the variables are currently empty:
