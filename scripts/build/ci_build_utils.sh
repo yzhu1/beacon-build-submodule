@@ -85,7 +85,10 @@ function ci_build_utils.setup_build_env() {
     if [ "true" == "${BUILD_EL6:-}" ]
     then
         BUILD_REPO_VAR="${BUILD_REPO_VAR}_EL6"
-        SECOND_NEXT_REPO_VAR=${NEXT_REPO_VAR}_EL6
+        if [ -n "${NEXT_REPO_VAR:-}" ]
+        then
+            SECOND_NEXT_REPO_VAR=${NEXT_REPO_VAR}_EL6
+        fi
     fi
 
     export DB_HOSTCLASS="Unused Value"
