@@ -95,7 +95,7 @@ function ci_build_utils.setup_build_env() {
     # strip off origin-whatever:
     BUILD_BRANCH=${GIT_BRANCH#origin*/}
     # then strip off last-stable-integration-, if present:
-    export BUILD_BRANCH=${GIT_BRANCH#*last-stable-integration-}
+    export BUILD_BRANCH=${BUILD_BRANCH#*last-stable-integration-}
 
     # set defaults if the variables are currently empty:
     if [ -z "${RPM_VERSION:-}" ];         then export RPM_VERSION=${!RPM_VERSION_VAR}; fi
