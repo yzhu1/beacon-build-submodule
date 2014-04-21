@@ -46,6 +46,7 @@ extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
 allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
+publish_jars=${IVY_PUBLISH:-false}
 
 set +x
 # If the build branch is 'master', verify that the change is not a merge from the branch 'next'.
@@ -176,4 +177,9 @@ then
     buildreleasetag=$gitrepo-$rpmversion
     git tag -a -f -m "Release build #$buildnumber" $buildreleasetag
     git push -f $gitrepobaseurl/$gitrepo +refs/tags/$buildreleasetag:$buildreleasetag
+fi
+
+if [ "true" == "$publish_jars" ]
+then
+    $ANT ivy-publish-only
 fi
