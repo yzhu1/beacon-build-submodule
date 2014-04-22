@@ -117,7 +117,7 @@ $ANT clean test-clean deploy test-compile
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
 
 # check changes
-non_webdriver_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-webdriver-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver"))
+non_webdriver_changes=$(echo $(git diff origin/$buildbranch origin/last-stable-webdriver-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver"))
 
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
 echo "RUNNING WEBDRIVER TESTS"
@@ -145,7 +145,7 @@ elif [ $allow_targeted_tests = 'false' ] || [ $non_webdriver_changes -gt 0 ] || 
 else
     # Run only webdrivers affected by change
     echo "--AFFECTED WEBDRIVERS IN PARALLEL--"
-    git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-webdriver-$buildbranch --name-only \
+    git diff origin/$buildbranch origin/last-stable-webdriver-$buildbranch --name-only \
     | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
     | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.1.jar" -c "target/test/webdriver" -t "target/test/webdriver"  \
     | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \

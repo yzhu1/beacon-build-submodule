@@ -108,7 +108,7 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 # Compile, run static and unit tests
 $ANT clean test-clean deploy checkstyle freestyle template-lint jslint test-unit build-javadoc
 
-integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
+integration_changes=$(echo $(git diff origin/$buildbranch origin/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
 if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
 
@@ -125,7 +125,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
 
-    non_java_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="\.java$"))
+    non_java_changes=$(echo $(git diff origin/$buildbranch origin/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="\.java$"))
     if [ ! -n "${TESTDOGS+x}" ]
     then
         # no TESTDOGS: run tests through ant normally
@@ -147,7 +147,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         # run db updates on test dog dbs and then run integration and webservice tests affected by changes
         # dependencies detected with turbo-athena: https://github.com/burkemw3/turbo-athena/
         echo "RUNNING SOME INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-        git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only \
+        git diff origin/$buildbranch origin/last-stable-integration-$buildbranch --name-only \
         | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
         | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.1.jar" -c "target/" -t "target/test/integration" -t "target/test/webservice"  \
         | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \
