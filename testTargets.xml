@@ -230,6 +230,17 @@
 
     </target>
 
+    <target name="build-test-util-javadoc"
+            description="Generate JavaDoc for datamakers and webdriver pages"
+            if="beacon.publish.test.webdriver">
+        <javadoc destdir="${output.dir}/test-util-javadoc" classpathref="test.classpath.run-integration">
+            <sourcefiles>
+                <fileset dir="${app.webdriver.src.dir}"  includes="**/pages/**/*.java,**/util/**/*.java" />
+                <fileset dir="${app.integration.src.dir}/util/java" includes="**/*DM.java" />
+            </sourcefiles>
+        </javadoc>
+    </target>
+
     <macrodef name="junit-explicit">
         <attribute name="label" />
         <attribute name="classpathref" />

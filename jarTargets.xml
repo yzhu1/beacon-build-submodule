@@ -168,7 +168,7 @@
 
      </target>
      
-    <target name="build-javadoc" description="Generate JavaDoc for the source">
+    <target name="build-app-javadoc" description="Generate JavaDoc for the main application source tree">
         <javadoc destdir="${output.dir}/javadoc" classpathref="build.app.classpath">
             <sourcefiles>
                 <fileset dir="${app.src.dir}" />
