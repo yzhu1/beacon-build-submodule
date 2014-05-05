@@ -18,10 +18,16 @@ if [ -e "/opt/wgen-3p/python26/bin/python" ]
   PYTHON="/usr/bin/python2.6"
 fi
 
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
+# meta-configuration utility:
+ci_build_utils.setup_build_env
+
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp
-dbhostclass=$DB_HOSTCLASS               # e.g., mhcttdbitembank
 app=$APP                                # e.g., itembank or outcomes
 gitrepo=$GIT_REPO                       # e.g., itembank-web or outcomes
 env=$ENV                                # e.g., futureci or currentci
@@ -42,6 +48,7 @@ extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
 allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
+skipbcfg=${SKIP_BCFG:-false}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -63,6 +70,11 @@ if [ -n "$bad_rpms" ]
 then
     echo "DANGER found story-build RPMs in future-ci repo: $bad_rpms"
     exit 1
+fi
+
+if [ "true" == "$skipbcfg" ]
+then
+    releasestepstoskip="$releasestepstoskip mhctt${app}webapp_bcfg.sh"
 fi
 
 # Set the migration testdog if testdogs have been set
@@ -105,7 +117,7 @@ $ANT clean test-clean deploy test-compile
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
 
 # check changes
-non_webdriver_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-webdriver-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver"))
+non_webdriver_changes=$(echo $(git diff origin/$buildbranch origin/last-stable-webdriver-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver"))
 
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
 echo "RUNNING WEBDRIVER TESTS"
@@ -133,7 +145,7 @@ elif [ $allow_targeted_tests = 'false' ] || [ $non_webdriver_changes -gt 0 ] || 
 else
     # Run only webdrivers affected by change
     echo "--AFFECTED WEBDRIVERS IN PARALLEL--"
-    git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-webdriver-$buildbranch --name-only \
+    git diff origin/$buildbranch origin/last-stable-webdriver-$buildbranch --name-only \
     | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
     | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.1.jar" -c "target/test/webdriver" -t "target/test/webdriver"  \
     | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \
