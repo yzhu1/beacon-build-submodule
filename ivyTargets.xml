@@ -247,4 +247,18 @@
       </exec>
     </target>
 
+    <target name="fetch-last-published-ivy-file" description="fetch the last-published ivy file, so we can use it to freeze module versions">
+        <ivy:resolve
+            keep="true"
+            inline="true"
+            transitive="false"
+            organisation="${project.organization}"
+            module="${project.name}"
+            branch="future"
+            type=""
+            revision="${publishedRevision}"
+        />
+        <ivy:retrieve ivypattern="ivy-${project.name}-[revision].[ext]" />
+    </target>
+
 </project>
