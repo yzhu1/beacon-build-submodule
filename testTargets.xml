@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <project name="test">
     <property file="${imported.basedir}/default.test.properties" />
+    <property environment="env" />
 
     <!-- if the "method" property is not set, initialize to empty -->
     <!-- (if we don't, junit-explicit will see the value '${method} for that parameter, breaking util tests) -->
@@ -230,6 +231,17 @@
 
     </target>
 
+    <target name="build-test-util-javadoc"
+            description="Generate JavaDoc for datamakers and webdriver pages"
+            if="beacon.publish.test.webdriver">
+        <javadoc destdir="${output.dir}/test-util-javadoc" classpathref="test.classpath.run-integration">
+            <sourcefiles>
+                <fileset dir="${app.webdriver.src.dir}"  includes="**/pages/**/*.java,**/util/**/*.java" />
+                <fileset dir="${app.integration.src.dir}/util/java" includes="**/*DM.java" />
+            </sourcefiles>
+        </javadoc>
+    </target>
+
     <macrodef name="junit-explicit">
         <attribute name="label" />
         <attribute name="classpathref" />
@@ -237,6 +249,7 @@
         <attribute name="disable-cache" default="false" />
         <attribute name="method" default="" />
         <attribute name="run-only-util-param" default="false" />
+        <attribute name="environment" default="${env.ENV_PROPERTY_PREFIX}" />
         <element name="junit-filesets" implicit="true" optional="false" />
         <sequential>
             <if>
@@ -252,7 +265,6 @@
                 </then>
             </if>
 
-            <property environment="env" />
             <condition property="remoteDebugJvmArgs"
                 value="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${tomcat.jpda.address}"
                 else="-ea">
@@ -282,6 +294,7 @@
                 failureproperty="junit.failed"
                 maxmemory="768m"
                 >
+                <env key="ENV_PROPERTY_PREFIX" value="@{environment}" />
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
                 <sysproperty key="app.freemarker.source.dir" file="${app.freemarker.dir}" />
@@ -337,9 +350,15 @@
         <attribute name="testdir" />
         <attribute name="coverage-file" />
         <attribute name="disable-cache" default="false"/>
+        <attribute name="environment" default="${env.ENV_PROPERTY_PREFIX}" />
         <sequential>
-            <junit-explicit 
-                label="@{label}" classpathref="@{classpathref}" coverage-file="@{coverage-file}" disable-cache="@{disable-cache}" >
+            <junit-explicit
+                label="@{label}"
+                classpathref="@{classpathref}"
+                coverage-file="@{coverage-file}"
+                disable-cache="@{disable-cache}"
+                environment="@{environment}"
+            >
                 <fileset
                         dir="@{testdir}"
                         includes="${tests.include}"
