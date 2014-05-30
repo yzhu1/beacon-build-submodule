@@ -11,9 +11,15 @@ set -eux
 
 ANT="/opt/wgen-3p/ant-1.8.1/bin/ant"
 
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
+# meta-configuration utility:
+ci_build_utils.setup_build_env
+
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp
-dbhostclass=$DB_HOSTCLASS               # e.g., mhcttdbitembank
 app=$APP                                # e.g., itembank or outcomes
 gitrepo=$GIT_REPO                       # e.g., itembank-web or outcomes
 env=$ENV                                # e.g., futureci or currentci

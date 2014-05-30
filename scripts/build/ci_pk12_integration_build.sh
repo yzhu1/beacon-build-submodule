@@ -19,10 +19,16 @@ if [ -e "/opt/wgen-3p/python26/bin/python" ]
   PYTHON="/usr/bin/python2.6"
 fi
 
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
+# meta-configuration utility:
+ci_build_utils.setup_build_env
+
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp
-dbhostclass=$DB_HOSTCLASS               # e.g., mhcttdbitembank
 app=$APP                                # e.g., itembank or outcomes
 gitrepo=$GIT_REPO                       # e.g., itembank-web or outcomes
 env=$ENV                                # e.g., futureci or currentci
@@ -40,6 +46,7 @@ extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs
 allow_tests_bypass=${ALLOW_TESTS_BYPASS:-true}
 runonlynonslow=${RUN_ONLY_NON_SLOW:-true}
 allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
+publish_jars=${IVY_PUBLISH:-false}
 
 set +x
 # If the build branch is 'master', verify that the change is not a merge from the branch 'next'.
@@ -61,10 +68,6 @@ workspace=$WORKSPACE
 
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
-
-# import libraries
-SCRIPT_DIR=${BASH_SOURCE%/*}
-source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
 
 gitrepobaseurl="git@github.wgenhq.net:Beacon"
 
@@ -105,7 +108,7 @@ ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/
 # Compile, run static and unit tests
 $ANT clean test-clean deploy checkstyle freestyle template-lint jslint test-unit build-javadoc
 
-integration_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
+integration_changes=$(echo $(git diff origin/$buildbranch origin/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver\|^src/main/webapp/static"))
 
 if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
 
@@ -122,7 +125,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         wgspringcoreintegrationtestpath=conf            # path to nowhere, if runwgspringcoreintegrationtests is false
     fi
 
-    non_java_changes=$(echo $(git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="\.java$"))
+    non_java_changes=$(echo $(git diff origin/$buildbranch origin/last-stable-integration-$buildbranch --name-only | grep -c -v --regexp="\.java$"))
     if [ ! -n "${TESTDOGS+x}" ]
     then
         # no TESTDOGS: run tests through ant normally
@@ -144,7 +147,7 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
         # run db updates on test dog dbs and then run integration and webservice tests affected by changes
         # dependencies detected with turbo-athena: https://github.com/burkemw3/turbo-athena/
         echo "RUNNING SOME INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-        git diff origin-$gitrepo/$buildbranch origin-$gitrepo/last-stable-integration-$buildbranch --name-only \
+        git diff origin/$buildbranch origin/last-stable-integration-$buildbranch --name-only \
         | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
         | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.1.jar" -c "target/" -t "target/test/integration" -t "target/test/webservice"  \
         | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \
@@ -174,4 +177,9 @@ then
     buildreleasetag=$gitrepo-$rpmversion
     git tag -a -f -m "Release build #$buildnumber" $buildreleasetag
     git push -f $gitrepobaseurl/$gitrepo +refs/tags/$buildreleasetag:$buildreleasetag
+fi
+
+if [ "true" == "$publish_jars" ]
+then
+    $ANT ivy-publish-only
 fi

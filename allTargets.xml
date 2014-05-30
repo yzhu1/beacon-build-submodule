@@ -113,4 +113,8 @@
 
    <target name="ivy-clean-deploy" depends="ivy-clean-deploy-steps"/>
 
+   <target name="build-javadoc"
+           description="Build any javadocs that are appropriate for this project"
+           depends="build-app-javadoc,build-test-util-javadoc"
+   />
 </project>
