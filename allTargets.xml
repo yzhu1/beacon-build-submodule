@@ -36,7 +36,10 @@
 
     <target name="restart"  depends="apache-stop,tomcat-stop,tomcat-clean,deploy,tomcat-start,apache-start" />
 
+    <!-- override these to change logging for spring-runner targets and things that call load-context -->
     <property name="ant.log.dir" value="ant_generated_logs" />
+    <property name="ant.log.config" value="resources/wgen.logging.log4j.full.properties" />
+
     <macrodef name="spring-runner">
         <attribute name="context"/>
         <attribute name="bean" />
@@ -56,11 +59,10 @@
                 <arg value="@{method}"/>
                 <args-nested/>
                 <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
-                <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+                <jvmarg value="-Dlog4j.configuration=${ant.log.config}" />
             	<jvmarg value="-Dfile.encoding=utf8" />
                 <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
                 <sysproperty key="spring.profiles.active" value="${spring.profiles.fixtures}" />
-                <sysproperty key="wgspring.log.dir.app" value="${ant.log.dir}" />
                 <sysproperty key="wgen.logging.log.dir.all" value="${ant.log.dir}" />
                 <classpath>
                     <fileset dir="${test.lib.dir}" includes="**/*.jar" />
@@ -88,8 +90,9 @@
                     >
                     <arg value="@{context}"/>
                     <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
-                    <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+                    <jvmarg value="-Dlog4j.configuration=${ant.log.config}" />
                     <sysproperty key="spring.profiles.active" value="${spring.profiles.fixtures}" />
+                    <sysproperty key="wgen.logging.log.dir.all" value="${ant.log.dir}" />
                     <classpath>
                         <fileset dir="${test.lib.dir}" includes="**/*.jar" />
                         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
