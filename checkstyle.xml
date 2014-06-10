@@ -95,6 +95,13 @@
             <property name="ignoreComments" value="true" />
             <property name="message" value="Ignored tests must have a FogBugz comment" />
         </module>
+
+        <module name="RegexpSinglelineJava">
+            <!-- IgnoreDuringSanitization is a different annotation. mwb can't figure out a better way to not match lines with it -->
+            <property name="format" value="@(net\.wgen\.spring\.common\.test\.annotation)?MClassRule.*FlakyWebDriverRule\.class.*(?!.+FB.{0,2}\d{6})" />
+            <property name="ignoreComments" value="true" />
+            <property name="message" value="Flaky tests must have a FogBugz" />
+        </module>
         
         <module name="NeedBraces"/>
 
