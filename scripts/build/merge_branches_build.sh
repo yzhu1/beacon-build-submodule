@@ -28,6 +28,15 @@ then
 	echo "** Changes to $excludefile ignored"
 fi
 
+# remove the ivy xml file that is used for release
+ivyfile=`find * -maxdepth 1 -name ivy-beacon*.xml`
+if [ ! -z $ivyfile ]
+then
+    git rm -f $ivyfile
+    echo "** Removed ivy xml file for release: $ivyfilename"
+fi
+
+
 if git status | grep "both modified:"
 then
 	git status
