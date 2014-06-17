@@ -156,11 +156,22 @@ commit_and_push() {
     log "Commiting and pushing new ivy file and property to branch '$BRANCH' in $2"
 
     #assert that the commit has a modification to conf/default.build.properties and new ivy file
-    gitStatus=`git status -s`
-    git status -s | grep "conf/default.build.properties"
-    test_ret_val "commit should include a modification to conf/default.build.properties--git status -s shows:\n$gitStatus\n" $2
-    git status -s | grep "ivy-beacon.*\.xml"
-    test_ret_val "commit should include a new ivy xml file--git status -s shows:\n$gitStatus\n" $2
+    #
+    # This is now commented out to bypass projects whose release branch
+    # preparation successfully completed. For example, if oib completed
+    # but outcomes failed due to a merge conflict, and the conflict was
+    # resolved and the build rerun, oib will try to prep again but will
+    # fail because it's expecting changes, but the expected changes were
+    # already pushed in the previous run.
+    #
+    # This should be more robust--perhaps check if a project's release branch
+    # has already been prepped, and if so, move on to the next project.
+    #
+    #gitStatus=`git status -s`
+    #git status -s | grep "conf/default.build.properties"
+    #test_ret_val "commit should include a modification to conf/default.build.properties--git status -s shows:\n$gitStatus\n" $2
+    #git status -s | grep "ivy-beacon.*\.xml"
+    #test_ret_val "commit should include a new ivy xml file--git status -s shows:\n$gitStatus\n" $2
 
     git add --all
     git commit -m "Point ivy.module.file property to $ivyfilename"
