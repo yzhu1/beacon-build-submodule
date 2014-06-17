@@ -140,8 +140,6 @@ fetch_and_set_ivy_file() {
     ant fetch-last-published-ivy-file -DpublishedRevision=$RELEASE_VERSION-+
     ivyfilename=`find * -maxdepth 1 -name ivy-beacon*.xml`
     log "Received $ivyfilename"
-    # replace occurrances of 'future' with 'current' in the ivy file
-    sed -i 's/future/current/g' $ivyfilename
     # override the ivy.module.file property by appending to conf/default.build.proprties
     echo "ivy.module.file=\${app.dir}/$ivyfilename" >> conf/default.build.properties
 }
