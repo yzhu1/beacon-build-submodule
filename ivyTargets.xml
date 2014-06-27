@@ -32,39 +32,17 @@
     <import file="deployTargets.xml"/>
     <import file="dbTargets.xml"/>
     <!-- this one is totally necessary, though -->
-    <include file="gitMacros.xml" />
+    <include file="${build-tools.dir.relative}/gitMacros.xml" />
 
+    <property name="ivy.bootstrap.dir" value="${imported.basedir}" />
+    <import file="${build-tools.dir.relative}/ivyTargets.xml" />
 
+    <target name="verify-patch-level-public-api-compatibility"
+            description="Build publishable artifacts and call shared patch-level verification targets"
+            depends="verify-patch-level-changelog-entry, build-app-jars, build-test-jars, java-build-tools-ivy.verify-patch-level-public-api-compatibility"
+    />
 
-    <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
-        <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
-        <delete file="${ivy.settings.dir}/ivysettings.xml"/>
-    </target>
-
-    <target name="clean-ivy-local-repo-jar">
-        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}" includeemptydirs="true" failonerror="false" />
-    </target>
-
-    <target name="clean-ivy-local-repo-web-assets">
-        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}-web-assets" includeemptydirs="true" failonerror="false" />
-    </target>
-
-    <target name="init-ivy" depends="ivy-get-settings, ivy-resolve"/>
-
-    <target name="ivy-get-settings" description="--> retrieve ivysettings.xml from server">
-        <ivy:settings id="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-settings.xml" />
-        <ivy:resolve settingsRef="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-module.xml" />
-        <ivy:retrieve settingsRef="bootstrap-settings" pattern="${ivy.settings.dir}/[artifact].[ext]"/>
-    </target>
-
-    <target name="ivy-resolve" description="--> retrieve dependencies with ivy" depends="ivy-get-settings, ivy-clean-resolution-cache">
-        <ivy:settings id="ivy.settings" file="${ivy.settings.dir}/ivysettings.xml" />
-        <!-- copy artifacts from repo(s) to cache -->
-        <ivy:resolve settingsRef="ivy.settings" file="${ivy.module.file}" />
-        <!-- copy artifacts from cache to destination dir -->
-        <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
-        <mkdir dir="${ivy.report.dir}" />
-        <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
+    <target name="ivy-resolve" description="--> retrieve dependencies with ivy" depends="ivy-get-settings, ivy-clean-resolution-cache, java-build-tools-ivy.ivy-resolve">
         <if>
             <isfalse value="${use.eclipse.ivyde.plugin}" />
                 <then>
@@ -95,24 +73,6 @@
         </if>
     </target>
 
-
-    <!-- WARNING: Use this with target with caution.
-  
-                  It will delete all caches, including the resolution cache 
-                  as well as the repository cache.
-                  If there are several projects that share the same repository
-                  cache, then deleting it may cause the other projects to
-                  fail unexpectedly.
-    -->
-    <target name="ivy-clean-all-caches">
-        <echo>cleaning ALL ivy caches</echo>
-        <ivy:cleancache />
-    </target>
-
-    <target name="ivy-clean-resolution-cache" if="update.ivy.dependencies">
-        <delete dir="${ivy.resolution.cache.dir}" />
-    </target>
-
     <target name="ivy-publish"
             description="Run unit tests, build jar/zip files, and publish to ivy"
             depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
@@ -134,33 +94,9 @@
             description="Run ivy-publish-dev without first running ivy-resolve and tests, to save time and aggravation (only run it after running publish-dev normally once)">
         <publish resolver="localrepo" />
     </target>
-    <target name="ivy-publish-repeat"><echo>RENAMED: to 'ivy-publish-only-dev', to better reflect how it fits into the build ecosystem</echo></target>
 
     <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
 
-    <macrodef name="publish">
-        <attribute name="settingsFile" default="${ivy.settings.dir}/ivysettings.xml" />
-        <attribute name="resolver" /> <!-- no default! -->
-        <attribute name="revision" default="${module.revision.published}" />
-        <element name="artifact-nested" optional="true" implicit="true" />
-        <sequential>
-            <ivy:settings id="ivy.settings" file="@{settingsFile}" />
-            <ivy:publish
-                settingsRef="ivy.settings"
-                update="true"
-                overwrite="true"
-                forcedeliver="true"
-                resolver="@{resolver}"
-                organisation="${project.organization}"
-                module="${project.name}"
-                revision="@{revision}"
-                >
-                <artifact-nested /> <!-- if empty, only the default artifacts will publish -->
-                <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-                <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
-            </ivy:publish>
-        </sequential>
-    </macrodef>
 
     <!-- not technically ivy-related -->
     <target name="update-commit-log">
@@ -191,60 +127,6 @@
         </git>
         <git-push-to-branch branchname="${git.current.branch}" />
         <echo message="${git.command.output}" />
-    </target>
-
-    <!-- this has some limitations, thanks to XML not handling "null" very well: project.organization *must* be set,
-         and module.branch *must* be in use.  If we really want to use this for non-branched repos, we can change
-         the core section to branch on whether module.branch is set, and either set or not set that value on each
-         task depending on the branch, but for now, let's not.
-    -->
-    <target name="verify-patch-level-public-api-compatibility"
-            description="verify that no breaking public api changes have been introduced for this patch level.  Works only for branched ivy repos."
-            depends="verify-patch-level-changelog-entry, build-app-jars, build-test-jars">
-
-      <property name="current.revision" value="${module.revision.major}.${module.revision.minor}.${module.revision.revision}-+" />
-      <ivy:findrevision organisation="${project.organization}" module="${project.name}" revision="${current.revision}"
-                        property="published.revision" branch="${module.branch}" />
-        <if>
-            <isset property="published.revision" />
-            <then>
-                <echo message="Found revision ${published.revision}" />
-                <ivy:resolve refresh="true" inline="true" keep="true"
-                  organisation="${project.organization}"
-                  module="${project.name}"
-                  revision="${published.revision}"
-                  branch="${module.branch}"
-                  transitive="false"
-                  resolveId="apivalidate"
-                  log="quiet"
-                  haltonfailure="true"
-                />
-                <ivy:retrieve inline="true"
-                  organisation="${project.organization}"
-                  module="${project.name}"
-                  revision="${published.revision}"
-                  branch="${module.branch}"
-                  transitive="false"
-                  resolveId="apivalidate"
-                  pattern="target/baseline-jars/[revision]/[artifact].[ext]"
-                  type="jar"
-                />
-                <exec executable="${common.config.dir}/scripts/build/api-compatibility/api-compatibility-check.sh" failonerror="true" >
-                   <arg value="${published.revision}" />
-                </exec>
-            </then>
-            <else>
-                <echo message="No previous publication matches ${current.revision}: go nuts." />
-            </else>
-        </if>
-    </target>
-
-    <target name="verify-patch-level-changelog-entry" description="make sure that the CHANGELOG contains an entry for the current patchlevel">
-      <exec executable="grep" failonerror="true">
-        <arg value="-q" />
-        <arg value="VERSION ${module.revision.major}.${module.revision.minor}.${module.revision.revision}" />
-        <arg file="CHANGELOG" />
-      </exec>
     </target>
 
     <target name="fetch-last-published-ivy-file" description="fetch the last-published ivy file, so we can use it to freeze module versions">
