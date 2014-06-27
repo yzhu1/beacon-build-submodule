@@ -8,7 +8,8 @@
     <import file="jarTargets.xml"/>
     <import file="serverTargets.xml"/>
     <!-- this one is totally necessary, though -->
-    <include file="gitMacros.xml" />
+    <include file="${build-tools.dir.relative}/gitMacros.xml" />
+
 
     <target name="switchBranchAndRefresh"
     	description="Use with -DbranchName=[NameOfBranchToSwitchTo]">
