@@ -373,7 +373,7 @@
     <target name="one" depends="test-compile" 
         description="Run a single test: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun and run with -Ddebug=true to remote debug">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
-		disable-cache="true" method="${method}">
+		disable-cache="false" method="${method}">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
@@ -384,7 +384,7 @@
     <target name="test-util"  depends="test-compile"
         description="run a single utility: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
-            disable-cache="true" method="${method}" run-only-util-param="true">
+            disable-cache="false" method="${method}" run-only-util-param="true">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
@@ -400,7 +400,7 @@
                 excludes="wgspringcore-integration-test-src-*.jar"/>
         </pathconvert>
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
-                        disable-cache="true">
+                        disable-cache="false">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${integration.test.classes.dir}" includes="**/${test}.class" />
             <fileset dir="${webservice.test.classes.dir}" includes="**/${test}.class" />
@@ -417,7 +417,7 @@
                 includes="wgspringcore-integration-test-*.jar"
                 excludes="wgspringcore-integration-test-src-*.jar"/>
         </pathconvert>
-        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration" disable-cache="true">
+        <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration" disable-cache="false">
             <fileset dir="${unit.test.classes.dir}" includes="${tests}" />
             <fileset dir="${integration.test.classes.dir}" includes="${tests}" />
             <fileset dir="${webservice.test.classes.dir}" includes="${tests}" />
@@ -467,7 +467,7 @@
             testdir="${webservice.test.classes.dir}"
             classpathref="test.classpath.run-integration"
             coverage-file="${coverage.data.file.test-webservice}"
-            disable-cache="true"
+            disable-cache="false"
         />
     </target>
 
@@ -479,7 +479,7 @@
             testdir="${integration.test.classes.dir}"
             classpathref="test.classpath.run-integration"
             coverage-file="${coverage.data.file.test-integration}"
-            disable-cache="true"
+            disable-cache="false"
         />
     </target>
     
@@ -493,7 +493,7 @@
                     label="wgspringcore integration tests"
                     classpathref="test.classpath.run-integration"
                     coverage-file="${coverage.data.file.test-integration}"
-                    disable-cache="true" >
+                    disable-cache="false" >
                     <zipfileset src="@{this-jar}"
                                 includes="${tests.include}"
                                 excludes="${tests.exclude}" />
