@@ -92,7 +92,7 @@ clone_repo() {
     cd $2
     touch conf/build.properties
     git submodule init
-    git submodule update
+    git submodule update --init --recursive
 }
 
 #------------------------------------------------------------------------------
