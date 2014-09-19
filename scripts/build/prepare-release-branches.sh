@@ -135,6 +135,8 @@ merge_master_to_release() {
 #
 fetch_and_set_ivy_file() {
     cd $1
+    # remove any old ivy files leftover from previous release
+    rm ./ivy-beacon-*.xml
     ant ivy-get-settings
     log "Fetching last published ivy file for $2"
     ant fetch-last-published-ivy-file -DpublishedRevision=$RELEASE_VERSION-+
