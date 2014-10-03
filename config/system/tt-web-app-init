@@ -4,19 +4,18 @@
 #
 # tt-web-app
 #
-# init script for all componenents of a three-twelve web server
+# init script for all componenents of a Beacon web server
 #       
 # chkconfig: 2345 90 15
-# description: init script for all componenents of a three twelve server
+# description: init script for all componenents of a Beacon server
 #
 #-------------------------------------------------------------------------
 
 PROGRAM="tt-web-app"
 
 #
-# three-twelve itembank and outcomes tomcat config
+# tomcat config
 #
-
 HTTPD_INITD=/etc/init.d/httpd
 CATALINA_LOG=/opt/tt/logs/catalina.out
 TMP_STARTUP_LOG=/tmp/tmp_catalina_startup.log
