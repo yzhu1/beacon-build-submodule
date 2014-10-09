@@ -1,3 +1,4 @@
+AREA = 'area'
 CASE = 'case'
 PRIORITY = 'priority'
 STATUS = 'status'

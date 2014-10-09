@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 
 def getargs():
     parser = optparse.OptionParser()
+    parser.add_option("--area", dest="area",action="store",help="assigned to specified area")
     parser.add_option("-a", "--assignedTo", dest="assignedTo",action="store",help="assigned to specified person")
     parser.add_option("-m", "--milestone", dest="milestone",action="store",help="specified milestone")
     parser.add_option("-t", "--team", dest="project",action="store",help="specified project")
@@ -33,7 +34,7 @@ def build_query(opts, arglist):
     if opts.editMessage is None:
         #if not in edit mode and extra options are provided, use them in the search
         if opts.status:
-            query = fbConstants.STATUS + ':"' + opts.status + '" '
+            query = fbConstants.STATUS + ':"' + opts.status + '" ' + query
         if opts.assignedTo:
             query = fbConstants.ASSIGNED_TO + ':"' + opts.assignedTo + '" ' + query
         if opts.milestone:
@@ -42,6 +43,8 @@ def build_query(opts, arglist):
             query = fbConstants.PROJECT + ':"'+opts.project.decode('utf-8') + '" ' + query
         if opts.priority:
             query = fbConstants.PRIORITY + ':"'+opts.priority+'" ' + query
+        if opts.area:
+            query = fbConstants.AREA + ':"'+opts.area+'" ' + query
 
     query += ' '.join(arglist)
     return query
