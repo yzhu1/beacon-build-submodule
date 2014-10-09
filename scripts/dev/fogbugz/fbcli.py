@@ -25,6 +25,8 @@ def getargs():
     parser.add_option("--edit", action="store", dest="editMessage", help="edit cases")
     parser.add_option("--tags", action="store", dest="tags", help="comma separated list of tags")
     parser.add_option("--title", action="store", dest="title", help="title of the bug")
+    parser.add_option("--username-environment-variable", action="store", dest="username_environment_variable", help="name of environment variable containing username")
+    parser.add_option("--password-environment-variable", action="store", dest="password_environment_variable", help="name of environment variable containing password")
     parser.set_description('If the --edit command is provided, the --assignedTo, --milestone, --team, --priority, --status, --title and --tags options are used in updating the case. Otherwise, these options are included in the search .If you don\'t specify any of the options, then a fogbugz search will be performed based on whatever argument you provide according to the search syntax here: http://help.fogcreek.com/7480/search-syntax-and-the-search-axis?se_found=1. If no arguments are provided, then the script will display bugs based on your currently active filter. Max number of bugs which can be listed have been limited to 999 but this can be changed in fbConfigs.py')
     parser.set_usage("%prog [options] [case ids ... ]")
     return parser.parse_args()
@@ -231,9 +233,17 @@ def getFixForCode(fb, fixForNameOrCode, sort_by=('ixCategory', 'iOrder')):
             print  fixFor.sfixfor.string + " - " + (fixFor.ixfixfor.string)
     return getFixForCode(fb, raw_input("Please select valid milestone name or code: "))
 
-def getAuthToken():
-    email = raw_input("Username: ")
-    password = getpass.getpass()
+def getAuthToken(opts):
+    if opts.username_environment_variable and None != os.environ.get(opts.username_environment_variable):
+        email = os.environ.get(opts.username_environment_variable)
+    else:
+        email = raw_input("Username: ")
+
+    if opts.password_environment_variable and None != os.environ.get(opts.password_environment_variable):
+        password = os.environ.get(opts.password_environment_variable)
+    else:
+        password = getpass.getpass()
+
     params = {'cmd':'logon'}
     params['email'] = email
     params['password'] = password
@@ -247,7 +257,7 @@ def main(argv):
     if os.path.exists(tokenFilename):
         authToken = pickle.load(open(tokenFilename,"rb"))
     else:
-        authToken = getAuthToken()
+        authToken = getAuthToken(opts)
         pickle.dump(authToken, open(tokenFilename,"wb"))
     try:
         fb = FogBugz(fbConfigs.URL, authToken)
