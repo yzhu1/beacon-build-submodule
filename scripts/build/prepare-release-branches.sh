@@ -15,8 +15,17 @@
 #
 ###############################################################################
 
+#== CONSTANTS =================================================================
+
 TRUE=0
 FALSE=1
+
+
+#== GLOBALS ===================================================================
+
+#boolean to hold value set by is_app_already_prepped() (default is FALSE)
+already_prepped=$FALSE
+
 
 #== FUNCTIONS =================================================================
 
@@ -137,9 +146,9 @@ is_app_already_prepped() {
     ls ivy-beacon-*$RELEASE_VERSION-*.xml
     if [ $? -ne 0 ]
     then
-        return $FALSE
+        already_prepped=$FALSE
     else
-        return $TRUE
+        already_prepped=$TRUE
     fi
 }
 
@@ -206,8 +215,8 @@ commit_and_push() {
 prepare_release_branch() {
     log_header $3
     clone_repo $1 $2 $3
-    already_prepped=is_app_already_prepped $2
-    if [ "$already_prepped" -eq "$FALSE" ]
+    is_app_already_prepped $2
+    if [ $already_prepped -eq $FALSE ]
     then
         fetch_and_set_ivy_file $2 $3
         merge_master_to_release $2 $3
