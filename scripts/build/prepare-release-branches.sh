@@ -218,8 +218,8 @@ prepare_release_branch() {
     is_app_already_prepped $2
     if [ $already_prepped -eq $FALSE ]
     then
-        fetch_and_set_ivy_file $2 $3
         merge_master_to_release $2 $3
+        fetch_and_set_ivy_file $2 $3
         commit_and_push $2 $3
     else
         log "$3's release branch has already been prepared. Moving on..."
