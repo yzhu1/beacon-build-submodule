@@ -15,6 +15,9 @@
 #
 ###############################################################################
 
+TRUE=0
+FALSE=1
+
 #== FUNCTIONS =================================================================
 
 #------------------------------------------------------------------------------
@@ -124,6 +127,23 @@ merge_master_to_release() {
 }
 
 #------------------------------------------------------------------------------
+# is_app_already_prepped <repo home>
+#
+# Checks if the app has already been prepared for release.
+# Returns $TRUE or $FALSE
+#
+is_app_already_prepped() {
+    cd $1
+    ls ivy-beacon-*$RELEASE_VERSION-*.xml
+    if [ $? -ne 0 ]
+    then
+        return $FALSE
+    else
+        return $TRUE
+    fi
+}
+
+#------------------------------------------------------------------------------
 # fetch_and_set_ivy_file <repo home> <app name>
 #
 # Fetches the last published ivy file (ivy.xml)--uses the ant target
@@ -186,9 +206,15 @@ commit_and_push() {
 prepare_release_branch() {
     log_header $3
     clone_repo $1 $2 $3
-    merge_master_to_release $2 $3
-    fetch_and_set_ivy_file $2 $3
-    commit_and_push $2 $3
+    already_prepped=is_app_already_prepped $2
+    if [ "$already_prepped" -eq "$FALSE" ]
+    then
+        fetch_and_set_ivy_file $2 $3
+        merge_master_to_release $2 $3
+        commit_and_push $2 $3
+    else
+        log "$3's release branch has already been prepared. Moving on..."
+    fi
 }
 
 #== end FUNCTIONS =============================================================
