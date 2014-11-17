@@ -143,6 +143,7 @@ merge_master_to_release() {
 #
 is_app_already_prepped() {
     cd $1
+    git checkout $BRANCH
     ls ivy-beacon-*$RELEASE_VERSION-*.xml
     if [ $? -ne 0 ]
     then
