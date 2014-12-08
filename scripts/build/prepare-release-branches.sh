@@ -216,7 +216,9 @@ commit_and_push() {
 prepare_release_branch() {
     log_header $3
     clone_repo $1 $2 $3
-    is_app_already_prepped $2
+    # this next call doesn't work anymore since version numbers were replaced
+    # with 'current'; is_app_already_prepped needs updated to work as expected
+    #is_app_already_prepped $2
     if [ $already_prepped -eq $FALSE ]
     then
         merge_master_to_release $2 $3
