@@ -158,10 +158,10 @@ is_app_already_prepped() {
 #
 # Fetches the last published ivy file (ivy.xml)--uses the ant target
 # fetch-last-published-ivy-file, which creates the file "ivy-[project name]-[version].xml".
-# For example, ivy-beacon-oib-24.1.0-244.xml.
-# Once the file is fetched, the ivy.module.file property is set to point to
-# this ivy file in conf/default.build.properties; changes are then pushed to
-# the repo.
+# For example, ivy-beacon-oib-current-244.xml.
+# Once the file is fetched, it is renamed to use the release version, the revision version
+# is reset and the ivy.module.file property is set to point to this ivy file
+# in conf/default.build.properties; changes are then pushed to the repo.
 #
 fetch_and_set_ivy_file() {
     cd $1
@@ -170,10 +170,14 @@ fetch_and_set_ivy_file() {
     ant ivy-get-settings
     log "Fetching last published ivy file for $2"
     ant fetch-last-published-ivy-file -DpublishedRevision=$RELEASE_VERSION-+
-    ivyfilename=`find * -maxdepth 1 -name ivy-beacon*.xml`
-    log "Received $ivyfilename"
+    fetchedivyfilename=`find * -maxdepth 1 -name ivy-beacon*.xml`
+    ivyfilename=${fetchedivyfilename\\current\$RELEASE_VERSION}
+    log "Received $fetchedivyfilename, renaming to $ivyfilename"
+    mv $fetchedivyfilename $ivyfilename
     # override the ivy.module.file property by appending to conf/default.build.proprties
     echo "ivy.module.file=\${app.dir}/$ivyfilename" >> conf/default.build.properties
+    # unfreeze the revision so that jar files can be published
+    sed -i 's/revision="current-[0-9]*"/revision="\${project.revision}"/' $ivyfilename
 }
 
 #------------------------------------------------------------------------------
@@ -216,9 +220,7 @@ commit_and_push() {
 prepare_release_branch() {
     log_header $3
     clone_repo $1 $2 $3
-    # this next call doesn't work anymore since version numbers were replaced
-    # with 'current'; is_app_already_prepped needs updated to work as expected
-    #is_app_already_prepped $2
+    is_app_already_prepped $2
     if [ $already_prepped -eq $FALSE ]
     then
         merge_master_to_release $2 $3
