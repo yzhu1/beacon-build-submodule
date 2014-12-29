@@ -153,6 +153,7 @@ is_app_already_prepped() {
     fi
 }
 
+
 #------------------------------------------------------------------------------
 # fetch_and_set_ivy_file <repo home> <app name>
 #
