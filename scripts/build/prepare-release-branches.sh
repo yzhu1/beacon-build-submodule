@@ -171,7 +171,7 @@ fetch_and_set_ivy_file() {
     log "Fetching last published ivy file for $2"
     ant fetch-last-published-ivy-file -DpublishedRevision=current-+
     fetchedivyfilename=`find * -maxdepth 1 -name ivy-beacon*.xml`
-    ivyfilename=${fetchedivyfilename\\current\$RELEASE_VERSION}
+    ivyfilename=${fetchedivyfilename/current/$RELEASE_VERSION}
     log "Received $fetchedivyfilename, renaming to $ivyfilename"
     mv $fetchedivyfilename $ivyfilename
     # override the ivy.module.file property by appending to conf/default.build.proprties
