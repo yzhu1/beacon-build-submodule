@@ -177,7 +177,7 @@ fetch_and_set_ivy_file() {
     # override the ivy.module.file property by appending to conf/default.build.proprties
     echo "ivy.module.file=\${app.dir}/$ivyfilename" >> conf/default.build.properties
     # unfreeze the revision so that jar files can be published
-    sed -i 's/revision="current-[0-9]+"/revision="\${project.revision}"/' $ivyfilename
+    sed -i -r 's/revision="current-[0-9]+"/revision="\${project.revision}"/' $ivyfilename
 }
 
 #------------------------------------------------------------------------------
