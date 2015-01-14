@@ -116,8 +116,11 @@ def edit_cases(fb, caseIdList, opts):
 
 
 def getAvailableColumns():
-    rows, columns = os.popen('stty size', 'r').read().split()
-    return int(columns)
+    if sys.stdout.isatty():
+        rows, columns = os.popen('stty size', 'r').read().split()
+        return int(columns)
+    else:
+        return 80
 
 def printHLine():
     print '-' * getAvailableColumns() + "\r"
