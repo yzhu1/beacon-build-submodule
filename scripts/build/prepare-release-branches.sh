@@ -39,10 +39,11 @@ init() {
     export PATH=$PATH:/opt/wgen-3p/ant-1.8.1/bin/
 
     # set variables for repos
-    OIB_HOME=$WORKSPACE/oib
     OUTCOMES_HOME=$WORKSPACE/outcomes
     OA_HOME=$WORKSPACE/oa
     HARBOR_HOME=$WORKSPACE/harbor
+    # OIB repo is cloned for the build to get this script, so use the build directory
+    OIB_HOME=$WORKSPACE/prepare-release-branches
     ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
     REPO_URL_BASE=git@github.wgenhq.net:Beacon
     OIB_REPO_URL=$REPO_URL_BASE/oib.git
@@ -94,6 +95,13 @@ test_ret_val() {
 # Clone a git repository.
 #
 clone_repo() {
+    # OIB is used as the build's repository to get this script, so there's no
+    # need to clone this repo again
+    if [ $3 == "oib" ]
+    then
+        return
+    fi
+
     cd $WORKSPACE
     log "Removing $3 repo if present..."
     rm -rf $3
@@ -188,25 +196,6 @@ fetch_and_set_ivy_file() {
 commit_and_push() {
     cd $1
     log "Commiting and pushing new ivy file and property to branch '$BRANCH' in $2"
-
-    #assert that the commit has a modification to conf/default.build.properties and new ivy file
-    #
-    # This is now commented out to bypass projects whose release branch
-    # preparation successfully completed. For example, if oib completed
-    # but outcomes failed due to a merge conflict, and the conflict was
-    # resolved and the build rerun, oib will try to prep again but will
-    # fail because it's expecting changes, but the expected changes were
-    # already pushed in the previous run.
-    #
-    # This should be more robust--perhaps check if a project's release branch
-    # has already been prepped, and if so, move on to the next project.
-    #
-    #gitStatus=`git status -s`
-    #git status -s | grep "conf/default.build.properties"
-    #test_ret_val "commit should include a modification to conf/default.build.properties--git status -s shows:\n$gitStatus\n" $2
-    #git status -s | grep "ivy-beacon.*\.xml"
-    #test_ret_val "commit should include a new ivy xml file--git status -s shows:\n$gitStatus\n" $2
-
     git add --all
     git commit -m "Point ivy.module.file property to $ivyfilename"
     git push origin $BRANCH
