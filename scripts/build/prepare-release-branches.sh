@@ -43,7 +43,7 @@ init() {
     OA_HOME=$WORKSPACE/oa
     HARBOR_HOME=$WORKSPACE/harbor
     # OIB repo is cloned for the build to get this script, so use the build directory
-    OIB_HOME=$WORKSPACE/prepare-release-branches
+    OIB_HOME=$WORKSPACE
     ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
     REPO_URL_BASE=git@github.wgenhq.net:Beacon
     OIB_REPO_URL=$REPO_URL_BASE/oib.git
