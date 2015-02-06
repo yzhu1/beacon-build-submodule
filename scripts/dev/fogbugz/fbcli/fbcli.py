@@ -2,7 +2,7 @@
 import sys
 from fogbugz import FogBugz
 import optparse
-import fbConfigs, fbConstants
+import config, constants
 import pickle
 import os
 import csv
@@ -19,14 +19,13 @@ def getargs():
     parser.add_option("-p", "--priority", dest="priority",action="store",help="specified priority")
     parser.add_option("-s", "--status", dest="status",action="store",help="specified status")
     parser.add_option("-f", "--filter", dest="filter",action="store",help="apply the specified filter")
-    parser.add_option("-r", "--release",action="store_true", dest="showReleaseInfo",help="gives additional info specific for release bugs (affects load times).")
     parser.add_option("-e", "--export",action="store_true", dest="export",help="exports results to csv")
     parser.add_option("--edit", action="store", dest="editMessage", help="edit cases")
     parser.add_option("--tags", action="store", dest="tags", help="comma separated list of tags")
     parser.add_option("--title", action="store", dest="title", help="title of the bug")
     parser.add_option("--username-environment-variable", action="store", dest="username_environment_variable", help="name of environment variable containing username")
     parser.add_option("--password-environment-variable", action="store", dest="password_environment_variable", help="name of environment variable containing password")
-    parser.set_description('If the --edit command is provided, the --assignedTo, --milestone, --team, --priority, --status, --title and --tags options are used in updating the case. Otherwise, these options are included in the search .If you don\'t specify any of the options, then a fogbugz search will be performed based on whatever argument you provide according to the search syntax here: http://help.fogcreek.com/7480/search-syntax-and-the-search-axis?se_found=1. If no arguments are provided, then the script will display bugs based on your currently active filter. Max number of bugs which can be listed have been limited to 999 but this can be changed in fbConfigs.py')
+    parser.set_description('If the --edit command is provided, the --assignedTo, --milestone, --team, --priority, --status, --title and --tags options are used in updating the case. Otherwise, these options are included in the search .If you don\'t specify any of the options, then a fogbugz search will be performed based on whatever argument you provide according to the search syntax here: http://help.fogcreek.com/7480/search-syntax-and-the-search-axis?se_found=1. If no arguments are provided, then the script will display bugs based on your currently active filter. Max number of bugs which can be listed have been limited to 999 but this can be changed in config.py')
     parser.set_usage("%prog [options] [case ids ... ]")
     return parser.parse_args()
 
@@ -35,59 +34,50 @@ def build_query(opts, arglist):
     if opts.editMessage is None:
         #if not in edit mode and extra options are provided, use them in the search
         if opts.status:
-            query = fbConstants.STATUS + ':"' + opts.status + '" '
+            query = constants.STATUS + ':"' + opts.status + '" '
         if opts.assignedTo:
-            query = fbConstants.ASSIGNED_TO + ':"' + opts.assignedTo + '" ' + query
+            query = constants.ASSIGNED_TO + ':"' + opts.assignedTo + '" ' + query
         if opts.milestone:
-            query = fbConstants.FIX_FOR + ':"'+opts.milestone.decode('utf-8') + '" ' + query
+            query = constants.FIX_FOR + ':"'+opts.milestone.decode('utf-8') + '" ' + query
         if opts.project:
-            query = fbConstants.PROJECT + ':"'+opts.project.decode('utf-8') + '" ' + query
+            query = constants.PROJECT + ':"'+opts.project.decode('utf-8') + '" ' + query
         if opts.priority:
-            query = fbConstants.PRIORITY + ':"'+opts.priority+'" ' + query
+            query = constants.PRIORITY + ':"'+opts.priority+'" ' + query
 
     query += ' '.join(arglist)
     return query
-
-def getLatestBeaconReleaseEvent(events):
-    for event in reversed(events):
-        if "STATUS" in event.text:
-            return event
 
 def addBeaconReleaseProperties(case, caseProperties):
     events = case.findAll('event')
     latestReleaseEvent = getLatestBeaconReleaseEvent(events)
     if latestReleaseEvent :
-        caseProperties[fbConstants.RELEASE_INFO] = latestReleaseEvent.find('s').string
+        caseProperties[constants.RELEASE_INFO] = latestReleaseEvent.find('s').string
 
 def find_cases(fb, query, opts):
     required_columns = "ixBug,sTitle,sStatus,sProject,sPersonAssignedTo,ixPriority,sFixFor"
-    if opts.showReleaseInfo:
-        required_columns += ",events"
-    resp = fb.search(q=query,cols=required_columns,max=fbConfigs.MAX_SEARCH_RESULTS)
+    resp = fb.search(q=query,cols=required_columns,max=config.MAX_SEARCH_RESULTS)
     casePropertiesList = []
     cases = resp.cases.findAll('case')
     if len(cases) > 0:
         if not opts.export:
             header = {}
-            header[fbConstants.CASE] = 'CASE'.center(len(fbConfigs.URL)+11)
-            header[fbConstants.PRIORITY] = ' '
-            header[fbConstants.STATUS] = 'STATUS'.center(20)
-            header[fbConstants.PROJECT] = 'TEAM'.center(27)
-            header[fbConstants.MILESTONE] = 'MILESTONE'.center(20)
-            header[fbConstants.ASSIGNED_TO] = 'ASSIGNED TO'.center(13)
-            header[fbConstants.TITLE] = 'TITLE'.center(50)
+            header[constants.CASE] = 'CASE'.center(len(config.URL)+11)
+            header[constants.PRIORITY] = ' '
+            header[constants.STATUS] = 'STATUS'.center(20)
+            header[constants.PROJECT] = 'TEAM'.center(27)
+            header[constants.MILESTONE] = 'MILESTONE'.center(20)
+            header[constants.ASSIGNED_TO] = 'ASSIGNED TO'.center(13)
+            header[constants.TITLE] = 'TITLE'.center(50)
             casePropertiesList.append(header)
     for case in cases:
         caseProperties = {}
-        caseProperties[fbConstants.CASE] = case.ixbug.string if opts.editMessage is not None else getFixedLengthString(fbConfigs.URL + "?" + case.ixbug.string, len(fbConfigs.URL)+11, True)
-        caseProperties[fbConstants.PRIORITY] = case.ixpriority.string
-        caseProperties[fbConstants.STATUS] = getFixedLengthString(case.sstatus.string.encode('utf-8'), 20, opts.export)
-        caseProperties[fbConstants.PROJECT] = getFixedLengthString(case.sproject.string.encode('ascii', 'ignore'), 27, opts.export)
-        caseProperties[fbConstants.MILESTONE] = getFixedLengthString(case.sfixfor.string.encode('utf-8'),20, opts.export)
-        caseProperties[fbConstants.ASSIGNED_TO] = getFixedLengthString(case.spersonassignedto.string.encode('utf-8'), 13, opts.export)
-        caseProperties[fbConstants.TITLE] = getFixedLengthString(case.stitle.string.encode('utf-8'), 50, opts.export)
-        if opts.showReleaseInfo:
-            addBeaconReleaseProperties(case, caseProperties)
+        caseProperties[constants.CASE] = case.ixbug.string if opts.editMessage is not None else getFixedLengthString(config.URL + "?" + case.ixbug.string, len(config.URL)+11, True)
+        caseProperties[constants.PRIORITY] = case.ixpriority.string
+        caseProperties[constants.STATUS] = getFixedLengthString(case.sstatus.string.encode('utf-8'), 20, opts.export)
+        caseProperties[constants.PROJECT] = getFixedLengthString(case.sproject.string.encode('ascii', 'ignore'), 27, opts.export)
+        caseProperties[constants.MILESTONE] = getFixedLengthString(case.sfixfor.string.encode('utf-8'),20, opts.export)
+        caseProperties[constants.ASSIGNED_TO] = getFixedLengthString(case.spersonassignedto.string.encode('utf-8'), 13, opts.export)
+        caseProperties[constants.TITLE] = getFixedLengthString(case.stitle.string.encode('utf-8'), 50, opts.export)
         casePropertiesList.append(caseProperties)
     return casePropertiesList
 
@@ -104,9 +94,9 @@ def edit_cases(fb, caseIdList, opts):
     if opts.priority:
         arguments['ixPriority'] = opts.priority
     if opts.title:
-        arguments[fbConstants.TITLE] = opts.title
+        arguments[constants.TITLE] = opts.title
     if opts.tags:
-        arguments[fbConstants.TAGS] = opts.tags
+        arguments[constants.TAGS] = opts.tags
     confirm = raw_input("This will modify " + str(len(caseIdList)) + " case(s) with the attributes: " + str(arguments) + "! Press Y to continue :")
     if (confirm.lower() != 'y'):
         print "Aborted"
@@ -132,7 +122,7 @@ def getFixedLengthString(data, length, noEllipses):
     return fixedLengthData
 
 def checkAndAddEllipsesToResultRow(data):
-    noFormattingStr = data.replace(fbConfigs.BLUE,"").replace(fbConfigs.GREEN,"").replace(fbConfigs.YELLOW,"").replace(fbConfigs.RED,"").replace(fbConfigs.ITALIC,"").replace(fbConfigs.UNDERLINE,"").replace(fbConfigs.MAGENTA,"").replace(fbConfigs.ENDC,"")
+    noFormattingStr = data.replace(config.BLUE,"").replace(config.GREEN,"").replace(config.YELLOW,"").replace(config.RED,"").replace(config.ITALIC,"").replace(config.UNDERLINE,"").replace(config.MAGENTA,"").replace(config.ENDC,"")
     if len(noFormattingStr) > getAvailableColumns():
         return (noFormattingStr[:getAvailableColumns()-2] + '..')
     return data
@@ -142,17 +132,13 @@ def show_cases_info(caseList, opts):
     print "Found " + str(len(caseList)) + " Matching case(s):"
     printHLine()
     for caseProperties in caseList:
-        print checkAndAddEllipsesToResultRow(fbConfigs.BUG_INFO_FORMAT.format(**caseProperties)) + fbConfigs.ENDC
-        if opts.showReleaseInfo and fbConstants.RELEASE_INFO in caseProperties:
-            print caseProperties[fbConstants.RELEASE_INFO]
+        print checkAndAddEllipsesToResultRow(config.BUG_INFO_FORMAT.format(**caseProperties)) + config.ENDC
         printHLine()
 
-def export_case_info(caseList, filename, hasReleaseInfo):
+def export_case_info(caseList, filename):
     f = open(filename, 'wb')
-    print "Exporting results to " + fbConfigs.YELLOW + os.path.abspath(filename) + fbConfigs.ENDC
-    keys = [fbConstants.CASE, fbConstants.PRIORITY, fbConstants.STATUS, fbConstants.PROJECT, fbConstants.MILESTONE, fbConstants.ASSIGNED_TO, fbConstants.TITLE]
-    if hasReleaseInfo:
-        keys += [fbConstants.RELEASE_INFO]
+    print "Exporting results to " + config.YELLOW + os.path.abspath(filename) + config.ENDC
+    keys = [constants.CASE, constants.PRIORITY, constants.STATUS, constants.PROJECT, constants.MILESTONE, constants.ASSIGNED_TO, constants.TITLE]
 
     dict_writer = csv.DictWriter(f, keys)
     dict_writer.writer.writerow(keys)
@@ -164,13 +150,13 @@ def setFilter(fb, filterString):
     matchingFilter = ''
     for filter in filters:
         if filterString == filter.string or filterString == filter['sfilter']:
-            print fbConfigs.BLUE + "Applying new filter: " + filter['sfilter'] + " " + filter.string + fbConfigs.ENDC
+            print config.BLUE + "Applying new filter: " + filter['sfilter'] + " " + filter.string + config.ENDC
             matchingFilter = filter['sfilter']
             break
     if len(matchingFilter) > 0:
         fb.setCurrentFilter(sFilter=matchingFilter)
     else:
-        print fbConfigs.RED + "No filter found for: " + filterString + fbConfigs.ENDC
+        print config.RED + "No filter found for: " + filterString + config.ENDC
         printAllFilters(fb)
 
 def getCurrentFilter(fb):
@@ -244,7 +230,7 @@ def getAuthToken(opts):
     params = {'cmd':'logon'}
     params['email'] = email
     params['password'] = password
-    response = requests.post(fbConfigs.AUTH_URL, params)
+    response = requests.post(config.AUTH_URL, params)
     root = ET.fromstring(response.text)
     return root.findall('token')[0].text
 
@@ -257,14 +243,14 @@ def main(argv):
         authToken = getAuthToken(opts)
         pickle.dump(authToken, open(tokenFilename,"wb"))
     try:
-        fb = FogBugz(fbConfigs.URL, authToken)
+        fb = FogBugz(config.URL, authToken)
         currentFilter = getCurrentFilter(fb)
     except:
         print "Could not authenticate" + str(authToken)
         os.remove(tokenFilename)
         main(argv)
     if currentFilter and len(argv) == 0:
-        print fbConfigs.YELLOW + "Active filter: " + currentFilter.string + fbConfigs.ENDC
+        print config.YELLOW + "Active filter: " + currentFilter.string + config.ENDC
     if opts.filter:
         setFilter(fb, opts.filter)
     query = build_query(opts, arglist)
@@ -277,10 +263,10 @@ def main(argv):
         return
     if opts.export or opts.editMessage is not None:
         fileName = 'fb_export'+str(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))+'.csv'
-        export_case_info(caseList, fileName, opts.showReleaseInfo)
+        export_case_info(caseList, fileName)
     try:
         if opts.editMessage is not None:
-            caseIdList = [case[fbConstants.CASE] for case in caseList[1:]]
+            caseIdList = [case[constants.CASE] for case in caseList[1:]]
             print 'Matching Cases:' + (','.join(caseIdList))
             edit_cases(fb, caseIdList, opts)
             return
