@@ -134,6 +134,11 @@ if [ $allow_tests_bypass = 'false' ] || [ $integration_changes -gt 0 ] || [ $ivy
     elif [ $allow_targeted_tests = 'false' ] || [ $non_java_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
         $ANT test-compile
         # Run db updates on all the testdog dbs and then run all integration and webservice tests
+        if [ $non_java_changes -gt 0 ]
+            echo "$non_java_changes NON JAVA CHANGES FOUND"
+        elif [ $ivy_changes -gt 0 ]
+            echo "$ivy_changes IVY CHANGES FOUND"
+        fi
         echo "RUNNING ALL INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
         (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
          && find target/test/integration target/test/webservice \
