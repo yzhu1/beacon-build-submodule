@@ -30,6 +30,13 @@ TOMCAT_SUCCESS_STRING="Server startup in"
 # e.g. if this file is tt-webassess-web-app, then /etc/init.d/tt-webassess
 # 
 NAME="$(basename $0)"
+
+# in case this script is initialized at boot, name will be something like 
+# S90tt-webassess-web-app. Strip off the S90 part.
+if [ "${NAME:0:1}" = "S" -o "${NAME:0:1}" = "K" ]; then
+    NAME="${NAME:3}"
+fi
+
 THREETWELVE_INITD=/etc/init.d/${NAME%"-web-app"}
 
 source /etc/init.d/functions
