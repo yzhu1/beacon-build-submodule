@@ -58,12 +58,8 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
-if [ "$app" = "itembank" ]
-then
-    gitrepobaseurl="git@git.amplify.com:beacon"
-else
-    gitrepobaseurl="git@github.wgenhq.net:Beacon"
-fi
+# default to github until all beacon repos moved to stash
+gitrepobaseurl=${GIT_REPO_BASE_URL:-"git@github.wgenhq.net:Beacon"} # e.g., "git@git.amplify.com:beacon" for stash 
 
 # RPM-management variables
 app_rpm_stem=mclass-tt-$app-$rpmversion
