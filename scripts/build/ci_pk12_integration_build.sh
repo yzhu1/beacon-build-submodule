@@ -69,7 +69,12 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
-gitrepobaseurl="git@github.wgenhq.net:Beacon"
+if [ "$app" = "itembank" ]
+then
+    gitrepobaseurl="git@git.amplify.com:beacon"
+else
+    gitrepobaseurl="git@github.wgenhq.net:Beacon"
+fi
 
 # Set the migration testdog if testdogs have been set
 if [ -n "${TESTDOGS+x}" ]
