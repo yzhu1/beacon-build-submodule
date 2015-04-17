@@ -58,7 +58,7 @@ $ANT ivy-resolve
 
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
-git push -f git@github.wgenhq.net:Beacon/$gitrepo +refs/tags/$buildtag:$buildtag
+git push -f git@git.amplify.com:beacon/$gitrepo +refs/tags/$buildtag:$buildtag
 
 # Set properties that'll get templated into basic.ftl
 gitrevision=`git log -1 --pretty=format:%H`

@@ -44,7 +44,7 @@ init() {
     OA_HOME=$WORKSPACE/oa
     HARBOR_HOME=$WORKSPACE/harbor
     ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
-    REPO_URL_BASE=git@github.wgenhq.net:Beacon
+    REPO_URL_BASE=git@git.amplify.com:beacon
     OIB_REPO_URL=$REPO_URL_BASE/oib.git
     OUTCOMES_REPO_URL=$REPO_URL_BASE/outcomes.git
     OA_REPO_URL=$REPO_URL_BASE/assess.git
