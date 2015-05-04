@@ -3,12 +3,14 @@
 # Script for up-stream merges. (i.e release->master, master->next)
 
 # Exit immediately if a command exits with a non-zero status.
-set -e
-
+set -ex
 
 headbranch=$1
 basebranch=$2
 excludefile=$3
+
+git checkout $basebranch
+git pull --ff-only origin $basebranch
 
 if git merge --no-commit --no-ff origin/$headbranch | grep -q "Automatic merge failed; fix conflicts and then commit the result."
 then
