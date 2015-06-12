@@ -12,10 +12,23 @@ set -eux
 
 ANT="/opt/wgen-3p/ant-1.8.1/bin/ant"
 
+if [ -e "/opt/wgen-3p/python26/bin/python" ]
+ then
+  PYTHON="/opt/wgen-3p/python26/bin/python"
+ else
+  PYTHON="/usr/bin/python2.6"
+fi
+
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
+# meta-configuration utility:
+ci_build_utils.setup_build_env
+
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp
-dbhostclass=$DB_HOSTCLASS               # e.g., mhcttdbitembank
 app=$APP                                # e.g., itembank or outcomes
 gitrepo=$GIT_REPO                       # e.g., itembank-web or outcomes
 env=$ENV                                # e.g., futureci or currentci
@@ -46,11 +59,8 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
-# import libraries
-SCRIPT_DIR=${BASH_SOURCE%/*}
-source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
-
-gitrepobaseurl="git@github.wgenhq.net:Beacon"
+# default to Beacon Stash, but allow overrides
+gitrepobaseurl=${GIT_REPO_BASE_URL:-"git@git.amplify.com:beacon"} # e.g., "git@github.wgen.net:Beacon" for GitHub
 
 # Set the migration testdog if testdogs have been set
 if [ -n "${TESTDOGS+x}" ]
@@ -104,21 +114,18 @@ if [ $isnightlywdbuild != 'true' ]; then
     then 
         # no TESTDOGS: run tests through ant normally
         $ANT migrate-schema
-	echo "NOT TESTING"
-        # $ANT test-integration test-webservice
+        $ANT test-integration test-webservice
     else
-#        $ANT test-compile
-        echo "SKIPPING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-	 /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $TESTDOGS -n 1 -d -v $apphomeenvvar
-#        # Run db updates on all the testdog dbs and then run all integration and webservice tests
-#        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
-#        (   find $wgspringcoreintegrationtestpath -name *wgspringcore*integration*jar -exec jar -tf \{} \; \
-#         && find target/test/integration target/test/webservice \
-#	)   | grep Test.class \
-#	    | xargs -I CLASSFILE basename CLASSFILE .class \
-#	    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-#              -s $TESTDOGS -v $apphomeenvvar -n $testsperbatch \
-#              -d -t update-schema
+        $ANT test-compile
+        # Run db updates on all the testdog dbs and then run all integration and webservice tests
+        echo "RUNNING INTEGRATION AND WEBSERVICE TESTS IN PARALLEL"
+        (   find $wgspringcoreintegrationtestpath -name *wgspring*integration*jar -exec jar -tf \{} \; \
+         && find target/test/integration target/test/webservice \
+	)   | grep Test.class \
+	    | xargs -I CLASSFILE basename CLASSFILE .class \
+	    | $PYTHON conf/base/scripts/build/parallelTests.py \
+              -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag  -n $testsperbatch \
+              -d -t update-schema
     fi
     if [ $isnightlyintegrationbuild != 'true' ]; then
         ci_build_utils.publish_rpms $app $migrationsappname $rpmversion $buildnumber \
@@ -126,7 +133,7 @@ if [ $isnightlywdbuild != 'true' ]; then
     fi
 else
     # Migrate schema back up so webapp may start
-    $ANT clear-schema migrate-schema
+    $ANT clear-schema load-baseline-database migrate-schema
 fi
 if [ $isnightlyintegrationbuild != 'true' ]; then
     # Deploy webapp, update bcfg, start webapp
@@ -143,20 +150,18 @@ if [ $isnightlyintegrationbuild != 'true' ]; then
     if [ "$webdrivertestdogs" == "" ]
     then
         # If no testdogs are configured, run the ant test-webdriver-precompiled locally
-        #    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
-        #    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
-        #    $ANT test-webdriver-precompiled
-      echo "OR NOT"
+        $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
+        Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
+        $ANT test-webdriver-precompiled
     else
         # Run the webdriver tests in parallel
-        echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
         echo "--IN PARALLEL--"
-#        find target/test/webdriver -name *Test.class \
-#      | xargs -I CLASSFILE basename CLASSFILE .class \
-#      | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
-#        -s $webdrivertestdogs \
-#        -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
-#        -d -t prepare-db-for-parallel-tests
+        find target/test/webdriver -name *Test.class \
+      | xargs -I CLASSFILE basename CLASSFILE .class \
+      | $PYTHON conf/base/scripts/build/parallelTests.py \
+        -s $webdrivertestdogs \
+        -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
+        -d -t prepare-db-for-parallel-tests
     fi
     
     if [ $isnightlywdbuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then

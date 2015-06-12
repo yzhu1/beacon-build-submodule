@@ -1,0 +1,13 @@
+URL = "https://fb.wgen.net/"
+AUTH_URL = URL + "api.asp"
+BLUE = '\033[94m'
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+RED = '\033[91m'
+ITALIC = '\033[93m'
+UNDERLINE = '\033[4m'
+MAGENTA = '\033[1m'
+ENDC = '\033[0m'
+SEPARATOR = '|'
+BUG_INFO_FORMAT = SEPARATOR + YELLOW + "{sTitle}" + ENDC + SEPARATOR + BLUE + "{case}" + ENDC + SEPARATOR + MAGENTA + " {status}" + ENDC + SEPARATOR + BLUE + " P{priority} " + ENDC + SEPARATOR +  MAGENTA + "{project}" + ENDC + SEPARATOR + GREEN + "{assignedTo}" + ENDC + SEPARATOR + RED + "{milestone}" + ENDC + SEPARATOR
+MAX_SEARCH_RESULTS = 999

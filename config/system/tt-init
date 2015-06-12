@@ -37,7 +37,9 @@ fi
 
 # Get the tomcat config (use this for environment specific settings)
 TOMCAT_CFG="/etc/tomcat6/tomcat6.conf"
+# -r : if exists and is readable
 if [ -r "$TOMCAT_CFG" ]; then
+    # source the config file
     . $TOMCAT_CFG
 fi
 
@@ -128,10 +130,12 @@ function findFreePorts() {
 }
 
 function makeHomeDir() {
+    # -d : file exists and is a directory
     if [ ! -d "$CATALINA_HOME" ]; then
         echo "$CATALINA_HOME does not exist, creating"
         if [ ! -d "/usr/share/${NAME}" ]; then
             mkdir /usr/share/${NAME}
+            # -L : follow symbolic links, -p : preserve ownership, mode, timestamps
             cp -pLR /usr/share/tomcat6/* /usr/share/${NAME}
         fi
         mkdir -p /var/log/${NAME} \
@@ -180,10 +184,12 @@ function start() {
     fi
     
     # move logging to proper log directory
+    # (-h tests if the path exists and is a symbolic link)
     if [ ! -h ${TOMCAT_ORIG_LOG_DIR}/logs ]
     then
        cd ${TOMCAT_ORIG_LOG_DIR}
        rm -rf logs
+       # -f force removes existing destination files, -s is symbolic
        ln -fs ${TOMCAT_ARIS_LOG_DIR} logs
        chown -h ${TOMCAT_USER}:${TOMCAT_USER} logs
     fi

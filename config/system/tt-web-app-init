@@ -4,19 +4,18 @@
 #
 # tt-web-app
 #
-# init script for all componenents of a three-twelve web server
+# init script for all components of a Beacon web server
 #       
 # chkconfig: 2345 90 15
-# description: init script for all componenents of a three twelve server
+# description: init script for all components of a Beacon server
 #
 #-------------------------------------------------------------------------
 
 PROGRAM="tt-web-app"
 
 #
-# three-twelve itembank and outcomes tomcat config
+# tomcat config
 #
-
 HTTPD_INITD=/etc/init.d/httpd
 CATALINA_LOG=/opt/tt/logs/catalina.out
 TMP_STARTUP_LOG=/tmp/tmp_catalina_startup.log
@@ -25,26 +24,33 @@ SLEEP_SECONDS=5
 TOMCAT_SUCCESS_STRING="Server startup in"
 
 #
-# Determine Apache INITD filename programattically from this file name 
+# Determine Apache INITD filename programatically from this file name
 # by trimming the trailing "-web-app"
 # e.g. if this file is tt-web-app, then /etc/init.d/tt
 # e.g. if this file is tt-webassess-web-app, then /etc/init.d/tt-webassess
 # 
 NAME="$(basename $0)"
+
+# in case this script is initialized at boot, name will be something like 
+# S90tt-webassess-web-app. Strip off the S90 part.
+if [ "${NAME:0:1}" = "S" -o "${NAME:0:1}" = "K" ]; then
+    NAME="${NAME:3}"
+fi
+
 THREETWELVE_INITD=/etc/init.d/${NAME%"-web-app"}
 
 source /etc/init.d/functions
 
 function err_msg(){
-echo 
-echo "===================================================================="
-echo "[ERROR] error starting ${PROGRAM}"
-echo 
-echo $1
-echo 
-echo "===================================================================="
-echo
-echo_failure
+    echo
+    echo "===================================================================="
+    echo "[ERROR] error starting ${PROGRAM}"
+    echo
+    echo $1
+    echo
+    echo "===================================================================="
+    echo
+    echo_failure
 }
 
 start() {
@@ -144,6 +150,28 @@ stop() {
     echo
 }
 
+status() {
+    $THREETWELVE_INITD status
+    tomcat_ret_val=$?
+
+    if [ $tomcat_ret_val -ne 0 ]
+    then
+        echo "tomcat returned an error status"
+        return $tomcat_ret_val
+    fi
+
+    $HTTPD_INITD status
+    apache_ret_val=$?
+
+    if [ $apache_ret_val -ne 0 ]
+    then
+        echo "httpd returned an error status"
+        return $apache_ret_val
+    fi
+
+    return 0;
+}
+
 # main entry point
 case "$1" in
   start)
@@ -152,8 +180,11 @@ case "$1" in
   stop)
 	stop
 	;;
+  status)
+    status
+    ;;
   *)
-	echo $"Usage: $prog {start|stop}"
+	echo $"Usage: $prog {start|stop|status}"
 	exit 1
 esac
 

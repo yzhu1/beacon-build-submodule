@@ -11,10 +11,23 @@
 set -eux
 ANT="/opt/wgen-3p/ant-1.8.1/bin/ant"
 
+if [ -e "/opt/wgen-3p/python26/bin/python" ]
+ then
+  PYTHON="/opt/wgen-3p/python26/bin/python"
+ else
+  PYTHON="/usr/bin/python2.6"
+fi
+
+# import libraries
+SCRIPT_DIR=${BASH_SOURCE%/*}
+source "$SCRIPT_DIR/ci_build_utils.sh" # defines functions in ci_build_utils pseudopackage
+
+# meta-configuration utility:
+ci_build_utils.setup_build_env
+
 apphomeenvvar=$APP_HOME_ENV_VAR         # e.g., OUTCOMES_HOME or THREETWELVE_HOME
 testsperbatch=$TESTS_PER_BATCH          # e.g., 8, to farm 8 tests to each testdog at a time
 webapphostclass=$WEBAPP_HOSTCLASS       # e.g., mhcttwebapp
-dbhostclass=$DB_HOSTCLASS               # e.g., mhcttdbitembank
 app=$APP                                # e.g., itembank or outcomes
 gitrepo=$GIT_REPO                       # e.g., itembank-web or outcomes
 env=$ENV                                # e.g., futureci or currentci
@@ -34,6 +47,8 @@ isnightlybuild=${IS_NIGHTLY_BUILD:-false}
 extrawgrargs=${EXTRA_WGR_ARGS:-""}                       # e.g., --refspec 'refs/changes/97/5197/1'
 releasestepstoskip=${RELEASE_STEPS_TO_SKIP:-""}          # e.g., mhcttoutcomeswebapp_rebuild_tile_cache.sh mhcttoutcomeswebapp_dbmigration.sh
 webdrivertestdogs=${WEBDRIVER_TESTDOGS:-${TESTDOGS:-""}} # the testdogs used to run webdriver tests
+allow_targeted_tests=${ALLOW_TARGETED_TESTS:-false}
+skipbcfg=${SKIP_BCFG:-false}
 
 # Set automatically by Jenkins
 buildtag=$BUILD_TAG-$BUILD_BRANCH
@@ -43,18 +58,24 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
-gitrepobaseurl="git@github.wgenhq.net:Beacon"
+# default to Beacon Stash, but allow overrides
+gitrepobaseurl=${GIT_REPO_BASE_URL:-"git@git.amplify.com:beacon"} # e.g., "git@github.wgen.net:Beacon" for GitHub
 
 # RPM-management variables
 app_rpm_stem=mclass-tt-$app-$rpmversion
 migration_rpm_stem=tt-migrations-$migrationsappname-$rpmversion
 
 # check for story-build issues
-bad_rpms=`find $buildrpmrepo $secondary_build_rpm_repo -noleaf -maxdepth 1 -name "$migration_rpm_stem-1????.noarch.rpm" -o -name "$app_rpm_stem-1????.noarch.rpm"`
+bad_rpms=`find $buildrpmrepo $secondary_build_rpm_repo -noleaf -maxdepth 1 -name "$migration_rpm_stem-1?????.noarch.rpm" -o -name "$app_rpm_stem-1?????.noarch.rpm"`
 if [ -n "$bad_rpms" ]
 then
     echo "DANGER found story-build RPMs in future-ci repo: $bad_rpms"
     exit 1
+fi
+
+if [ "true" == "$skipbcfg" ]
+then
+    releasestepstoskip="$releasestepstoskip mhctt${app}webapp_bcfg.sh"
 fi
 
 # Set the migration testdog if testdogs have been set
@@ -72,6 +93,7 @@ rm -rf target
 
 # ivy-resolve first so we can get wgspringcoreversion accurately
 $ANT ivy-resolve
+ivy_changes=$(grep -r --regexp="downloaded=\"true\"" --include="*.xml" $WORKSPACE/.ivy2/cache/resolution | wc -l)
 
 # Tag this build in git.
 git tag -a -f -m "Jenkins Build #$buildnumber" $buildtag
@@ -95,8 +117,11 @@ $ANT clean test-clean deploy test-compile
 # Deploy webapp, update bcfg, start webapp
 ssh -i /home/jenkins/.ssh/wgrelease wgrelease@$autoreleasebox /opt/wgen/wgr/bin/wgr.py -r $releaseversion -e $env -f -s -g \"$webapphostclass\" -A \"$releasestepstoskip\" $extrawgrargs
 
+# check changes
+non_webdriver_changes=$(echo $(git diff origin/$buildbranch origin/last-stable-webdriver-$buildbranch --name-only | grep -c -v --regexp="^src/test/webdriver"))
+
 # Run webdriver tests in parallel on testdogs, first loading fixture data (-d)
-echo "NOT ACTUALLY RUNNING WEBDRIVER TESTS"
+echo "RUNNING WEBDRIVER TESTS"
 if [ $runonlysmoke = 'false' ]; then
     runslowtestsflag='-l'
 else
@@ -106,22 +131,31 @@ fi
 if [ "$webdrivertestdogs" == "" ]
 then
     # If no testdogs are configured, run the ant test-webdriver-precompiled locally
-     $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
+    $ANT prepare-db-for-parallel-tests # load fixture data (works in all projects)
 #    Xvfb :5 -screen 0 1024x768x24 >/dev/null 2>&1 & export DISPLAY=:5.0
 #    $ANT test-webdriver-precompiled
-else
+elif [ $allow_targeted_tests = 'false' ] || [ $non_webdriver_changes -gt 0 ] || [ $ivy_changes -gt 0 ]; then
     # Run the webdriver tests in parallel
     echo "--IN PARALLEL--"
-    /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py -s $webdrivertestdogs -n 1 -d -t prepare-db-for-parallel-tests -v $apphomeenvvar
 #    find target/test/webdriver -name *Test.class \
 #  | xargs -I CLASSFILE basename CLASSFILE .class \
-#  | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+#  | $PYTHON conf/base/scripts/build/parallelTests.py \
 #    -s $webdrivertestdogs \
 #    -v $apphomeenvvar -n $testsperbatch $runslowtestsflag \
 #    -d -t prepare-db-for-parallel-tests
+else
+    # Run only webdrivers affected by change
+    echo "--AFFECTED WEBDRIVERS IN PARALLEL--"
+#    git diff origin/$buildbranch origin/last-stable-webdriver-$buildbranch --name-only \
+#    | egrep -o "net/wgen/.*\.java" | sed -e "s:/:.:g" -e "s:\.java$::I" -e"s:^:-m :" \
+#    | xargs -x java -jar "conf/base/scripts/build/turbo-athena-v1.0.1.jar" -c "target/test/webdriver" -t "target/test/webdriver"  \
+#    | sed -r -e 's:([a-zA-Z0-9]+\.)+::' \
+#    | /opt/wgen-3p/python26/bin/python conf/base/scripts/build/parallelTests.py \
+#        -s $TESTDOGS -v $apphomeenvvar $runslowtestsflag -n $testsperbatch \
+#        -d -t prepare-db-for-parallel-tests
 fi
 
-if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]; then
+if [ $isnightlybuild != 'true' ] && [ "$nextrpmrepo" != "" ]  && [ "$buildbranch" != "release" ]; then
     # All tests have passed!  The build is good!  Promote RPMs to QA RPM repo
 
     # Copy the RPMs to the future-qa repo

@@ -1,10 +1,13 @@
 <?xml version="1.0"?>
 <project name="test">
     <property file="${imported.basedir}/default.test.properties" />
+    <property environment="env" />
 
     <!-- if the "method" property is not set, initialize to empty -->
     <!-- (if we don't, junit-explicit will see the value '${method} for that parameter, breaking util tests) -->
     <property name="method" value="" />
+
+    <property name="debug" value="false"/>
 
     <taskdef resource="checkstyletask.properties">
         <classpath>
@@ -46,14 +49,13 @@
     <path id="test.classpath.base">
         <path refid="cobertura.classpath" />
         <fileset dir="${test.lib.dir}" includes="*.jar" />
-        <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
+        <fileset dir="${tested.classes.dir}" includes="**/*.jar" erroronmissingdir="false" />
         <pathelement location="${unit.test.classes.dir}" />
     </path>
     <path id="test.classpath.run-base">
         <path refid="test.classpath.base" />
         <pathelement location="${test.resources.dir}" />
         <pathelement location="${app.resources.dir}" />
-        <pathelement location="${common.test.resources.dir}" />
     </path>
     <path id="test.classpath.run-integration">
         <path refid="test.classpath.run-base" />
@@ -149,7 +151,7 @@
             <pathelement location="${webdriver.test.classes.dir}" />
 <!-- TODO put libs in ivy and reference from ivy_lib... get rid of below -->
             <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
-            <fileset dir="${jar.outdir}">
+            <fileset dir="${jar.outdir}" erroronmissingdir="false">
                 <include name="${jar.common.app.name}-${rpm.version}.jar"/>
                 <include name="${jar.common.web.name}-${rpm.version}.jar"/>
             </fileset>
@@ -160,22 +162,27 @@
             <attribute name="destdir" />
             <element name="javac-nested" implicit="true" optional="true"/>
             <sequential>
-                <javac 
-                    srcdir="@{srcdir}"
-                    destdir="@{destdir}"
-                    excludes="${test.src.exclude}"
-                    classpathref="test.classpath.compile"
-                    deprecation="${build.deprecation}"
-                    debug="on"
-                    optimize="${build.optimization}"
-                    compiler="${build.compiler}"
-                    source="${build.source}"
-                    target="${build.target}"
-                    encoding="UTF-8"
-                    includeantruntime="no"
-                >
-                    <javac-nested />
-                </javac>
+                <if>
+                    <available file="@{srcdir}" />
+                    <then>
+                        <javac
+                            srcdir="@{srcdir}"
+                            destdir="@{destdir}"
+                            excludes="${test.src.exclude}"
+                            classpathref="test.classpath.compile"
+                            deprecation="${build.deprecation}"
+                            debug="on"
+                            optimize="${build.optimization}"
+                            compiler="${build.compiler}"
+                            source="${build.source}"
+                            target="${build.target}"
+                            encoding="UTF-8"
+                            includeantruntime="no"
+                           >
+                            <javac-nested />
+                        </javac>
+                    </then>
+                </if>
             </sequential>
         </macrodef>
 
@@ -200,21 +207,20 @@
 
         <!-- copy some static files from the class path in the test directory; skylight runs some tests that need to do this -->
         <copy todir="${unit.test.classes.dir}">
-            <fileset dir="${app.unit.src.dir}" includes="**/*.js,**/*.json,**/*.properties,**/*.xml" />
+            <fileset dir="${app.unit.src.dir}" includes="**/*.js,**/*.json,**/*.properties,**/*.xml" erroronmissingdir="false" />
         </copy>
-
 
         <!-- Copy spring context to integration test dir -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
-            <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml,spring.xml"/>
+            <fileset dir="${app.context.src.dir}" includes="*-context.xml,*-servlet.xml,spring.xml,*ehcache.xml"  erroronmissingdir="false" />
             <filterset begintoken="&quot;" endtoken="&quot;">
                 <filter token="ui-context.xml" value="&quot;test-ui-context.xml&quot;"/>
             </filterset>
         </copy>
         <!-- copy test-specific spring context (no filtering games need be played) -->
         <copy todir="${integration.test.classes.dir}" encoding="UTF-8">
-            <fileset dir="${context.integration.dir}" includes="*-context.xml,*.properties"/>
-            <fileset dir="${context.webdriver.dir}" includes="*-context.xml,*.properties"/>
+            <fileset dir="${context.integration.dir}" includes="*-context.xml,*.properties" erroronmissingdir="false"/>
+            <fileset dir="${context.webdriver.dir}" includes="*-context.xml,*.properties" erroronmissingdir="false"/>
         </copy>
         <!-- Copy freemarker templates to integration test dir, for tests that use FreeMarkerMerger -->
         <copy todir="${integration.test.classes.dir}/freemarker" encoding="UTF-8">
@@ -225,6 +231,17 @@
 
     </target>
 
+    <target name="build-test-util-javadoc"
+            description="Generate JavaDoc for datamakers and webdriver pages"
+            if="beacon.publish.test.webdriver">
+        <javadoc destdir="${output.dir}/test-util-javadoc" classpathref="test.classpath.run-integration">
+            <sourcefiles>
+                <fileset dir="${app.webdriver.src.dir}"  includes="**/pages/**/*.java,**/util/**/*.java" />
+                <fileset dir="${app.integration.src.dir}/util/java" includes="**/*DM.java" />
+            </sourcefiles>
+        </javadoc>
+    </target>
+
     <macrodef name="junit-explicit">
         <attribute name="label" />
         <attribute name="classpathref" />
@@ -232,6 +249,7 @@
         <attribute name="disable-cache" default="false" />
         <attribute name="method" default="" />
         <attribute name="run-only-util-param" default="false" />
+        <attribute name="environment" default="${env.ENV_PROPERTY_PREFIX}" />
         <element name="junit-filesets" implicit="true" optional="false" />
         <sequential>
             <if>
@@ -247,7 +265,11 @@
                 </then>
             </if>
 
-            <property environment="env" />
+            <condition property="remoteDebugJvmArgs"
+                value="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${tomcat.jpda.address}"
+                else="-ea">
+                <istrue value="${debug}"/>
+            </condition>
             <!-- first, use the parameter value if true -->
             <condition property="run-only-util" value="true">
                 <istrue value="@{run-only-util-param}" />
@@ -272,6 +294,7 @@
                 failureproperty="junit.failed"
                 maxmemory="768m"
                 >
+                <env key="ENV_PROPERTY_PREFIX" value="@{environment}" />
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
                 <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
                 <sysproperty key="app.freemarker.source.dir" file="${app.freemarker.dir}" />
@@ -286,13 +309,14 @@
 
                 <classpath refid="@{classpathref}" />
                 <sysproperty key="net.sourceforge.cobertura.datafile" file="@{coverage-file}" />
-
+                <jvmarg value="${remoteDebugJvmArgs}"/>
                 <jvmarg value="-Xmx768m" />
             	<jvmarg value="-Dfile.encoding=utf8" />
             	<jvmarg value="-XX:MaxPermSize=256m" />
             	<jvmarg value="-XX:-UseGCOverheadLimit" />
+                <!-- these are almost certainly useless, but harmless (we don't expect the JVM to hang around long enough to need them) -->
             	<jvmarg value="-XX:+CMSClassUnloadingEnabled" />
-                <jvmarg value="-XX:+CMSPermGenSweepingEnabled" />
+                <jvmarg value="-XX:+UseConcMarkSweepGC" />
                 <!--<jvmarg value="${test.vm.args}" />-->
                 <batchtest todir="${results.dir}">
                     <junit-filesets />
@@ -326,9 +350,15 @@
         <attribute name="testdir" />
         <attribute name="coverage-file" />
         <attribute name="disable-cache" default="false"/>
+        <attribute name="environment" default="${env.ENV_PROPERTY_PREFIX}" />
         <sequential>
-            <junit-explicit 
-                label="@{label}" classpathref="@{classpathref}" coverage-file="@{coverage-file}" disable-cache="@{disable-cache}" >
+            <junit-explicit
+                label="@{label}"
+                classpathref="@{classpathref}"
+                coverage-file="@{coverage-file}"
+                disable-cache="@{disable-cache}"
+                environment="@{environment}"
+            >
                 <fileset
                         dir="@{testdir}"
                         includes="${tests.include}"
@@ -341,7 +371,7 @@
     <target name="test-one" depends="one" description="run one test (see target 'one')"/>
 
     <target name="one" depends="test-compile" 
-        description="Run a single test: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun">
+        description="Run a single test: use with -Dtest=NameOfTest and optionally -Dmethod=methodOfTestToRun and run with -Ddebug=true to remote debug">
         <junit-explicit label="Cherry-picked tests" classpathref="test.classpath.run-integration"
 		disable-cache="true" method="${method}">
             <fileset dir="${unit.test.classes.dir}" includes="**/${test}.class" />
@@ -600,7 +630,7 @@
         </fail>
     </target>
 
-    <target name="checkstyle" description="Run checkstyle">
+    <target name="checkstyle" description="Run checkstyle" unless="skip.checkstyle">
         <mkdir dir="${results.dir}"/>
 
         <checkstyle config="${imported.basedir}/checkstyle.xml" failonviolation="true">

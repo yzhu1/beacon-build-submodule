@@ -9,6 +9,17 @@
         <classpath><pathelement path="${build.lib.dir}/ant-contrib-*.jar"/></classpath>
     </taskdef>
 
+    <property environment="env"/>
+    <if>
+        <isset property="env.RPM_VERSION"/>
+        <then>
+          <property name="project.revision" value="${env.RPM_VERSION}-${env.BUILD_NUMBER}" />
+        </then>
+        <else>
+          <property name="project.revision" value="dev" />
+        </else>
+    </if>
+
     <!-- set this directory this ant script is in as a property -->
     <dirname property="imported.basedir" file="${ant.file.wgspring-allTargets}"/>
 
@@ -25,7 +36,10 @@
 
     <target name="restart"  depends="apache-stop,tomcat-stop,tomcat-clean,deploy,tomcat-start,apache-start" />
 
+    <!-- override these to change logging for spring-runner targets and things that call load-context -->
     <property name="ant.log.dir" value="ant_generated_logs" />
+    <property name="ant.log.config" value="resources/wgen.logging.log4j.full.properties" />
+
     <macrodef name="spring-runner">
         <attribute name="context"/>
         <attribute name="bean" />
@@ -45,17 +59,16 @@
                 <arg value="@{method}"/>
                 <args-nested/>
                 <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
-                <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+                <jvmarg value="-Dlog4j.configuration=${ant.log.config}" />
             	<jvmarg value="-Dfile.encoding=utf8" />
                 <sysproperty key="net.sf.ehcache.disabled" value="@{disable-cache}" />
                 <sysproperty key="spring.profiles.active" value="${spring.profiles.fixtures}" />
-                <sysproperty key="wgspring.log.dir.app" value="${ant.log.dir}" />
                 <sysproperty key="wgen.logging.log.dir.all" value="${ant.log.dir}" />
                 <classpath>
                     <fileset dir="${test.lib.dir}" includes="**/*.jar" />
                     <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
                     <pathelement location="${app.resources.dir}" />
-                    <pathelement location="${common.test.resources.dir}" />
+                    <pathelement location="${test.resources.dir}" />
                     <pathelement location="${unit.test.classes.dir}" />
                     <pathelement location="${integration.test.classes.dir}" />
                     <pathelement location="${webservice.test.classes.dir}"/>
@@ -77,13 +90,14 @@
                     >
                     <arg value="@{context}"/>
                     <jvmarg value="-D${app.config.dir.property}=${app.config.dir}"/>
-                    <jvmarg value="-Dlogback.configurationFile=${app.dir}/config/logback.for-scripts.xml"/>
+                    <jvmarg value="-Dlog4j.configuration=${ant.log.config}" />
                     <sysproperty key="spring.profiles.active" value="${spring.profiles.fixtures}" />
+                    <sysproperty key="wgen.logging.log.dir.all" value="${ant.log.dir}" />
                     <classpath>
                         <fileset dir="${test.lib.dir}" includes="**/*.jar" />
                         <fileset dir="${tested.classes.dir}" includes="**/*.jar" />
                         <pathelement location="${app.resources.dir}" />
-                        <pathelement location="${common.test.resources.dir}" />
+                        <pathelement location="${test.resources.dir}" />
                         <pathelement location="${unit.test.classes.dir}" />
                         <pathelement location="${integration.test.classes.dir}" />
                         <pathelement location="${webservice.test.classes.dir}"/>
@@ -102,4 +116,8 @@
 
    <target name="ivy-clean-deploy" depends="ivy-clean-deploy-steps"/>
 
+   <target name="build-javadoc"
+           description="Build any javadocs that are appropriate for this project"
+           depends="build-app-javadoc,build-test-util-javadoc"
+   />
 </project>

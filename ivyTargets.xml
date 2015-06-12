@@ -6,48 +6,23 @@
     </taskdef>
 
     <property environment="sys_env" />
-    <property file="conf/version.properties" />
-    <!-- pick up DPP/13 compliant version numbers from version.properties, and append BUILD_NUMBER (set by Jenkins) -->
-    <property name="module.revision.published" value="${module.revision.major}.${module.revision.minor}.${module.revision.revision}-${sys_env.BUILD_NUMBER}" />
-    <property name="module.revision.dev" value="dev" />
+    <property file="${app.config.dir}/version.properties" />
 
     <!-- these imports aren't necessary but eclipse displays errors if they're not here-->
     <import file="deployTargets.xml"/>
     <import file="dbTargets.xml"/>
     <!-- this one is totally necessary, though -->
-    <include file="gitMacros.xml" />
+    <include file="${build-tools.dir.relative}/gitMacros.xml" />
 
+    <property name="ivy.bootstrap.dir" value="${imported.basedir}" />
+    <import file="${build-tools.dir.relative}/ivyTargets.xml" />
 
+    <target name="verify-patch-level-public-api-compatibility"
+            description="Build publishable artifacts and call shared patch-level verification targets"
+            depends="verify-patch-level-changelog-entry, build-app-jars, build-test-jars, java-build-tools-ivy.verify-patch-level-public-api-compatibility"
+    />
 
-    <target name="clean-ivy" depends="clean-ivy-local-repo-jar, clean-ivy-local-repo-web-assets">
-        <delete dir="${ivy.lib.dir}" includeemptydirs="true" failonerror="false" />
-        <delete file="ivysettings.xml"/>
-    </target>
-
-    <target name="clean-ivy-local-repo-jar">
-        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}" includeemptydirs="true" failonerror="false" />
-    </target>
-
-    <target name="clean-ivy-local-repo-web-assets">
-        <delete dir="${ivy.local.repo.dir}/${org.name}/${project.name}-web-assets" includeemptydirs="true" failonerror="false" />
-    </target>
-
-    <target name="init-ivy" depends="ivy-get-settings, ivy-resolve"/>
-
-    <target name="ivy-get-settings" description="--> retrieve ivysettings.xml from server">
-        <ivy:settings id="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-settings.xml" />
-        <ivy:resolve settingsRef="bootstrap-settings" file="${imported.basedir}/bootstrap-ivy-module.xml" />
-        <ivy:retrieve settingsRef="bootstrap-settings" />
-    </target>
-
-    <target name="ivy-resolve" description="--> retrieve dependencies with ivy" depends="ivy-get-settings, ivy-clean-resolution-cache">
-        <ivy:settings id="ivy.settings" file="ivysettings.xml" />
-        <!-- copy artifacts from repo(s) to cache -->
-        <ivy:resolve settingsRef="ivy.settings" file="conf/ivy.xml" />
-        <!-- copy artifacts from cache to destination dir -->
-        <ivy:retrieve settingsRef="ivy.settings" sync="true" overwriteMode="always"/>
-        <mkdir dir="${ivy.report.dir}" />
-        <ivy:report todir="${ivy.report.dir}" xsl="true" xml="true" graph="true" dot="true"/>
+    <target name="ivy-resolve" description="--> retrieve dependencies with ivy" depends="ivy-get-settings, ivy-clean-resolution-cache, java-build-tools-ivy.ivy-resolve">
         <if>
             <isfalse value="${use.eclipse.ivyde.plugin}" />
                 <then>
@@ -66,75 +41,44 @@
                     <arg value="--login"/>
                     <arg value="-i"/>
                     <arg value="-c"/>
-                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/rebuild_eclipse_classpath.py ./conf/eclipse.classpath.header" />
+                    <arg value="cd ${basedir.unix}; python ${app.config.dir}/base/scripts/dev/rebuild_eclipse_classpath.py ${app.config.dir}/eclipse.classpath.header" />
                 </exec>
             </then>
             <else>
                 <exec executable="/usr/bin/python" dir="${basedir}">
-                    <arg value="conf/base/scripts/dev/rebuild_eclipse_classpath.py" />
-                    <arg value="conf/eclipse.classpath.header" />
+                    <arg value="${common.config.dir}/scripts/dev/rebuild_eclipse_classpath.py" />
+                    <arg value="${app.config.dir}/eclipse.classpath.header" />
                 </exec>
             </else>
         </if>
     </target>
 
-
-    <!-- WARNING: Use this with target with caution.
-  
-                  It will delete all caches, including the resolution cache 
-                  as well as the repository cache.
-                  If there are several projects that share the same repository
-                  cache, then deleting it may cause the other projects to
-                  fail unexpectedly.
-    -->
-    <target name="ivy-clean-all-caches">
-        <echo>cleaning ALL ivy caches</echo>
-        <ivy:cleancache />
+    <target name="ivy-publish"
+            description="Run unit tests, build jar/zip files, and publish to ivy"
+            depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+        <publish resolver="ivyrepo"/>
     </target>
 
-    <target name="ivy-clean-resolution-cache" if="update.ivy.dependencies">
-        <delete dir="${ivy.resolution.cache.dir}" />
+    <target name="ivy-publish-only" description="Publish to ivy repo, assuming that all resolution, testing and compilation has already been done"
+            depends="build-app-jars,build-test-jars,zip-web-assets">
+        <publish resolver="ivyrepo" />
     </target>
 
-    <!-- target to set the publication version.  This needs to be at the front of the dependency chain
-	 so that the ivy-resolve before ivy-publish has the same revision as the ivy-publish does.
-    -->
-    <target name="-set-module-publish-version-dev">
-        <propertycopy name="module.revision.published" from="module.revision.dev" override="true" silent="true" />
+    <target name="ivy-publish-dev"
+            description="Run unit tests, build jar/zip files, and publish to local repository"
+            depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
+        <publish resolver="localrepo" />
     </target>
 
-    <target name="ivy-publish" depends="clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
-        <ivy:publish settingsRef="ivy.settings" resolver="ivyrepo"
-            update="true" overwrite="true" forcedeliver="true">
-            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
-        </ivy:publish>
-    </target>
-
-    <target name="ivy-publish-dev" depends="-set-module-publish-version-dev, clean, clean-ivy, init-ivy, checkstyle, test-frontend, test-unit, build-app-jars, build-test-jars, zip-web-assets, ivy-get-settings">
-        <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
-            update="true" overwrite="true" forcedeliver="true">
-            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
-        </ivy:publish>
-    </target>
-
-    <target name="ivy-publish-repeat" depends="-set-module-publish-version-dev, build-app-jars, build-test-jars, zip-web-assets"
+    <target name="ivy-publish-only-dev" depends="build-app-jars, build-test-jars, zip-web-assets"
             description="Run ivy-publish-dev without first running ivy-resolve and tests, to save time and aggravation (only run it after running publish-dev normally once)">
-        <ivy:settings id="ivy.settings" file="ivysettings.xml" />
-
-        <ivy:publish settingsRef="ivy.settings" resolver="localrepo"
-            organisation="${project.organization}"
-            module="${project.name}"
-            revision="${module.revision.dev}"
-            update="true" overwrite="true" forcedeliver="true">
-            <artifacts pattern="${build.artifacts.dir}/[artifact].[ext]" />
-            <artifacts pattern="${build.artifacts.dir}/test/[artifact].[ext]" />
-        </ivy:publish>
+        <publish resolver="localrepo" />
     </target>
 
     <target name="ivy-clean-deploy-steps" depends="clean, ivy-resolve, unzip-web-assets, deploy"/>
 
+
+    <!-- not technically ivy-related -->
     <target name="update-commit-log">
         <!-- set job ID to a placeholder if not actually running in Jenkins (for debugging) -->
         <condition
@@ -164,4 +108,19 @@
         <git-push-to-branch branchname="${git.current.branch}" />
         <echo message="${git.command.output}" />
     </target>
+
+    <target name="fetch-last-published-ivy-file" description="fetch the last-published ivy file, so we can use it to freeze module versions">
+        <ivy:resolve
+            keep="true"
+            inline="true"
+            transitive="false"
+            organisation="${project.organization}"
+            module="${project.name}"
+            branch="future"
+            type=""
+            revision="${publishedRevision}"
+        />
+        <ivy:retrieve ivypattern="ivy-${project.name}-[revision].[ext]" />
+    </target>
+
 </project>
