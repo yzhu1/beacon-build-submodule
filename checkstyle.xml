@@ -91,9 +91,9 @@
 
         <module name="RegexpSinglelineJava">
             <!-- IgnoreDuringSanitization is a different annotation. mwb can't figure out a better way to not match lines with it -->
-            <property name="format" value="@(org\.junit\.)?Ignore(?!DuringSanitization)(?!.+FB.{0,2}\d{6})" />
+            <property name="format" value="@(org\.junit\.)?Ignore(?!DuringSanitization)(?!.+(FB.{0,2}|BEACON[CONT|VIS|TEST]*-)\d{4,6})" />
             <property name="ignoreComments" value="true" />
-            <property name="message" value="Ignored tests must have a FogBugz comment" />
+            <property name="message" value="Ignored tests must have a FogBugz or JIRA comment" />
         </module>
 
         <module name="RegexpSinglelineJava">
