@@ -69,8 +69,8 @@ workspace=$WORKSPACE
 # Set more environment variables
 export ANT_OPTS="-Xms128m -Xmx2048m -XX:MaxPermSize=256m -XX:-UseGCOverheadLimit"
 
-# default to Beacon Stash, but allow overrides
-gitrepobaseurl=${GIT_REPO_BASE_URL:-"git@git.amplify.com:beacon"} # e.g., "git@github.wgen.net:Beacon" for GitHub
+# default to Github, but allow overrides
+gitrepobaseurl=${GIT_REPO_BASE_URL:-"git@github.com:amplifylitco"} # e.g., "git@github.wgen.net:Beacon" for GitHub
 
 # Set the migration testdog if testdogs have been set
 if [ -n "${TESTDOGS+x}" ]
