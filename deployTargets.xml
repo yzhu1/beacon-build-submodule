@@ -9,7 +9,8 @@
     <import file="serverTargets.xml"/>
     <!-- this one is totally necessary, though -->
     <include file="${build-tools.dir.relative}/gitMacros.xml" />
-
+    <property name="duplicate-file-check-script"
+              location="${imported.basedir}/scripts/dev/duplicate-file-check.py"/>
 
     <target name="switchBranchAndRefresh"
     	description="Use with -DbranchName=[NameOfBranchToSwitchTo]">
@@ -35,12 +36,12 @@
                     <arg value="--login"/>
                     <arg value="-i"/>
                     <arg value="-c"/>
-                    <arg value="cd ${basedir.unix}; python ./conf/base/scripts/dev/duplicate-file-check.py ${build.web.assets.unzip.dir}"/>
+                    <arg value="cd ${basedir.unix}; python ${duplicate-file-check-script} ${build.web.assets.unzip.dir}"/>
                 </exec>
             </then>
             <else>
                 <exec executable="/usr/bin/python" dir="${basedir}" failonerror="true">
-                    <arg value="conf/base/scripts/dev/duplicate-file-check.py" />
+                    <arg value="${duplicate-file-check-script}" />
                     <arg value="${build.web.assets.unzip.dir}" />
                 </exec>
             </else>

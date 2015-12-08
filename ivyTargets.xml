@@ -16,6 +16,8 @@
 
     <property name="ivy.bootstrap.dir" value="${imported.basedir}" />
     <import file="${build-tools.dir.relative}/ivyTargets.xml" />
+    <property name="rebuild-classpath-script"
+              location="${imported.basedir}/scripts/dev/rebuild_eclipse_classpath.py" />
 
     <target name="verify-patch-level-public-api-compatibility"
             description="Build publishable artifacts and call shared patch-level verification targets"
@@ -41,12 +43,14 @@
                     <arg value="--login"/>
                     <arg value="-i"/>
                     <arg value="-c"/>
-                    <arg value="cd ${basedir.unix}; python ${app.config.dir}/base/scripts/dev/rebuild_eclipse_classpath.py ${app.config.dir}/eclipse.classpath.header" />
+                    <arg value="cd ${basedir.unix}; python ${rebuild-classpath-script} -r ${app.dir} -i ${ivy.lib.dir} ${app.config.dir}/eclipse.classpath.header" />
                 </exec>
             </then>
             <else>
                 <exec executable="/usr/bin/python" dir="${basedir}">
-                    <arg value="${common.config.dir}/scripts/dev/rebuild_eclipse_classpath.py" />
+                    <arg value="${rebuild-classpath-script}" />
+                    <arg value="-r${app.dir}" />
+                    <arg value="-i${ivy.lib.dir}" />
                     <arg value="${app.config.dir}/eclipse.classpath.header" />
                 </exec>
             </else>

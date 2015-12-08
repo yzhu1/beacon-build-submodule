@@ -15,8 +15,8 @@ import os
 import xml.dom.minidom as minidom
 import re
 
-IVY_LIB = "ivy_lib"
-DEFAULT_HEADER = "conf/base/scripts/dev/eclipse.classpath.header"
+SOURCE_DIR = os.path.dirname(__file__)
+DEFAULT_HEADER = os.path.join(SOURCE_DIR, "eclipse.classpath.header")
 DEBUG = False
 RE_JARNAME = re.compile(r'^([a-z0-9\-]+)\-([0-9\.]+)\.jar$')
 
@@ -60,11 +60,11 @@ def _is_greater_version(v1, v2):
             return False
     return False        
     
-def _find_unique_jars():
+def _find_unique_jars(ivy_lib):
     # TODO: make this elegant, total sprawl right now
     seen_source_jars = {}
     jars_by_version = {}
-    for root, dirs, files in os.walk(IVY_LIB):
+    for root, dirs, files in os.walk(ivy_lib):
         for file in files:
             if file.endswith(".jar") and file.find("-src-") == -1:
                 m = RE_JARNAME.match(file)
@@ -80,7 +80,7 @@ def _find_unique_jars():
                     else:
                         jars_by_version[basename] = version
     
-    for root, dirs, files in os.walk(IVY_LIB):
+    for root, dirs, files in os.walk(ivy_lib):
         for file in files:
             if file.endswith(".jar") and file.find("-src-") > -1:
                 basefile = file.replace("-src-", "-")
@@ -94,7 +94,7 @@ def _find_unique_jars():
     # the same basename as net.sf.json
 
     jars_which_have_multiple_simultaneous_versions = ["json"]
-    for root, dirs, files in os.walk(IVY_LIB):
+    for root, dirs, files in os.walk(ivy_lib):
         for file in files:
             if file.endswith(".jar") and file.find("-src-") == -1:
                 m = RE_JARNAME.match(file)
@@ -116,10 +116,11 @@ def _find_unique_jars():
                     jars.append(jar)
     return jars
     
-def _write_classpathfile(dom):    
+def _write_classpathfile(dom, root_dir="."):
+    classpath_path = os.path.join(root_dir, ".classpath")
     if DEBUG:
-        print "writing to .classpath"        
-    classpathfile = open(".classpath", "w")
+        print "writing to %s" % classpath_path
+    classpathfile = open(classpath_path, "w")
     classpathfile.write(dom.toprettyxml())
     classpathfile.close()
     
@@ -127,7 +128,8 @@ if __name__ == '__main__':
     import optparse
     p = optparse.OptionParser(__doc__)
     p.add_option("-d", "--debug", action="store_true", dest="debug", help="enable debug output")
-    
+    p.add_option("-r", "--root", action="store", type="string", default=".", help="Project root directory")
+    p.add_option("-i", "--ivy-root", action="store", type="string", default="ivy_lib", help="Ivy root directory")
     (opts, args) = p.parse_args()
     
     header = DEFAULT_HEADER
@@ -139,19 +141,20 @@ if __name__ == '__main__':
     DEBUG = opts.debug
     if DEBUG:
         print "rebuilding eclipse classpath using header ", header
+        print "project root is %s and ivy root is %s" % (opts.root, opts.ivy_root)
     header_str = open(header).read()
     header_str += "</classpath>"
     dom = minidom.parseString(header_str)
     _create_missing_directories(dom)
-    jars = _find_unique_jars()
+    jars = _find_unique_jars(opts.ivy_root)
     cpNode= dom.getElementsByTagName("classpath")[0]
     for jar in jars:
         cpEntry = dom.createElement("classpathentry")
         cpEntry.setAttribute("kind", "lib")
-        cpEntry.setAttribute("path", jar.path)
+        cpEntry.setAttribute("path", os.path.relpath(jar.path, opts.root))
         if jar.source_path != None:
-            cpEntry.setAttribute("sourcepath", jar.source_path)
+            cpEntry.setAttribute("sourcepath", os.path.relpath(jar.source_path, opts.root))
         cpNode.appendChild(cpEntry)
-    _write_classpathfile(dom)
+    _write_classpathfile(dom, opts.root)
 
 
