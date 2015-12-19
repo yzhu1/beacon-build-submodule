@@ -123,7 +123,7 @@
         <echo>checking for tests junit won't run because their names are not unique</echo>
         <exec executable="sh" outputproperty="find.output">
             <arg line="-c" />
-            <arg value="(find ivy_lib/compile -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find target/test)|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d" />
+            <arg value="(find ${compile.lib.dir} -name *wgspringcore*integration*jar -exec jar -tf \{} \; ; find ${test.classes.dir})|grep Test.class|xargs -I PATH basename PATH .class|sort|uniq -d" />
         </exec>
         <if>
             <length when="greater" string="${find.output}" trim="true" length="0" />
@@ -296,7 +296,7 @@
                 >
                 <env key="ENV_PROPERTY_PREFIX" value="@{environment}" />
                 <sysproperty key="${common.config.dir.property}" value="${common.config.dir}" />
-                <sysproperty key="${app.config.dir.property}" value="${app.config.dir}"/>
+                <sysproperty key="${app.config.dir.property}" file="${app.config.dir}"/>
                 <sysproperty key="app.freemarker.source.dir" file="${app.freemarker.dir}" />
                 <!-- The specific test method to run -->
                 <sysproperty key="net.wgen.spring.common.test.method" value="${method}" />
