@@ -1,3 +1,6 @@
 [submodule "build-tools"]
 	path = build-tools
 	url = ssh://git@github.com/amplifylitco/java-build-tools.git
+[submodule "java-build-tools"]
+	path = java-build-tools
+	url = https://github.com/amplifylitco/java-build-tools.git
